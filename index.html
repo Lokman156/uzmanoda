@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Profesyonel Görüşme Platformu</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --primary-hover: #5a189a;
+            --pink-light: #FDF2F8;
+            --pink-mid: #FBCFE8;
+            --purple-light: #F3E8FF;
+            --text-dark: #1F2937;
+            --text-muted: #6B7280;
+            --radius-lg: 24px;
+            --radius-md: 12px;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 1);
+            --footer-bg: #11001C; 
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* --- MOBİL YANA KAYMAYI ENGELLEYEN AYAR --- */
+        html, body {
+            overflow-x: hidden; 
+            width: 100%;
+            background-color: #FAFAFA;
+            color: var(--text-dark);
+            scroll-behavior: smooth;
+        }
+
+        /* --- AKICI ARKA PLAN IŞIKLARI --- */
+        .bg-shapes {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.6;
+            animation: float 10s infinite alternate ease-in-out;
+        }
+
+        .blob-1 { width: 500px; height: 500px; background: var(--pink-mid); top: -10%; left: -10%; }
+        .blob-2 { width: 600px; height: 600px; background: var(--purple-light); bottom: -20%; right: -10%; animation-delay: -5s; }
+        .blob-3 { width: 400px; height: 400px; background: #E0AAFF; top: 40%; left: 50%; transform: translate(-50%, -50%); animation-duration: 12s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(40px, 60px) scale(1.1); }
+        }
+
+        /* --- ÜST MENÜ (NAVBAR) --- */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--primary);
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .nav-logo img { height: 40px; width: auto; border-radius: 8px; }
+
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 15px;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover { color: var(--primary); }
+
+        .btn-nav-login {
+            padding: 10px 20px;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-nav-login:hover { background: var(--purple-light); }
+
+        /* --- HERO BÖLÜMÜ --- */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 60px 40px;
+            max-width: 900px;
+            box-shadow: 0 25px 50px -12px rgba(123, 44, 191, 0.15);
+        }
+
+        .hero h1 { font-size: 48px; line-height: 1.2; font-weight: 800; color: var(--text-dark); margin-bottom: 20px; }
+        .hero h1 span { color: var(--primary); }
+        .hero p { font-size: 18px; color: var(--text-muted); max-width: 700px; margin: 0 auto 40px auto; line-height: 1.6; }
+
+        .hero-buttons { display: flex; gap: 16px; justify-content: center; }
+
+        .btn {
+            padding: 16px 32px; border-radius: var(--radius-md); font-size: 16px; font-weight: 700; text-decoration: none; transition: 0.3s; display: flex; align-items: center; gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7B2CBF, #C77DFF); color: white; box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(123, 44, 191, 0.4); }
+
+        .btn-outline { background: white; color: var(--text-dark); border: 1px solid #E5E7EB; }
+        .btn-outline:hover { border-color: var(--pink-mid); background: var(--pink-light); transform: translateY(-3px); }
+
+        /* --- ÖZELLİKLER --- */
+        .section-title { text-align: center; font-size: 32px; font-weight: 800; margin-bottom: 40px; color: var(--text-dark); }
+
+        .features { padding: 80px 5%; background: white; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+
+        .feature-card { background: #FAFAFA; padding: 30px; border-radius: var(--radius-lg); border: 1px solid #F3F4F6; transition: 0.3s; }
+        .feature-card:hover { border-color: var(--pink-mid); box-shadow: 0 10px 30px rgba(123, 44, 191, 0.05); transform: translateY(-5px); }
+
+        .feature-icon {
+            width: 50px; height: 50px; background: var(--purple-light); color: var(--primary);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px;
+        }
+
+        .feature-card h3 { font-size: 20px; margin-bottom: 12px; font-weight: 700; }
+        .feature-card p { color: var(--text-muted); font-size: 15px; line-height: 1.6; }
+
+        /* --- KİMLER İÇİN --- */
+        .audience { padding: 80px 5%; background: var(--pink-light); }
+        .audience-content { display: flex; flex-wrap: wrap; gap: 40px; max-width: 1200px; margin: 0 auto; align-items: center; }
+
+        .audience-text { flex: 1; min-width: 300px; }
+        .audience-text h2 { font-size: 32px; margin-bottom: 20px; font-weight: 800; }
+        .audience-text ul { list-style: none; }
+        .audience-text li { display: flex; align-items: center; gap: 12px; font-size: 17px; margin-bottom: 16px; color: var(--text-dark); font-weight: 500; }
+        .audience-text li i { color: var(--primary); font-size: 24px; }
+
+        .audience-image { flex: 1; min-width: 300px; background: white; padding: 40px; border-radius: var(--radius-lg); text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+
+        /* --- NASIL ÇALIŞIR --- */
+        .how-it-works { padding: 80px 5%; text-align: center; background: white; }
+        .steps-container { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; max-width: 1000px; margin: 0 auto; }
+
+        .step { flex: 1; min-width: 200px; }
+        .step-num {
+            width: 60px; height: 60px; background: var(--primary); color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 800; margin: 0 auto 20px auto; box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3);
+        }
+        .step h3 { margin-bottom: 10px; font-size: 20px; }
+        .step p { color: var(--text-muted); font-size: 15px; }
+
+        /* =========================================
+           PROFESYONEL FOOTER (ALT BİLGİ)
+           ========================================= */
+        footer { background-color: var(--footer-bg); color: #A78BFA; padding: 80px 5% 30px 5%; border-top: 2px solid var(--primary); }
+
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; max-width: 1200px; margin: 0 auto 60px auto; }
+
+        .footer-brand .nav-logo { color: white; margin-bottom: 20px; }
+        .footer-brand p { font-size: 15px; line-height: 1.6; margin-bottom: 24px; color: #9CA3AF; }
+
+        .social-links { display: flex; gap: 12px; }
+        .social-links a {
+            display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%; color: white; text-decoration: none; transition: 0.3s;
+        }
+        .social-links a:hover { background: var(--primary); border-color: var(--primary); transform: translateY(-3px); }
+
+        .footer-col h4 { color: white; font-size: 16px; font-weight: 700; margin-bottom: 24px; letter-spacing: 0.5px; }
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 12px; }
+        .footer-col ul li a { color: #9CA3AF; text-decoration: none; font-size: 15px; transition: 0.3s; }
+        .footer-col ul li a:hover { color: white; padding-left: 5px; }
+
+        .footer-bottom {
+            max-width: 1200px; margin: 0 auto; padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; font-size: 14px; color: #6B7280;
+        }
+
+        .footer-bottom-links a { color: #6B7280; text-decoration: none; margin-left: 20px; transition: 0.3s; }
+        .footer-bottom-links a:hover { color: white; }
+
+        /* =========================================
+           MOBİL UYUMLULUK (RESPONSIVE)
+           ========================================= */
+        @media (max-width: 768px) {
+            .nav-links { display: none; } /* Mobilde üst menü linkleri gizli */
+            .hero { padding: 40px 15px; min-height: auto; }
+            .glass-panel { padding: 40px 20px; border-radius: 16px; }
+            .hero h1 { font-size: 32px; }
+            .hero p { font-size: 16px; }
+            .hero-buttons { flex-direction: column; }
+            .btn { width: 100%; justify-content: center; }
+            .section-title { font-size: 26px; }
+            .features, .how-it-works, .audience { padding: 50px 15px; }
+            
+            .footer-grid { grid-template-columns: 1fr; gap: 30px; }
+            .footer-bottom { flex-direction: column; text-align: center; }
+            .footer-bottom-links a { margin: 0 10px; display: inline-block; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-shapes">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- ÜST MENÜ (GÜNCELLENDİ) -->
+    <header class="navbar">
+        <a href="index.html" class="nav-logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            UzmanOda
+        </a>
+        <div class="nav-links">
+            <a href="#ozellikler" class="nav-link">Özellikler</a>
+            <a href="#nasil-calisir" class="nav-link">Nasıl Çalışır?</a>
+            <a href="hakkimizda.html" class="nav-link">Hakkımızda</a>
+            <a href="iletisim.html" class="nav-link">İletişim</a>
+            <a href="uzman-giris.html" class="btn-nav-login">Uzman Girişi</a>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="glass-panel">
+            <h1>Uzmanınızla <span>Güvenli Odanızda</span> Buluşun</h1>
+            <p>Sitenin arkasındaki karmaşayı unutun. Karmaşık linkler, uygulamalar veya zaman kaybı olmadan; danışanlarınızla doğrudan, tarayıcı üzerinden ve güvenle görüşün.</p>
+            <div class="hero-buttons">
+                <a href="uzman-kayit.html" class="btn btn-primary">
+                    <i class="ph ph-briefcase"></i> Hemen Uzman Ol
+                </a>
+                <a href="danisan-giris.html" class="btn btn-outline">
+                    <i class="ph ph-user"></i> Danışan Girişi
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="ozellikler">
+        <h2 class="section-title">Neden UzmanOda?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="ph ph-video-camera"></i></div>
+                <h3>Süresiz Görüşme</h3>
+                <p>Zoom gibi 40 dakika sınırı yok. Kesintisiz ve yüksek kalitede görüntülü görüşün.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="ph ph-exam"></i></div>
+                <h3>Test Gönderimi</h3>
+                <p>Görüşme sırasında veya dışında danışanlarınıza testler gönderin. Cevapları anında görüntüleyin.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="ph ph-link"></i></div>
+                <h3>Tek Tıkla Oda</h3>
+                <p>Uzmanlar tek tıkla kendi odalarını açar. Danışanlar sadece size ait özel linke tıklayarak görüşmeye katılır.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="ph ph-bell-ringing"></i></div>
+                <h3>Anlık Bildirimler</h3>
+                <p>Danışanlarınıza sistem üzerinden anında bildirim gönderin. Kimse görüşmeyi veya talebi kaçırmasın.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="ph ph-users"></i></div>
+                <h3>Danışan Yönetimi</h3>
+                <p>Geçmiş görüşmeler, gönderilen testler ve kişisel notlar. Tüm danışan verileriniz tek panelde düzenli.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="ph ph-shield-check"></i></div>
+                <h3>Gizlilik & Güvenlik</h3>
+                <p>Görüşmeleriniz en üst düzey gizlilik standartları ile korunur. Verileriniz asla üçüncü şahıslarla paylaşılmaz.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="audience">
+        <div class="audience-content">
+            <div class="audience-text">
+                <h2>Kimler UzmanOda Kullanmalı?</h2>
+                <ul>
+                    <li><i class="ph ph-brain"></i> Psikologlar ve Terapistler</li>
+                    <li><i class="ph ph-scales"></i> Avukatlar ve Danışmanlar</li>
+                    <li><i class="ph ph-graduation-cap"></i> Özel Ders Öğretmenleri</li>
+                    <li><i class="ph ph-dog"></i> Uzaktan Danışmanlık Veren Veterinerler</li>
+                    <li><i class="ph ph-briefcase"></i> Finansal veya Kurumsal Danışmanlar</li>
+                </ul>
+            </div>
+            <div class="audience-image">
+                <i class="ph ph-check-circle" style="font-size: 80px; color: var(--primary); margin-bottom: 20px;"></i>
+                <h3 style="font-size: 24px; margin-bottom: 10px;">Kolay ve Profesyonel</h3>
+                <p style="color: var(--text-muted);">Danışanlarınız uygulama indirmek zorunda kalmaz. Tarayıcıdan anında bağlanır.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works" id="nasil-calisir">
+        <h2 class="section-title">Sadece 3 Adımda Görüşün</h2>
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-num">1</div>
+                <h3>Oda Aç</h3>
+                <p>Uzman paneline giriş yapın ve tek tıkla yeni bir görüşme odası oluşturun.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <h3>Linki Paylaş</h3>
+                <p>Oluşturulan özel linki WhatsApp, SMS veya e-posta ile danışanınıza gönderin.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <h3>Anında Görüşün</h3>
+                <p>Danışanınız linke tıkladığında hiçbir kurulum olmadan görüşmeniz başlar.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROFESYONEL FOOTER (LİNKLER GÜNCELLENDİ) -->
+    <footer>
+        <div class="footer-grid">
+            <!-- Sütun 1: Marka -->
+            <div class="footer-brand">
+                <a href="index.html" class="nav-logo">
+                    <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+                    UzmanOda
+                </a>
+                <p>Türkiye'nin en modern, hızlı ve güvenli online uzman görüşme platformu. Danışanlarınızla aracısız, süresiz ve güvenle buluşun.</p>
+                <div class="social-links">
+                    <a href="#" title="Twitter / X"><i class="ph ph-x-logo"></i></a>
+                    <a href="#" title="Instagram"><i class="ph ph-instagram-logo"></i></a>
+                    <a href="#" title="LinkedIn"><i class="ph ph-linkedin-logo"></i></a>
+                </div>
+            </div>
+
+            <!-- Sütun 2: Platform -->
+            <div class="footer-col">
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="#ozellikler">Özellikler</a></li>
+                    <li><a href="#nasil-calisir">Nasıl Çalışır?</a></li>
+                    <li><a href="uzman-kayit.html">Uzman Ol</a></li>
+                    <li><a href="danisan-kayit.html">Danışan Ol</a></li>
+                </ul>
+            </div>
+
+            <!-- Sütun 3: Kurumsal (Güncellendi) -->
+            <div class="footer-col">
+                <h4>Kurumsal</h4>
+                <ul>
+                    <li><a href="hakkimizda.html">Hakkımızda</a></li>
+                    <li><a href="iletisim.html">İletişim</a></li>
+                    <li><a href="#">Kariyer</a></li>
+                    <li><a href="#">Blog</a></li>
+                </ul>
+            </div>
+
+            <!-- Sütun 4: Yasal (Güncellendi) -->
+            <div class="footer-col">
+                <h4>Yasal</h4>
+                <ul>
+                    <li><a href="yasal.html">KVKK Aydınlatma Metni</a></li>
+                    <li><a href="yasal.html">Gizlilik Politikası</a></li>
+                    <li><a href="yasal.html">Kullanım Şartları</a></li>
+                    <li><a href="yasal.html">Çerez Politikası</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- En Alt Kısım -->
+        <div class="footer-bottom">
+            <p>&copy; 2026 UzmanOda. Tüm hakları saklıdır.</p>
+            <div class="footer-bottom-links">
+                <a href="yasal.html">Gizlilik</a>
+                <a href="yasal.html">Şartlar</a>
+                <a href="yasal.html">Çerezler</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
