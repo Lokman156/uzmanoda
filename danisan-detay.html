@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Danışan Detayı</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --pink-light: #FDF2F8;
+            --purple-light: #F3E8FF;
+            --text-dark: #1F2937;
+            --text-muted: #6B7280;
+            --surface: #FFFFFF;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --radius-lg: 24px;
+            --radius-md: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); display: flex; min-height: 100vh; }
+
+        /* --- SOL MENÜ --- */
+        .sidebar {
+            width: 260px; background: var(--surface); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 24px;
+            position: fixed; height: 100vh; z-index: 100;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; margin-bottom: 40px; }
+        .nav-logo img { height: 36px; border-radius: 8px; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+            color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px;
+            border-radius: var(--radius-md); margin-bottom: 8px; transition: 0.2s;
+        }
+        .nav-link:hover, .nav-link.active { background-color: var(--purple-light); color: var(--primary); }
+        .nav-link i { font-size: 20px; }
+
+        /* --- ANA İÇERİK --- */
+        .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); min-height: 100vh; }
+        .panel-container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+        /* --- ÜST BİLGİ KARTI --- */
+        .profile-card {
+            background: var(--surface); border-radius: var(--radius-lg); padding: 30px;
+            border: 1px solid var(--border); display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        }
+        .profile-avatar {
+            width: 80px; height: 80px; background: var(--purple-light); color: var(--primary);
+            border-radius: 20px; display: flex; align-items: center; justify-content: center;
+            font-size: 32px; font-weight: 800;
+        }
+        .profile-info h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+        .profile-info p { font-size: 14px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        
+        .btn-send-notify {
+            margin-left: auto; background: var(--purple-light); color: var(--primary);
+            border: 1px solid var(--primary); padding: 12px 20px; border-radius: var(--radius-md);
+            font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;
+        }
+        .btn-send-notify:hover { background: var(--primary); color: white; }
+
+        /* --- SEKMELER (TABS) --- */
+        .tabs { display: flex; gap: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+        .tab-btn {
+            background: none; border: none; padding: 12px 24px; font-size: 15px; font-weight: 700;
+            color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s;
+        }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* --- İÇERİK PANELLERİ --- */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .content-box {
+            background: var(--surface); border-radius: var(--radius-lg); padding: 24px;
+            border: 1px solid var(--border); min-height: 300px;
+        }
+
+        /* Test Cevapları Listesi */
+        .test-result-item {
+            border: 1px solid var(--border); border-radius: var(--radius-md);
+            margin-bottom: 16px; overflow: hidden;
+        }
+        .test-result-header {
+            background: #FAFAFA; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border); cursor: pointer;
+        }
+        .test-result-header h4 { font-size: 16px; font-weight: 700; }
+        .test-result-header span { font-size: 13px; color: var(--text-muted); }
+        
+        .test-answers {
+            padding: 20px; display: none; background: white;
+        }
+        .test-answers.open { display: block; }
+        
+        .answer-row {
+            display: flex; justify-content: space-between; padding: 12px 0;
+            border-bottom: 1px dashed var(--border); font-size: 14px;
+        }
+        .answer-row:last-child { border-bottom: none; }
+        .answer-q { color: var(--text-dark); font-weight: 600; max-width: 70%; }
+        .answer-a { color: var(--primary); font-weight: 700; }
+
+        /* Notlar */
+        .notes-area {
+            width: 100%; height: 150px; padding: 16px; border: 1px solid var(--border);
+            border-radius: var(--radius-md); resize: none; outline: none; font-family: inherit; margin-bottom: 16px;
+        }
+        .notes-area:focus { border-color: var(--primary); }
+        .btn-save-notes {
+            background: var(--primary); color: white; border: none; padding: 12px 24px;
+            border-radius: var(--radius-md); font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+        .btn-save-notes:hover { background: #5a189a; }
+
+        /* --- MOBİL UYUMLULUK --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; justify-content: space-between; align-items: center; padding: 15px 20px; border-right: none; border-bottom: 1px solid var(--border); }
+            .nav-logo { margin-bottom: 0; }
+            .nav-link { display: none; }
+            .main-wrapper { margin-left: 0; padding: 20px; }
+            
+            .profile-card { flex-direction: column; text-align: center; }
+            .profile-info p { justify-content: center; }
+            .btn-send-notify { margin: 10px auto 0 auto; width: 100%; justify-content: center; }
+            .answer-row { flex-direction: column; gap: 4px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SOL MENÜ -->
+    <aside class="sidebar">
+        <a href="index.html" class="nav-logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            UzmanOda
+        </a>
+        
+        <div style="display: flex; flex-direction: column; flex: 1;">
+            <a href="uzman-panel.html" class="nav-link">
+                <i class="ph ph-squares-four"></i> Panel
+            </a>
+            <a href="danisanlarim.html" class="nav-link active">
+                <i class="ph ph-users"></i> Danışanlarım
+            </a>
+            <a href="testlerim.html" class="nav-link">
+                <i class="ph ph-exam"></i> Testlerim
+            </a>
+        </div>
+    </aside>
+
+    <!-- ANA İÇERİK -->
+    <main class="main-wrapper">
+        <div class="panel-container">
+            
+            <!-- PROFİL KARTI -->
+            <div class="profile-card">
+                <div class="profile-avatar" id="danisanAvatar">AY</div>
+                <div class="profile-info">
+                    <h1 id="danisanAd">Ayşe Yılmaz</h1>
+                    <p><i class="ph ph-envelope-simple"></i> <span id="danisanEmail">ayse.yilmaz@gmail.com</span></p>
+                    <p><i class="ph ph-phone"></i> <span id="danisanTelefon">0532 123 45 67</span></p>
+                    <p><i class="ph ph-calendar"></i> Kayıt: 2 Nisan 2026</p>
+                </div>
+                <button class="btn-send-notify" onclick="alert('Bildirim gönderme paneli yakında aktif olacak!')">
+                    <i class="ph ph-paper-plane-right"></i> Bildirim Gönder
+                </button>
+            </div>
+
+            <!-- SEKMELER -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="sekmeDegistir('testler', this)">Test Cevapları</button>
+                <button class="tab-btn" onclick="sekmeDegistir('notlar', this)">Özel Notlar</button>
+            </div>
+
+            <!-- TEST CEVAPLARI SEKMESİ -->
+            <div id="tab-testler" class="tab-content active">
+                <div class="content-box">
+                    <h3 style="margin-bottom: 20px; font-size: 18px;">Gönderilen Testler ve Cevaplar</h3>
+
+                    <!-- Test Sonucu 1 -->
+                    <div class="test-result-item">
+                        <div class="test-result-header" onclick="cevaplariAc(this)">
+                            <div>
+                                <h4>Stres Değerlendirme Ölçeği</h4>
+                                <span>Gönderim: 10 Mayıs 2026, 14:30</span>
+                            </div>
+                            <i class="ph ph-caret-down" style="font-size: 20px; color: var(--primary);"></i>
+                        </div>
+                        <div class="test-answers">
+                            <div class="answer-row">
+                                <span class="answer-q">1. Son 1 haftada kendinizi gergin hissettiniz mi?</span>
+                                <span class="answer-a">Sık Sık</span>
+                            </div>
+                            <div class="answer-row">
+                                <span class="answer-q">2. Uykuya dalmakta zorlandınız mı?</span>
+                                <span class="answer-a">Bazen</span>
+                            </div>
+                            <div class="answer-row">
+                                <span class="answer-q">3. Günlük işlerinizi yapmakta zorlandınız mı?</span>
+                                <span class="answer-a">Her Zaman</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test Sonucu 2 -->
+                    <div class="test-result-item">
+                        <div class="test-result-header" onclick="cevaplariAc(this)">
+                            <div>
+                                <h4>Kaygı Tarama Testi</h4>
+                                <span>Gönderim: 5 Mayıs 2026, 09:15</span>
+                            </div>
+                            <i class="ph ph-caret-down" style="font-size: 20px; color: var(--primary);"></i>
+                        </div>
+                        <div class="test-answers">
+                            <div class="answer-row">
+                                <span class="answer-q">1. Kendinizi huzursuz hissediyor musunuz?</span>
+                                <span class="answer-a">Evet</span>
+                            </div>
+                            <div class="answer-row">
+                                <span class="answer-q">2. Endişelenmeyi durduramıyor musunuz?</span>
+                                <span class="answer-a">Bazen</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ÖZEL NOTLAR SEKMESİ -->
+            <div id="tab-notlar" class="tab-content">
+                <div class="content-box">
+                    <h3 style="margin-bottom: 20px; font-size: 18px;">Danışan Hakkında Özel Notlarınız</h3>
+                    <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">Bu notlar sadece sizin tarafınızdan görülebilir. Danışan bu notları göremez.</p>
+                    
+                    <textarea class="notes-area" placeholder="Görüşme notlarınızı buraya yazın..."></textarea>
+                    
+                    <button class="btn-save-notes" onclick="alert('Notlar kaydedildi!')">
+                        <i class="ph ph-floppy-disk"></i> Notları Kaydet
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MOTOR (BASİT ETKİLEŞİMLER) -->
+    <script>
+        // 1. SEKMELER ARASI GEÇİŞ
+        function sekmeDegistir(sekmeId, btn) {
+            // Tüm içerikleri gizle
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Tüm butonların aktifliğini kaldır
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            // Seçileni göster
+            document.getElementById('tab-' + sekmeId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // 2. TEST CEVAPLARINI AÇ / KAPAT (AKORDİYON)
+        function cevaplariAc(headerElement) {
+            const answers = headerElement.nextElementSibling;
+            const icon = headerElement.querySelector('i');
+            
+            if (answers.classList.contains('open')) {
+                answers.classList.remove('open');
+                icon.className = 'ph ph-caret-down';
+            } else {
+                answers.classList.add('open');
+                icon.className = 'ph ph-caret-up';
+            }
+        }
+    </script>
+</body>
+</html>
