@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Danışan Girişi</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --primary-hover: #5a189a;
+            --pink-light: #FDF2F8;
+            --text-dark: #1F2937;
+            --text-muted: #6B7280;
+            --border: #E5E7EB;
+            --radius-lg: 24px;
+            --radius-md: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { overflow-x: hidden; height: 100vh; background: var(--pink-light); display: flex; }
+
+        /* --- SOL TARAF (GÖRSEL) --- */
+        .split-left {
+            flex: 1;
+            background: linear-gradient(135deg, #7B2CBF 0%, #C77DFF 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; padding: 40px; text-align: center;
+        }
+        .split-left img { height: 80px; margin-bottom: 20px; border-radius: 12px; background: white; padding: 5px;}
+        .split-left h1 { font-size: 36px; font-weight: 800; margin-bottom: 10px; }
+        .split-left p { font-size: 16px; opacity: 0.9; }
+
+        /* --- SAĞ TARAF (FORM) --- */
+        .split-right {
+            flex: 1;
+            display: flex; justify-content: center; align-items: center; padding: 40px;
+        }
+        .form-container {
+            width: 100%; max-width: 420px;
+            background: white; padding: 40px;
+            border-radius: var(--radius-lg); box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+        .form-container h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; color: var(--text-dark); }
+        .form-container p { color: var(--text-muted); font-size: 15px; margin-bottom: 30px; }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark); }
+        .input-group input {
+            width: 100%; padding: 14px 16px;
+            border: 1px solid var(--border); border-radius: var(--radius-md);
+            font-size: 15px; outline: none; transition: 0.3s; background: #FAFAFA;
+        }
+        .input-group input:focus { border-color: var(--primary); background: white; }
+        
+        .forgot-password {
+            display: block; text-align: right; font-size: 13px; color: var(--primary);
+            text-decoration: none; font-weight: 600; margin-bottom: 20px;
+        }
+        .forgot-password:hover { text-decoration: underline; }
+
+        .btn-submit {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, #7B2CBF, #C77DFF);
+            color: white; border: none; border-radius: var(--radius-md);
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3); }
+
+        .register-link { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-muted); }
+        .register-link a { color: var(--primary); font-weight: 600; text-decoration: none; }
+
+        /* --- MOBİL UYUMLULUK --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; height: auto; min-height: 100vh; }
+            .split-left { padding: 30px 20px; flex: none; }
+            .split-left h1 { font-size: 28px; }
+            .split-right { padding: 20px; }
+            .form-container { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="split-left">
+        <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+        <h1>Danışan Girişi</h1>
+        <p>Uzmanınızla görüşmek için hesabınıza giriş yapın.</p>
+    </div>
+
+    <div class="split-right">
+        <div class="form-container">
+            <h2>Hoş Geldiniz</h2>
+            <p>Görüşmelerinize kaldığınız yerden devam edin.</p>
+
+            <form id="girisFormu">
+                <div class="input-group">
+                    <label>E-posta</label>
+                    <input type="email" id="email" placeholder="ornek@mail.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Şifre</label>
+                    <input type="password" id="sifre" placeholder="Şifreniz" required>
+                </div>
+
+                <a href="#" class="forgot-password">Şifremi Unuttum</a>
+
+                <button type="submit" class="btn-submit" id="girisBtn">Giriş Yap</button>
+                
+                <div id="hataMesaji" style="color: red; font-size: 14px; margin-top: 15px; display: none; text-align: center;"></div>
+
+                <div class="register-link">
+                    Hesabınız yok mu? <a href="danisan-kayit.html">Kayıt Olun</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- GİRİŞ MOTORU (FIREBASE) -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
+            authDomain: "uzmanoda.firebaseapp.com",
+            projectId: "uzmanoda",
+            storageBucket: "uzmanoda.firebasestorage.app",
+            messagingSenderId: "71880478784",
+            appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        document.getElementById('girisFormu').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            
+            const btn = document.getElementById('girisBtn');
+            const hataDiv = document.getElementById('hataMesaji');
+            hataDiv.style.display = 'none'; 
+            btn.innerText = "Giriş Yapılıyor...";
+            btn.disabled = true;
+
+            const email = document.getElementById('email').value;
+            const sifre = document.getElementById('sifre').value;
+
+            // Firebase ile giriş yap
+            auth.signInWithEmailAndPassword(email, sifre)
+            .then((userCredential) => {
+                // Giriş başarılı, danışan paneline yönlendir
+                window.location.href = "danisan-panel.html";
+            })
+            .catch((error) => {
+                btn.innerText = "Giriş Yap";
+                btn.disabled = false;
+                
+                let mesaj = "Giriş başarısız.";
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') mesaj = "E-posta veya şifre hatalı.";
+                if (error.code === 'auth/invalid-email') mesaj = "Geçersiz e-posta formatı.";
+                
+                hataDiv.innerText = mesaj;
+                hataDiv.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
