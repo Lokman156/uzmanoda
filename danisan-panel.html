@@ -25,32 +25,55 @@
             --danger: #EF4444;
             --radius-lg: 24px;
             --radius-md: 12px;
+            --nav-height: 70px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); display: flex; min-height: 100vh; }
+        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); min-height: 100vh; }
 
-        /* --- SOL MENÜ --- */
+        /* --- ÜST NAVBAR --- */
+        .top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
+            background: var(--surface); border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 24px; z-index: 1000;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
+        .nav-logo img { height: 36px; border-radius: 8px; }
+        
+        .nav-actions { display: flex; align-items: center; gap: 20px; }
+        .user-info-nav { display: flex; align-items: center; gap: 10px; }
+        .avatar-nav { width: 36px; height: 36px; background: var(--purple-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
+        .user-name { font-size: 15px; font-weight: 700; color: var(--text-dark); }
+
+        .btn-logout {
+            display: flex; align-items: center; gap: 6px;
+            background: #FEE2E2; color: var(--danger); border: none;
+            padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .btn-logout:hover { background: var(--danger); color: white; }
+
+        /* --- UYGULAMA GÖVDESİ --- */
+        .app-body { display: flex; margin-top: var(--nav-height); min-height: calc(100vh - var(--nav-height)); }
+
+        /* --- SOL MENÜ (SIDEBAR) --- */
         .sidebar {
             width: 260px; background: var(--surface); border-right: 1px solid var(--border);
             display: flex; flex-direction: column; padding: 24px;
-            position: fixed; height: 100vh; z-index: 100;
+            position: fixed; top: var(--nav-height); bottom: 0; left: 0; z-index: 100;
         }
-        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; margin-bottom: 40px; }
-        .nav-logo img { height: 36px; border-radius: 8px; }
+        .nav-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
         .nav-link {
             display: flex; align-items: center; gap: 12px; padding: 14px 16px;
             color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px;
-            border-radius: var(--radius-md); margin-bottom: 8px; transition: 0.2s;
+            border-radius: var(--radius-md); transition: 0.2s;
         }
-        .nav-link:hover, .nav-link.active { background-color: var(--purple-light); color: var(--primary); }
+        .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--primary); }
         .nav-link i { font-size: 20px; }
-        
-        .user-profile { margin-top: auto; display: flex; align-items: center; gap: 12px; padding-top: 20px; border-top: 1px solid var(--border); }
-        .user-avatar { width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
         /* --- ANA İÇERİK --- */
-        .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); min-height: 100vh; }
+        .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); min-height: calc(100vh - var(--nav-height)); }
         .panel-container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
 
         /* --- HOŞ GELDİN KARTI --- */
@@ -86,7 +109,7 @@
         .section-header h3 { font-size: 18px; font-weight: 800; }
         
         .empty-state { text-align: center; padding: 30px 10px; color: var(--text-muted); }
-        .empty-state i { font-size: 40px; opacity: 0.3; margin-bottom: 10px; }
+        .empty-state i { font-size: 40px; opacity: 0.3; margin-bottom: 10px; display: block; }
 
         /* Bildirim Öğesi */
         .notification-item {
@@ -111,102 +134,115 @@
 
         /* --- MOBİL UYUMLULUK --- */
         @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; justify-content: space-between; align-items: center; padding: 15px 20px; border-right: none; border-bottom: 1px solid var(--border); }
-            .nav-logo { margin-bottom: 0; }
-            .nav-link, .user-profile { display: none; }
-            .main-wrapper { margin-left: 0; padding: 20px; }
+            .top-navbar { padding: 0 15px; }
+            .user-name { display: none; }
+            .btn-logout { padding: 8px 12px; font-size: 13px; }
             
-            .grid-2 { grid-template-columns: 1fr; } /* Alt alta iner */
-            .join-room-card { flex-direction: column; align-items: stretch; }
+            .app-body { flex-direction: column; }
+            .sidebar { 
+                width: 100%; height: 70px; position: fixed; bottom: 0; top: auto; 
+                flex-direction: row; justify-content: space-around; align-items: center; 
+                padding: 10px; border-right: none; border-top: 1px solid var(--border); 
+                z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            }
+            .nav-menu { flex-direction: row; gap: 0; width: 100%; justify-content: space-around; }
+            .nav-link { flex-direction: column; padding: 8px; font-size: 11px; gap: 4px; text-align: center; margin-bottom: 0; }
+            .nav-link i { font-size: 24px; }
+            
+            .main-wrapper { margin-left: 0; padding: 20px; padding-bottom: 90px; }
+            
+            .grid-2 { grid-template-columns: 1fr; }
+            .join-room-card { flex-direction: column; align-items: stretch; text-align: center; }
             .btn-join { justify-content: center; }
         }
     </style>
 </head>
 <body>
 
-    <!-- SOL MENÜ -->
-    <aside class="sidebar">
+    <!-- ÜST NAVBAR -->
+    <header class="top-navbar">
         <a href="index.html" class="nav-logo">
             <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
             UzmanOda
         </a>
+        <div class="nav-actions">
+            <div class="user-info-nav">
+                <div class="avatar-nav" id="profilAvatar">D</div>
+                <span class="user-name" id="profilIsim">Yükleniyor...</span>
+            </div>
+            <button onclick="cikisYap()" class="btn-logout">
+                <i class="ph ph-sign-out"></i> Çıkış Yap
+            </button>
+        </div>
+    </header>
+
+    <!-- UYGULAMA GÖVDESİ -->
+    <div class="app-body">
         
-        <div style="display: flex; flex-direction: column; flex: 1;">
-            <a href="danisan-panel.html" class="nav-link active">
-                <i class="ph ph-squares-four"></i> Panel
-            </a>
-            <a href="#" class="nav-link">
-                <i class="ph ph-clock-counter-clockwise"></i> Geçmiş
-            </a>
-        </div>
-
-        <div class="user-profile">
-            <div class="user-avatar" id="profilAvatar">D</div>
-            <div class="user-info">
-                <h4 id="profilIsim">Yükleniyor...</h4>
-                <p style="font-size: 12px; color: var(--text-muted);">Danışan</p>
+        <!-- SOL MENÜ -->
+        <aside class="sidebar">
+            <div class="nav-menu">
+                <a href="danisan-panel.html" class="nav-link active">
+                    <i class="ph ph-squares-four"></i> Panel
+                </a>
+                <!-- BURASI GÜNCELLENDİ -->
+                <a href="danisan-gecmis.html" class="nav-link">
+                    <i class="ph ph-clock-counter-clockwise"></i> Geçmiş
+                </a>
             </div>
-            <a href="#" onclick="cikisYap()" title="Çıkış Yap" style="margin-left: auto; color: var(--text-muted); text-decoration: none;"><i class="ph ph-sign-out" style="font-size: 20px;"></i></a>
-        </div>
-    </aside>
+        </aside>
 
-    <!-- ANA İÇERİK -->
-    <main class="main-wrapper">
-        <div class="panel-container">
-            
-            <div class="welcome-card">
-                <h1 id="hosgeldinMesaji">Hoş Geldiniz</h1>
-                <p>Uzmanınızdan gelen bildirimleri ve testleri buradan takip edebilirsiniz.</p>
-            </div>
-
-            <!-- ODAYA KATILMA -->
-            <div class="join-room-card">
-                <i class="ph ph-link" style="font-size: 24px; color: var(--primary);"></i>
-                <input type="text" id="odaKoduInput" class="join-input" placeholder="Uzmanınızın verdiği oda kodunu girin (Örn: X7Y9Z1)">
-                <button class="btn-join" onclick="odayaKatil()">
-                    <i class="ph ph-video-camera"></i> Görüşmeye Katıl
-                </button>
-            </div>
-
-            <div class="grid-2">
-                <!-- BİLDİRİMLER -->
-                <div class="section-card">
-                    <div class="section-header">
-                        <h3>Bildirimler</h3>
-                        <i class="ph ph-bell" style="font-size: 20px; color: var(--text-muted);"></i>
-                    </div>
-                    <div id="bildirimAlani">
-                        <!-- Örnek Bildirim (Firebase bağlanınca dinamik olacak) -->
-                        <div class="notification-item">
-                            <h4>Sisteme Hoş Geldiniz!</h4>
-                            <p>Uzmanınız size bir görüşme linki gönderdiğinde burada görünecektir.</p>
-                            <span>Şimdi</span>
-                        </div>
-                    </div>
+        <!-- ANA İÇERİK -->
+        <main class="main-wrapper">
+            <div class="panel-container">
+                
+                <div class="welcome-card">
+                    <h1 id="hosgeldinMesaji">Hoş Geldiniz</h1>
+                    <p>Uzmanınızdan gelen bildirimleri ve testleri buradan takip edebilirsiniz.</p>
                 </div>
 
-                <!-- TESTLER -->
-                <div class="section-card">
-                    <div class="section-header">
-                        <h3>Testlerim</h3>
-                        <i class="ph ph-exam" style="font-size: 20px; color: var(--text-muted);"></i>
-                    </div>
-                    <div id="testAlani">
-                        <!-- Örnek Test -->
-                        <div class="test-item">
-                            <div>
-                                <h4>Stres Değerlendirme Testi</h4>
-                                <p style="font-size: 12px; color: var(--text-muted);">Gönderen: Dr. Ayşe</p>
+                <!-- ODAYA KATILMA -->
+                <div class="join-room-card">
+                    <i class="ph ph-link" style="font-size: 24px; color: var(--primary);"></i>
+                    <input type="text" id="odaKoduInput" class="join-input" placeholder="Uzmanınızın verdiği oda kodunu girin (Örn: X7Y9Z1)">
+                    <button class="btn-join" onclick="odayaKatil()">
+                        <i class="ph ph-video-camera"></i> Görüşmeye Katıl
+                    </button>
+                </div>
+
+                <div class="grid-2">
+                    <!-- BİLDİRİMLER -->
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3>Bildirimler</h3>
+                            <i class="ph ph-bell" style="font-size: 20px; color: var(--text-muted);"></i>
+                        </div>
+                        <div id="bildirimAlani">
+                            <div class="empty-state">
+                                <i class="ph ph-spinner ph-spin"></i>
+                                <p>Yükleniyor...</p>
                             </div>
-                            <button class="btn-solve" onclick="alert('Test çözme ekranı yakında eklenecek!')">Çöz</button>
+                        </div>
+                    </div>
+
+                    <!-- TESTLER -->
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3>Testlerim</h3>
+                            <i class="ph ph-exam" style="font-size: 20px; color: var(--text-muted);"></i>
+                        </div>
+                        <div id="testAlani">
+                            <div class="empty-state">
+                                <i class="ph ph-spinner ph-spin"></i>
+                                <p>Yükleniyor...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-        </div>
-    </main>
+            </div>
+        </main>
+    </div>
 
     <!-- MOTOR (FIREBASE) -->
     <script>
@@ -222,11 +258,13 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        let aktifDanisanId = null;
 
         // 1. GÜVENLİK DUVARI VE KULLANICIYI TANIMA
         auth.onAuthStateChanged((user) => {
             if (user) {
-                // Veritabanından danışanın adını çek
+                aktifDanisanId = user.uid;
+                
                 db.collection('danisanlar').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const data = doc.data();
@@ -236,24 +274,101 @@
                         document.getElementById('hosgeldinMesaji').innerText = "Hoş Geldiniz, " + data.isim;
                     }
                 });
+
+                bildirimleriYukle();
+                testleriYukle();
+
             } else {
-                // Giriş yapılmamışsa giriş sayfasına at
                 window.location.href = "danisan-giris.html";
             }
         });
 
-        // 2. ODAYA KATILMA MANTIĞI
+        // 2. BİLDİRİMLERİ ÇEK
+        function bildirimleriYukle() {
+            const container = document.getElementById('bildirimAlani');
+            
+            db.collection('bildirimler')
+                .where('aliciId', '==', aktifDanisanId)
+                .orderBy('tarih', 'desc')
+                .limit(5)
+                .onSnapshot((snapshot) => {
+                    container.innerHTML = "";
+                    
+                    if (snapshot.empty) {
+                        container.innerHTML = `<div class="empty-state">
+                            <i class="ph ph-bell-slash"></i>
+                            <p>Henüz bir bildiriminiz yok.</p>
+                        </div>`;
+                        return;
+                    }
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        let tarihStr = "Yeni";
+                        if(data.tarih) {
+                            tarihStr = data.tarih.toDate().toLocaleDateString('tr-TR', { hour: '2-digit', minute:'2-digit' });
+                        }
+
+                        container.innerHTML += `
+                            <div class="notification-item">
+                                <h4>${data.baslik}</h4>
+                                <p>${data.mesaj}</p>
+                                <span>${tarihStr}</span>
+                            </div>
+                        `;
+                    });
+                });
+        }
+
+        // 3. TESTLERİ ÇEK
+        function testleriYukle() {
+            const container = document.getElementById('testAlani');
+            
+            db.collection('testGonderimleri')
+                .where('danisanId', '==', aktifDanisanId)
+                .where('durum', '==', 'bekliyor')
+                .onSnapshot((snapshot) => {
+                    container.innerHTML = "";
+
+                    if (snapshot.empty) {
+                        container.innerHTML = `<div class="empty-state">
+                            <i class="ph ph-check-circle" style="color: var(--success);"></i>
+                            <p>Bekleyen testiniz bulunmuyor.</p>
+                        </div>`;
+                        return;
+                    }
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        container.innerHTML += `
+                            <div class="test-item">
+                                <div>
+                                    <h4>${data.testBaslik}</h4>
+                                    <p style="font-size: 12px; color: var(--text-muted);">Uzmanınız tarafından gönderildi</p>
+                                </div>
+                                <button class="btn-solve" onclick="testCoz('${doc.id}', '${data.testId}')">Çöz</button>
+                            </div>
+                        `;
+                    });
+                });
+        }
+
+        // 4. TEST ÇÖZME EKRANINA GİT
+        function testCoz(gonderimId, testId) {
+            window.location.href = `test-coz.html?test=${testId}&gonderim=${gonderimId}`;
+        }
+
+        // 5. ODAYA KATILMA MANTIĞI
         function odayaKatil() {
             const kod = document.getElementById('odaKoduInput').value.trim().toUpperCase();
             if(kod.length > 0) {
-                // Kodu URL parametresi olarak gorusme odasina gönder
                 window.location.href = "gorusme-odasi.html?oda=" + kod;
             } else {
                 alert("Lütfen bir oda kodu girin.");
             }
         }
 
-        // 3. ÇIKIŞ YAPMA
+        // 6. ÇIKIŞ YAPMA
         function cikisYap() {
             auth.signOut().then(() => {
                 window.location.href = "index.html";
