@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Geçmiş Görüşmeler</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --pink-light: #FDF2F8;
+            --purple-light: #F3E8FF;
+            --text-dark: #1F2937;
+            --text-muted: #6B7280;
+            --surface: #FFFFFF;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --danger: #EF4444;
+            --radius-lg: 24px;
+            --radius-md: 12px;
+            --nav-height: 70px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); min-height: 100vh; }
+
+        /* --- ÜST NAVBAR --- */
+        .top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
+            background: var(--surface); border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 24px; z-index: 1000;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
+        .nav-logo img { height: 36px; border-radius: 8px; }
+        
+        .nav-actions { display: flex; align-items: center; gap: 20px; }
+        .user-info-nav { display: flex; align-items: center; gap: 10px; }
+        .avatar-nav { width: 36px; height: 36px; background: var(--purple-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
+        .user-name { font-size: 15px; font-weight: 700; color: var(--text-dark); }
+
+        .btn-logout {
+            display: flex; align-items: center; gap: 6px;
+            background: #FEE2E2; color: var(--danger); border: none;
+            padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .btn-logout:hover { background: var(--danger); color: white; }
+
+        /* --- UYGULAMA GÖVDESİ --- */
+        .app-body { display: flex; margin-top: var(--nav-height); min-height: calc(100vh - var(--nav-height)); }
+
+        /* --- SOL MENÜ (SIDEBAR) --- */
+        .sidebar {
+            width: 260px; background: var(--surface); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 24px;
+            position: fixed; top: var(--nav-height); bottom: 0; left: 0; z-index: 100;
+        }
+        .nav-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+            color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px;
+            border-radius: var(--radius-md); transition: 0.2s;
+        }
+        .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--primary); }
+        .nav-link i { font-size: 20px; }
+
+        /* --- ANA İÇERİK --- */
+        .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); min-height: calc(100vh - var(--nav-height)); }
+        .panel-container { max-width: 1000px; margin: 0 auto; }
+        
+        .page-header { margin-bottom: 30px; }
+        .page-title h1 { font-size: 28px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; }
+        .page-title p { color: var(--text-muted); font-size: 15px; }
+
+        /* --- GEÇMİŞ LİSTESİ --- */
+        .history-container { display: flex; flex-direction: column; gap: 16px; }
+        
+        .history-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: 0.2s;
+        }
+        .history-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(123, 44, 191, 0.05); }
+        
+        .history-info { display: flex; align-items: center; gap: 16px; }
+        .history-icon { 
+            width: 50px; height: 50px; background: var(--purple-light); color: var(--primary); 
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; 
+        }
+        .history-details h4 { font-size: 16px; color: var(--text-dark); font-weight: 700; margin-bottom: 4px; }
+        .history-details p { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 12px; }
+        
+        .history-meta { text-align: right; }
+        .history-meta .date { font-size: 14px; font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 4px; }
+        .history-meta .duration { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+        
+        .status-badge { 
+            background: #D1FAE5; color: var(--success); padding: 6px 12px; 
+            border-radius: 20px; font-size: 12px; font-weight: 700; margin-left: 20px;
+        }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); background: var(--surface); border-radius: var(--radius-lg); border: 1px dashed var(--border); }
+        .empty-state i { font-size: 50px; opacity: 0.3; margin-bottom: 15px; display: block; }
+
+        /* --- MOBİL UYUMLULUK --- */
+        @media (max-width: 768px) {
+            .top-navbar { padding: 0 15px; }
+            .user-name { display: none; }
+            .btn-logout { padding: 8px 12px; font-size: 13px; }
+            
+            .app-body { flex-direction: column; }
+            .sidebar { 
+                width: 100%; height: 70px; position: fixed; bottom: 0; top: auto; 
+                flex-direction: row; justify-content: space-around; align-items: center; 
+                padding: 10px; border-right: none; border-top: 1px solid var(--border); 
+                z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            }
+            .nav-menu { flex-direction: row; gap: 0; width: 100%; justify-content: space-around; }
+            .nav-link { flex-direction: column; padding: 8px; font-size: 11px; gap: 4px; text-align: center; margin-bottom: 0; }
+            .nav-link i { font-size: 24px; }
+            
+            .main-wrapper { margin-left: 0; padding: 20px; padding-bottom: 90px; }
+            
+            .history-card { flex-direction: column; align-items: flex-start; gap: 16px; }
+            .history-meta { text-align: left; width: 100%; display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border); padding-top: 12px; }
+            .status-badge { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ÜST NAVBAR -->
+    <header class="top-navbar">
+        <a href="index.html" class="nav-logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            UzmanOda
+        </a>
+        <div class="nav-actions">
+            <div class="user-info-nav">
+                <div class="avatar-nav" id="profilAvatar">U</div>
+                <span class="user-name" id="profilIsim">Yükleniyor...</span>
+            </div>
+            <button onclick="cikisYap()" class="btn-logout">
+                <i class="ph ph-sign-out"></i> Çıkış Yap
+            </button>
+        </div>
+    </header>
+
+    <!-- UYGULAMA GÖVDESİ -->
+    <div class="app-body">
+        
+        <!-- SOL MENÜ -->
+        <aside class="sidebar">
+            <div class="nav-menu">
+                <a href="uzman-panel.html" class="nav-link">
+                    <i class="ph ph-squares-four"></i> Panel
+                </a>
+                <a href="danisanlarim.html" class="nav-link">
+                    <i class="ph ph-users"></i> Danışanlarım
+                </a>
+                <a href="testlerim.html" class="nav-link">
+                    <i class="ph ph-exam"></i> Testlerim
+                </a>
+                <a href="gecmis.html" class="nav-link active">
+                    <i class="ph ph-clock-counter-clockwise"></i> Geçmiş
+                </a>
+            </div>
+        </aside>
+
+        <!-- ANA İÇERİK -->
+        <main class="main-wrapper">
+            <div class="panel-container">
+                
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Geçmiş Görüşmeler</h1>
+                        <p>Daha önce danışanlarınızla yaptığınız tüm görüşmelerin kaydı.</p>
+                    </div>
+                </div>
+
+                <!-- GEÇMİŞ LİSTESİ -->
+                <div class="history-container" id="gecmisListesi">
+                    <div class="empty-state">
+                        <i class="ph ph-spinner ph-spin"></i>
+                        <p>Geçmiş görüşmeler yükleniyor...</p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MOTOR (GERÇEK FIREBASE ENTEGRASYONU) -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
+            authDomain: "uzmanoda.firebaseapp.com",
+            projectId: "uzmanoda",
+            storageBucket: "uzmanoda.firebasestorage.app",
+            messagingSenderId: "71880478784",
+            appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let aktifUzmanId = null;
+        let unsubGecmis = null;
+
+        // 1. GÜVENLİK DUVARI VE PROFİL
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                aktifUzmanId = user.uid;
+                
+                db.collection('uzmanlar').doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        document.getElementById('profilIsim').innerText = data.isim;
+                        document.getElementById('profilAvatar').innerText = data.isim.charAt(0).toUpperCase();
+                    }
+                });
+
+                gecmisiYukle();
+
+            } else {
+                window.location.href = "uzman-giris.html";
+            }
+        });
+
+        // 2. GEÇMİŞ GÖRÜŞMELERİ VERİTABANINDAN ÇEK
+        function gecmisiYukle() {
+            if (unsubGecmis) unsubGecmis();
+
+            // Görüşmeler koleksiyonundan bu uzmana ait olanları çek
+            // Not: Görüşme bittiğinde veritabanına 'durum: bitti' ve 'sure' gibi bilgileri kaydetmeliyiz.
+            unsubGecmis = db.collection('gorusmeler')
+                .where('uzmanId', '==', aktifUzmanId)
+                .onSnapshot((snapshot) => {
+                    const container = document.getElementById('gecmisListesi');
+                    container.innerHTML = "";
+
+                    if (snapshot.empty) {
+                        container.innerHTML = `<div class="empty-state">
+                            <i class="ph ph-clock-counter-clockwise"></i>
+                            <p>Henüz geçmiş bir görüşmeniz bulunmuyor.</p>
+                        </div>`;
+                        return;
+                    }
+
+                    // Tarihe göre sırala (en yeniden eskiye)
+                    const gorusmeler = [];
+                    snapshot.forEach(doc => {
+                        gorusmeler.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    gorusmeler.sort((a, b) => {
+                        const tA = a.olusturmaTarihi ? a.olusturmaTarihi.toMillis() : 0;
+                        const tB = b.olusturmaTarihi ? b.olusturmaTarihi.toMillis() : 0;
+                        return tB - tA;
+                    });
+
+                    gorusmeler.forEach(gorusme => {
+                        // Tarih formatlama
+                        let tarihStr = "Bilinmiyor";
+                        if(gorusme.olusturmaTarihi) {
+                            tarihStr = gorusme.olusturmaTarihi.toDate().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+                        }
+
+                        const danisanIsim = gorusme.danisanIsim || "Danışan";
+                        const sure = gorusme.sure || "Bilinmiyor";
+                        const kod = gorusme.odaKodu || gorusme.id.substring(0,6).toUpperCase();
+
+                        const card = document.createElement('div');
+                        card.className = 'history-card';
+                        card.innerHTML = `
+                            <div class="history-info">
+                                <div class="history-icon"><i class="ph ph-video-camera"></i></div>
+                                <div class="history-details">
+                                    <h4>${danisanIsim} ile Görüşme</h4>
+                                    <p><i class="ph ph-hash"></i> Oda: ${kod}</p>
+                                </div>
+                            </div>
+                            <div class="history-meta">
+                                <span class="date">${tarihStr}</span>
+                                <span class="duration"><i class="ph ph-timer"></i> ${sure}</span>
+                            </div>
+                            <div class="status-badge">Tamamlandı</div>
+                        `;
+                        container.appendChild(card);
+                    });
+
+                }, (error) => {
+                    console.error("Geçmiş yükleme hatası:", error);
+                });
+        }
+
+        // 3. ÇIKIŞ YAP
+        function cikisYap() {
+            auth.signOut().then(() => {
+                window.location.href = "index.html";
+            });
+        }
+    </script>
+</body>
+</html>
