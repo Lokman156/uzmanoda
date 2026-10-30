@@ -23,33 +23,59 @@
             --surface: #FFFFFF;
             --border: #E5E7EB;
             --success: #10B981;
+            --danger: #EF4444;
             --radius-lg: 24px;
             --radius-md: 12px;
+            --nav-height: 70px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); display: flex; min-height: 100vh; }
+        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); min-height: 100vh; }
 
-        /* --- SOL MENÜ --- */
+        /* --- ÜST NAVBAR --- */
+        .top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
+            background: var(--surface); border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 24px; z-index: 1000;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
+        .nav-logo img { height: 36px; border-radius: 8px; }
+        
+        .nav-actions { display: flex; align-items: center; gap: 20px; }
+        
+        .user-info-nav { display: flex; align-items: center; gap: 10px; }
+        .avatar-nav { width: 36px; height: 36px; background: var(--purple-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
+        .user-name { font-size: 15px; font-weight: 700; color: var(--text-dark); }
+
+        .btn-logout {
+            display: flex; align-items: center; gap: 6px;
+            background: #FEE2E2; color: var(--danger); border: none;
+            padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .btn-logout:hover { background: var(--danger); color: white; }
+
+        /* --- UYGULAMA GÖVDESİ --- */
+        .app-body { display: flex; margin-top: var(--nav-height); min-height: calc(100vh - var(--nav-height)); }
+
+        /* --- SOL MENÜ (SIDEBAR) --- */
         .sidebar {
             width: 260px; background: var(--surface); border-right: 1px solid var(--border);
             display: flex; flex-direction: column; padding: 24px;
-            position: fixed; height: 100vh; z-index: 100;
+            position: fixed; top: var(--nav-height); bottom: 0; left: 0; z-index: 100;
         }
-        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; margin-bottom: 40px; }
-        .nav-logo img { height: 36px; border-radius: 8px; }
+        .nav-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
         .nav-link {
             display: flex; align-items: center; gap: 12px; padding: 14px 16px;
             color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px;
-            border-radius: var(--radius-md); margin-bottom: 8px; transition: 0.2s;
+            border-radius: var(--radius-md); transition: 0.2s;
         }
-        .nav-link:hover, .nav-link.active { background-color: var(--purple-light); color: var(--primary); }
+        .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--primary); }
         .nav-link i { font-size: 20px; }
-        .user-profile { margin-top: auto; display: flex; align-items: center; gap: 12px; padding-top: 20px; border-top: 1px solid var(--border); }
-        .user-avatar { width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
         /* --- ANA İÇERİK --- */
-        .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); min-height: 100vh; }
+        .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); min-height: calc(100vh - var(--nav-height)); }
         .panel-container { max-width: 1100px; margin: 0 auto; }
         
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
@@ -65,11 +91,7 @@
         .btn-add:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(123, 44, 191, 0.4); }
 
         /* --- TEST KARTLARI (GRID) --- */
-        .test-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-        }
+        .test-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
 
         .test-card {
             background: var(--surface); border: 1px solid var(--border);
@@ -86,17 +108,27 @@
         .test-card h3 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
         .test-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; flex: 1; }
         
-        .test-meta { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 16px; }
+        .test-meta { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 16px; margin-bottom: 16px; }
         .test-meta span { font-size: 13px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px; }
         
-        .btn-edit { background: transparent; border: none; color: var(--primary); font-weight: 700; cursor: pointer; font-size: 14px; }
-        .btn-edit:hover { text-decoration: underline; }
+        .card-actions { display: flex; gap: 8px; }
+        .btn-action {
+            flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 700; font-size: 13px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;
+        }
+        .btn-send-test { background: var(--purple-light); color: var(--primary); }
+        .btn-send-test:hover { background: #E0AAFF; }
+        .btn-del-test { background: #FEE2E2; color: var(--danger); flex: 0 0 40px; }
+        .btn-del-test:hover { background: #FCA5A5; color: white; }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); background: var(--surface); border-radius: var(--radius-lg); border: 1px dashed var(--border); grid-column: 1 / -1; }
+        .empty-state i { font-size: 50px; opacity: 0.3; margin-bottom: 15px; display: block; }
 
         /* --- MODAL (TEST OLUŞTURMA) --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-            display: none; align-items: flex-start; justify-content: center; z-index: 1000;
+            display: none; align-items: flex-start; justify-content: center; z-index: 2000;
             padding: 40px 20px; overflow-y: auto;
         }
         .modal-overlay.active { display: flex; }
@@ -111,10 +143,7 @@
         
         .input-group { margin-bottom: 16px; }
         .input-group label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
-        .modal-input {
-            width: 100%; padding: 12px 16px; border: 1px solid var(--border);
-            border-radius: var(--radius-md); outline: none; font-size: 15px;
-        }
+        .modal-input { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); outline: none; font-size: 15px; }
         .modal-input:focus { border-color: var(--primary); }
 
         /* Soru Ekleme Alanı */
@@ -122,9 +151,7 @@
             background: #FAFAFA; border: 1px dashed var(--border); padding: 20px;
             border-radius: var(--radius-md); margin-bottom: 16px; position: relative;
         }
-        .btn-remove-q { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #EF4444; cursor: pointer; font-size: 18px; }
-        
-        .option-input-wrapper { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-remove-q { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 18px; }
         
         .btn-add-q {
             width: 100%; padding: 12px; background: var(--purple-light); color: var(--primary);
@@ -138,12 +165,22 @@
 
         /* --- MOBİL UYUMLULUK --- */
         @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; justify-content: space-between; align-items: center; padding: 15px 20px; border-right: none; border-bottom: 1px solid var(--border); }
-            .nav-logo { margin-bottom: 0; }
-            .nav-link, .user-profile { display: none; }
-            .main-wrapper { margin-left: 0; padding: 20px; }
+            .top-navbar { padding: 0 15px; }
+            .user-name { display: none; }
+            .btn-logout { padding: 8px 12px; font-size: 13px; }
             
+            .app-body { flex-direction: column; }
+            .sidebar { 
+                width: 100%; height: 70px; position: fixed; bottom: 0; top: auto; 
+                flex-direction: row; justify-content: space-around; align-items: center; 
+                padding: 10px; border-right: none; border-top: 1px solid var(--border); 
+                z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            }
+            .nav-menu { flex-direction: row; gap: 0; width: 100%; justify-content: space-around; }
+            .nav-link { flex-direction: column; padding: 8px; font-size: 11px; gap: 4px; text-align: center; margin-bottom: 0; }
+            .nav-link i { font-size: 24px; }
+            
+            .main-wrapper { margin-left: 0; padding: 20px; padding-bottom: 90px; }
             .page-header { flex-direction: column; align-items: flex-start; }
             .btn-add { width: 100%; justify-content: center; }
         }
@@ -151,60 +188,71 @@
 </head>
 <body>
 
-    <!-- SOL MENÜ -->
-    <aside class="sidebar">
+    <!-- ÜST NAVBAR -->
+    <header class="top-navbar">
         <a href="index.html" class="nav-logo">
             <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
             UzmanOda
         </a>
+        <div class="nav-actions">
+            <div class="user-info-nav">
+                <div class="avatar-nav" id="profilAvatar">U</div>
+                <span class="user-name" id="profilIsim">Yükleniyor...</span>
+            </div>
+            <button onclick="cikisYap()" class="btn-logout">
+                <i class="ph ph-sign-out"></i> Çıkış Yap
+            </button>
+        </div>
+    </header>
+
+    <!-- UYGULAMA GÖVDESİ -->
+    <div class="app-body">
         
-        <div style="display: flex; flex-direction: column; flex: 1;">
-            <a href="uzman-panel.html" class="nav-link">
-                <i class="ph ph-squares-four"></i> Panel
-            </a>
-            <a href="danisanlarim.html" class="nav-link">
-                <i class="ph ph-users"></i> Danışanlarım
-            </a>
-            <a href="testlerim.html" class="nav-link active">
-                <i class="ph ph-exam"></i> Testlerim
-            </a>
-        </div>
-
-        <div class="user-profile">
-            <div class="user-avatar" id="profilAvatar">U</div>
-            <div class="user-info">
-                <h4 id="profilIsim">Yükleniyor...</h4>
+        <!-- SOL MENÜ -->
+        <aside class="sidebar">
+            <div class="nav-menu">
+                <a href="uzman-panel.html" class="nav-link">
+                    <i class="ph ph-squares-four"></i> Panel
+                </a>
+                <a href="danisanlarim.html" class="nav-link">
+                    <i class="ph ph-users"></i> Danışanlarım
+                </a>
+                <a href="testlerim.html" class="nav-link active">
+                    <i class="ph ph-exam"></i> Testlerim
+                </a>
+                <a href="gecmis.html" class="nav-link">
+                    <i class="ph ph-clock-counter-clockwise"></i> Geçmiş
+                </a>
             </div>
-        </div>
-    </aside>
+        </aside>
 
-    <!-- ANA İÇERİK -->
-    <main class="main-wrapper">
-        <div class="panel-container">
-            
-            <div class="page-header">
-                <div class="page-title">
-                    <h1>Testlerim</h1>
-                    <p>Danışanlarınıza göndermek için testler oluşturun ve yönetin.</p>
+        <!-- ANA İÇERİK -->
+        <main class="main-wrapper">
+            <div class="panel-container">
+                
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Testlerim</h1>
+                        <p>Danışanlarınıza göndermek için testler oluşturun ve yönetin.</p>
+                    </div>
+                    <button class="btn-add" onclick="modalAc()">
+                        <i class="ph ph-plus"></i> Yeni Test Oluştur
+                    </button>
                 </div>
-                <button class="btn-add" onclick="modalAc()">
-                    <i class="ph ph-plus"></i> Yeni Test Oluştur
-                </button>
-            </div>
 
-            <!-- TEST LİSTESİ -->
-            <div class="test-grid" id="testListesi">
-                <!-- JS ile burası dolacak -->
-                <div style="text-align: center; padding: 40px; color: var(--text-muted); grid-column: 1 / -1;">
-                    <i class="ph ph-spinner ph-spin" style="font-size: 32px; margin-bottom: 10px;"></i>
-                    <p>Testler yükleniyor...</p>
+                <!-- TEST LİSTESİ -->
+                <div class="test-grid" id="testListesi">
+                    <div class="empty-state">
+                        <i class="ph ph-spinner ph-spin"></i>
+                        <p>Testler yükleniyor...</p>
+                    </div>
                 </div>
+
             </div>
+        </main>
+    </div>
 
-        </div>
-    </main>
-
-    <!-- YENİ TEST OLUŞTURMA MODALI -->
+    <!-- TEST OLUŞTURMA MODALI -->
     <div class="modal-overlay" id="testModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -224,19 +272,36 @@
 
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
 
-            <div id="sorularAlani">
-                <!-- Sorular buraya eklenecek -->
-            </div>
+            <div id="sorularAlani"></div>
 
             <button class="btn-add-q" onclick="soruEkle()">
                 <i class="ph ph-plus"></i> Yeni Soru Ekle
             </button>
 
-            <button class="btn-save" onclick="testiKaydet()">Testi Kaydet</button>
+            <button class="btn-save" id="kaydetBtn" onclick="testiKaydet()">Testi Kaydet</button>
         </div>
     </div>
 
-    <!-- MOTOR (FIREBASE VE MANTIK) -->
+    <!-- TEST GÖNDERME MODALI -->
+    <div class="modal-overlay" id="gonderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Testi Gönder</h3>
+                <button class="modal-close" onclick="gonderModalKapat()">&times;</button>
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Bu testi göndermek istediğiniz danışanı seçin.</p>
+            
+            <div class="input-group">
+                <select id="gonderilecekDanisan" class="modal-input">
+                    <option value="">Danışan seçin...</option>
+                </select>
+            </div>
+
+            <button class="btn-save" onclick="testGonder()">Danışana Gönder</button>
+        </div>
+    </div>
+
+    <!-- MOTOR (GERÇEK FIREBASE ENTEGRASYONU) -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
@@ -252,11 +317,15 @@
         const db = firebase.firestore();
 
         let aktifUzmanId = null;
+        let unsubTestler = null;
+        let testListesiGlobal = [];
+        let gonderilecekTestId = null;
 
-        // 1. GÜVENLİK DUVARI
+        // 1. GÜVENLİK DUVARI VE PROFİL
         auth.onAuthStateChanged((user) => {
             if (user) {
                 aktifUzmanId = user.uid;
+                
                 db.collection('uzmanlar').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const data = doc.data();
@@ -264,60 +333,98 @@
                         document.getElementById('profilAvatar').innerText = data.isim.charAt(0).toUpperCase();
                     }
                 });
-                testleriYukle();
+
+                testleriDinle();
+
             } else {
                 window.location.href = "uzman-giris.html";
             }
         });
 
-        // 2. TESTLERİ YÜKLE (Şimdilik temsili veriler)
-        function testleriYukle() {
-            const temsiliTestler = [
-                { id: "t1", baslik: "Stres Değerlendirme Ölçeği", aciklama: "Son 1 haftadaki stres durumunuzu ölçer.", soruSayisi: 5 },
-                { id: "t2", baslik: "Kaygı Tarama Testi", aciklama: "Genel kaygı seviyesi belirleme.", soruSayisi: 8 }
-            ];
-            listeyiCiz(temsiliTestler);
+        // 2. TESTLERİ CANLI DİNLE
+        function testleriDinle() {
+            if (unsubTestler) unsubTestler();
+
+            unsubTestler = db.collection('testler')
+                .where('uzmanId', '==', aktifUzmanId)
+                .onSnapshot((snapshot) => {
+                    testListesiGlobal = [];
+                    snapshot.forEach((doc) => {
+                        testListesiGlobal.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+                    testleriCiz(testListesiGlobal);
+                }, (error) => {
+                    console.error("Test dinleme hatası:", error);
+                });
         }
 
-        // 3. LİSTEYİ EKRANA ÇİZME
-        function listeyiCiz(liste) {
+        // 3. TESTLERİ EKRANA ÇİZ
+        function testleriCiz(liste) {
             const container = document.getElementById('testListesi');
             container.innerHTML = "";
 
             if (liste.length === 0) {
-                container.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-muted); grid-column: 1 / -1;">
-                    <i class="ph ph-exam" style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;"></i>
-                    <p>Henüz test oluşturmadınız.</p>
+                container.innerHTML = `<div class="empty-state">
+                    <i class="ph ph-exam"></i>
+                    <p>Henüz test oluşturmadınız. Sağ üstten yeni bir test ekleyin.</p>
                 </div>`;
                 return;
             }
 
             liste.forEach(test => {
+                const soruSayisi = test.sorular ? test.sorular.length : 0;
+                
                 const card = document.createElement('div');
                 card.className = 'test-card';
                 card.innerHTML = `
                     <div class="test-icon"><i class="ph ph-clipboard-text"></i></div>
                     <h3>${test.baslik}</h3>
-                    <p>${test.aciklama}</p>
+                    <p>${test.aciklama || "Açıklama yok."}</p>
                     <div class="test-meta">
-                        <span><i class="ph ph-list-numbers"></i> ${test.soruSayisi} Soru</span>
-                        <button class="btn-edit" onclick="alert('Test düzenleme ekranı yapım aşamasında.')">Düzenle</button>
+                        <span><i class="ph ph-list-numbers"></i> ${soruSayisi} Soru</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-action btn-send-test" onclick="gonderModalAc('${test.id}')">
+                            <i class="ph ph-paper-plane-right"></i> Gönder
+                        </button>
+                        <button class="btn-action btn-del-test" onclick="testSil('${test.id}', '${test.baslik}')">
+                            <i class="ph ph-trash"></i>
+                        </button>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // 4. MODAL AÇ / KAPAT
+        // 4. TEST SİLME
+        function testSil(testId, baslik) {
+            if (confirm("'" + baslik + "' testini silmek istediğinize emin misiniz?")) {
+                db.collection('testler').doc(testId).delete()
+                .then(() => {
+                    // onSnapshot otomatik günceller
+                })
+                .catch((error) => {
+                    alert("Silme hatası: " + error.message);
+                });
+            }
+        }
+
+        // 5. MODAL AÇ / KAPAT
+        let soruIndex = 0;
         function modalAc() { 
             document.getElementById('testModal').classList.add('active');
-            document.getElementById('sorularAlani').innerHTML = ""; // Temizle
-            soruEkle(); // İlk soruyu otomatik ekle
+            document.getElementById('sorularAlani').innerHTML = "";
+            document.getElementById('testBaslik').value = "";
+            document.getElementById('testAciklama').value = "";
+            soruIndex = 0;
+            soruEkle(); 
         }
         function modalKapat() { document.getElementById('testModal').classList.remove('active'); }
 
-        // 5. DİNAMİK SORU EKLEME
-        let soruIndex = 0;
+        // 6. DİNAMİK SORU EKLEME
         function soruEkle() {
             const container = document.getElementById('sorularAlani');
             const box = document.createElement('div');
@@ -327,11 +434,11 @@
             box.innerHTML = `
                 <button class="btn-remove-q" onclick="soruSil('soru-${soruIndex}')"><i class="ph ph-x-circle"></i></button>
                 <div class="input-group">
-                    <label>Soru ${soruIndex + 1}</label>
+                    <label>Soru Metni</label>
                     <input type="text" class="modal-input soru-metin" placeholder="Soruyu yazın...">
                 </div>
                 <div class="input-group">
-                    <label>Seçenekler (Alt alta yazın veya virgülle ayırın)</label>
+                    <label>Seçenekler (Virgülle ayırın)</label>
                     <input type="text" class="modal-input soru-secenek" placeholder="Örn: Hiç, Bazen, Sık Sık, Her Zaman">
                 </div>
             `;
@@ -344,39 +451,130 @@
             if (el) el.remove();
         }
 
-        // 6. TESTİ KAYDETME
-        function testiKaydet() {
-            const baslik = document.getElementById('testBaslik').value;
-            const aciklama = document.getElementById('testAciklama').value;
+        // 7. TESTİ KAYDET
+        async function testiKaydet() {
+            const baslik = document.getElementById('testBaslik').value.trim();
+            const aciklama = document.getElementById('testAciklama').value.trim();
             
-            if(!baslik) {
-                alert("Lütfen bir test başlığı girin.");
-                return;
-            }
+            if(!baslik) { alert("Lütfen bir test başlığı girin."); return; }
 
-            // Soruları topla (Şimdilik sadece console'a yazdırıyoruz)
             const sorular = document.querySelectorAll('.question-box');
             let soruListesi = [];
             
-            sorular.forEach((soru, index) => {
-                const metin = soru.querySelector('.soru-metin').value;
-                const secenekler = soru.querySelector('.soru-secenek').value;
-                if(metin) {
-                    soruListesi.push({ soru: metin, secenekler: secenekler });
+            let hata = false;
+            sorular.forEach((soru) => {
+                const metin = soru.querySelector('.soru-metin').value.trim();
+                const secenekStr = soru.querySelector('.soru-secenek').value.trim();
+                
+                if(metin && secenekStr) {
+                    const secenekler = secenekStr.split(',').map(s => s.trim()).filter(s => s !== "");
+                    soruListesi.push({ metin: metin, secenekler: secenekler });
+                } else if(metin || secenekStr) {
+                    hata = true;
                 }
             });
 
-            if(soruListesi.length === 0) {
-                alert("En az bir soru eklemelisiniz.");
-                return;
-            }
+            if(hata) { alert("Lütfen her soru için hem metni hem de seçenekleri doldurun."); return; }
+            if(soruListesi.length === 0) { alert("En az bir soru eklemelisiniz."); return; }
 
-            // Firebase'e kaydetme kodu (Birazdan tam bağlanacak)
-            alert("Test başarıyla oluşturuldu!\nBaşlık: " + baslik + "\nSoru Sayısı: " + soruListesi.length + "\n\n(Firebase entegrasyonu ile veritabanına kaydedilecek)");
-            
-            modalKapat();
-            document.getElementById('testBaslik').value = "";
-            document.getElementById('testAciklama').value = "";
+            const btn = document.getElementById('kaydetBtn');
+            btn.innerText = "Kaydediliyor...";
+            btn.disabled = true;
+
+            try {
+                await db.collection('testler').add({
+                    uzmanId: aktifUzmanId,
+                    baslik: baslik,
+                    aciklama: aciklama,
+                    sorular: soruListesi,
+                    olusturmaTarihi: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                modalKapat();
+            } catch (error) {
+                console.error("Kayıt hatası:", error);
+                alert("Test kaydedilirken bir hata oluştu.");
+            } finally {
+                btn.innerText = "Testi Kaydet";
+                btn.disabled = false;
+            }
+        }
+
+        // 8. TEST GÖNDERME MODALI AÇ
+        async function gonderModalAc(testId) {
+            gonderilecekTestId = testId;
+            const select = document.getElementById('gonderilecekDanisan');
+            select.innerHTML = '<option value="">Danışan seçin...</option>';
+
+            try {
+                const snapshot = await db.collection('uzmanDanisanlari')
+                    .where('uzmanId', '==', aktifUzmanId)
+                    .get();
+
+                if (snapshot.empty) {
+                    alert("Önce 'Danışanlarım' sayfasından bir danışan eklemelisiniz.");
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    select.innerHTML += `<option value="${data.danisanId}">${data.danisanIsim} (${data.danisanEmail})</option>`;
+                });
+
+                document.getElementById('gonderModal').classList.add('active');
+
+            } catch (error) {
+                console.error("Danışan çekme hatası:", error);
+            }
+        }
+
+        function gonderModalKapat() {
+            document.getElementById('gonderModal').classList.remove('active');
+        }
+
+        // 9. TESTİ DANIŞANA GÖNDER (Bildirim + TestKaydı)
+        async function testGonder() {
+            const danisanId = document.getElementById('gonderilecekDanisan').value;
+            if (!danisanId) { alert("Lütfen bir danışan seçin."); return; }
+
+            const test = testListesiGlobal.find(t => t.id === gonderilecekTestId);
+            if (!test) return;
+
+            try {
+                // 1. Testi danışana ata
+                await db.collection('testGonderimleri').add({
+                    testId: gonderilecekTestId,
+                    uzmanId: aktifUzmanId,
+                    danisanId: danisanId,
+                    testBaslik: test.baslik,
+                    durum: "bekliyor",
+                    gonderimTarihi: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 2. Danışana bildirim gönder
+                await db.collection('bildirimler').add({
+                    aliciId: danisanId,
+                    gonderenId: aktifUzmanId,
+                    baslik: "Yeni Testiniz Var",
+                    mesaj: "Uzmanınız size '" + test.baslik + "' testini gönderdi. Panelinizden çözebilirsiniz.",
+                    okundu: false,
+                    tarih: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert("Test danışana başarıyla gönderildi ve bildirim iletildi.");
+                gonderModalKapat();
+
+            } catch (error) {
+                console.error("Gönderme hatası:", error);
+                alert("Test gönderilirken bir hata oluştu.");
+            }
+        }
+
+        // 10. ÇIKIŞ YAP
+        function cikisYap() {
+            auth.signOut().then(() => {
+                window.location.href = "index.html";
+            });
         }
     </script>
 </body>
