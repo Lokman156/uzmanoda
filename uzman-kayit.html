@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Uzman Kayıt</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- FIREBASE SDK (Giriş ve Veritabanı için) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --primary-hover: #5a189a;
+            --pink-light: #FDF2F8;
+            --purple-light: #F3E8FF;
+            --text-dark: #1F2937;
+            --text-muted: #6B7280;
+            --border: #E5E7EB;
+            --radius-lg: 24px;
+            --radius-md: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { overflow-x: hidden; height: 100vh; background: var(--pink-light); display: flex; }
+
+        /* --- SOL TARAF (GÖRSEL) --- */
+        .split-left {
+            flex: 1;
+            background: linear-gradient(135deg, #7B2CBF 0%, #C77DFF 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; padding: 40px; text-align: center;
+        }
+        .split-left img { height: 80px; margin-bottom: 20px; border-radius: 12px; background: white; padding: 5px;}
+        .split-left h1 { font-size: 36px; font-weight: 800; margin-bottom: 10px; }
+        .split-left p { font-size: 16px; opacity: 0.9; }
+
+        /* --- SAĞ TARAF (FORM) --- */
+        .split-right {
+            flex: 1;
+            display: flex; justify-content: center; align-items: center; padding: 40px;
+        }
+        .form-container {
+            width: 100%; max-width: 450px;
+            background: white; padding: 40px;
+            border-radius: var(--radius-lg); box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+        .form-container h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; color: var(--text-dark); }
+        .form-container p { color: var(--text-muted); font-size: 15px; margin-bottom: 30px; }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark); }
+        .input-group input, .input-group select {
+            width: 100%; padding: 14px 16px;
+            border: 1px solid var(--border); border-radius: var(--radius-md);
+            font-size: 15px; outline: none; transition: 0.3s; background: #FAFAFA;
+        }
+        .input-group input:focus, .input-group select:focus { border-color: var(--primary); background: white; }
+        
+        .btn-submit {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, #7B2CBF, #C77DFF);
+            color: white; border: none; border-radius: var(--radius-md);
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3); }
+
+        .login-link { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-muted); }
+        .login-link a { color: var(--primary); font-weight: 600; text-decoration: none; }
+
+        /* --- MOBİL UYUMLULUK --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; height: auto; min-height: 100vh; }
+            .split-left { padding: 30px 20px; flex: none; }
+            .split-left h1 { font-size: 28px; }
+            .split-right { padding: 20px; }
+            .form-container { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="split-left">
+        <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+        <h1>Profesyonel Odanıza Katılın</h1>
+        <p>Danışanlarınızı yönetin, görüşmeler yapın ve testler gönderin.</p>
+    </div>
+
+    <div class="split-right">
+        <div class="form-container">
+            <h2>Uzman Kayıt</h2>
+            <p>Hesabınızı oluşturun ve hemen kullanmaya başlayın.</p>
+
+            <form id="kayitFormu">
+                <div class="input-group">
+                    <label>Ad Soyad</label>
+                    <input type="text" id="isim" placeholder="Örn: Dr. Ayşe Yılmaz" required>
+                </div>
+                <div class="input-group">
+                    <label>Meslek / Uzmanlık</label>
+                    <select id="meslek" required>
+                        <option value="">Seçiniz...</option>
+                        <option value="psikolog">Psikolog</option>
+                        <option value="avukat">Avukat</option>
+                        <option value="veteriner">Veteriner</option>
+                        <option value="ogretmen">Öğretmen</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>E-posta</label>
+                    <input type="email" id="email" placeholder="ornek@mail.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Şifre</label>
+                    <input type="password" id="sifre" placeholder="En az 6 karakter" required minlength="6">
+                </div>
+
+                <button type="submit" class="btn-submit" id="kayitBtn">Hesap Oluştur</button>
+                
+                <div id="hataMesaji" style="color: red; font-size: 14px; margin-top: 15px; display: none; text-align: center;"></div>
+
+                <div class="login-link">
+                    Zaten hesabınız var mı? <a href="uzman-giris.html">Giriş Yapın</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- GERÇEK KAYIT MOTORU (FIREBASE) -->
+    <script>
+        // Senin Firebase projenin ayarları
+        const firebaseConfig = {
+            apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
+            authDomain: "uzmanoda.firebaseapp.com",
+            projectId: "uzmanoda",
+            storageBucket: "uzmanoda.firebasestorage.app",
+            messagingSenderId: "71880478784",
+            appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
+        };
+
+        // Firebase'i başlat
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Form gönderildiğinde çalışacak kod
+        document.getElementById('kayitFormu').addEventListener('submit', function(e) {
+            e.preventDefault(); // Sayfanın yenilenmesini engelle
+            
+            const btn = document.getElementById('kayitBtn');
+            const hataDiv = document.getElementById('hataMesaji');
+            hataDiv.style.display = 'none'; // Eski hataları gizle
+            btn.innerText = "Oluşturuluyor...";
+            btn.disabled = true;
+
+            const isim = document.getElementById('isim').value;
+            const meslek = document.getElementById('meslek').value;
+            const email = document.getElementById('email').value;
+            const sifre = document.getElementById('sifre').value;
+
+            // 1. ADIM: Firebase Authentication'a kullanıcıyı kaydet
+            auth.createUserWithEmailAndPassword(email, sifre)
+            .then((userCredential) => {
+                // Kullanıcı başarıyla oluşturuldu, şimdi veritabanına bilgilerini kaydedelim
+                const user = userCredential.user;
+                
+                return db.collection('uzmanlar').doc(user.uid).set({
+                    isim: isim,
+                    meslek: meslek,
+                    email: email,
+                    kayitTarihi: firebase.firestore.FieldValue.serverTimestamp(),
+                    rol: "uzman"
+                });
+            })
+            .then(() => {
+                // Her şey başarılı! Panele yönlendir
+                alert("Kayıt başarılı! Panele yönlendiriliyorsunuz.");
+                window.location.href = "uzman-panel.html";
+            })
+            .catch((error) => {
+                // Hata olursa ekrana yazdır
+                btn.innerText = "Hesap Oluştur";
+                btn.disabled = false;
+                
+                let mesaj = "Bir hata oluştu.";
+                if (error.code === 'auth/email-already-in-use') mesaj = "Bu e-posta adresi zaten kullanılıyor.";
+                if (error.code === 'auth/weak-password') mesaj = "Şifre çok zayıf, en az 6 karakter olmalı.";
+                if (error.code === 'auth/invalid-email') mesaj = "Geçersiz e-posta adresi girdiniz.";
+                
+                hataDiv.innerText = mesaj;
+                hataDiv.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
