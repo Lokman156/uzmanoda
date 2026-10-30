@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Hakkımızda</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --primary-hover: #5a189a;
+            --pink-light: #FDF2F8;
+            --purple-light: #F3E8FF;
+            --text-dark: #111827;
+            --text-muted: #6B7280;
+            --surface: #FFFFFF;
+            --border: #E5E7EB;
+            --gradient: linear-gradient(135deg, #7B2CBF 0%, #C77DFF 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { overflow-x: hidden; background-color: var(--surface); color: var(--text-dark); scroll-behavior: smooth; }
+
+        /* --- NAVBAR --- */
+        .navbar { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); padding: 20px 5%; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
+        .nav-logo img { height: 36px; border-radius: 8px; }
+        .btn-home { text-decoration: none; color: var(--primary); font-weight: 700; font-size: 15px; padding: 10px 24px; border-radius: 50px; transition: 0.3s; border: 1px solid var(--purple-light); background: var(--purple-light); }
+        .btn-home:hover { background: white; border-color: var(--primary); }
+
+        /* --- HERO BÖLÜMÜ --- */
+        .hero {
+            padding: 120px 5% 100px; text-align: center; position: relative;
+            background: linear-gradient(180deg, var(--purple-light) 0%, #FFFFFF 100%);
+            overflow: hidden;
+        }
+        
+        /* Arka plan efekt ışıkları */
+        .hero::before {
+            content: ''; position: absolute; top: -50%; left: -10%; width: 50vw; height: 50vw;
+            background: radial-gradient(circle, rgba(199,125,255,0.2) 0%, transparent 70%);
+            border-radius: 50%; z-index: 0;
+        }
+
+        .hero-content { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+        
+        .badge {
+            display: inline-block; background: white; color: var(--primary); font-weight: 700; font-size: 14px;
+            padding: 8px 20px; border-radius: 50px; margin-bottom: 24px; border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(123, 44, 191, 0.05);
+        }
+
+        .hero h1 { font-size: 56px; font-weight: 800; line-height: 1.1; color: var(--text-dark); margin-bottom: 24px; letter-spacing: -1.5px; }
+        .hero h1 span { color: var(--primary); }
+        .hero p { font-size: 19px; color: var(--text-muted); line-height: 1.7; max-width: 750px; margin: 0 auto; }
+
+        /* --- İSTATİSTİK BANDI --- */
+        .stats-banner {
+            display: flex; justify-content: space-around; flex-wrap: wrap; gap: 30px;
+            background: var(--gradient); padding: 50px 5%; color: white;
+            position: relative; z-index: 10; box-shadow: 0 20px 40px rgba(123, 44, 191, 0.2);
+        }
+        .stat-item { text-align: center; }
+        .stat-item h3 { font-size: 42px; font-weight: 800; margin-bottom: 5px; color: white; letter-spacing: -1px; }
+        .stat-item p { font-size: 15px; font-weight: 500; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- HİKAYEMİZ / YOLCULUĞUMUZ (TIMELINE) --- */
+        .timeline-section { padding: 100px 5%; max-width: 1000px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 60px; }
+        .section-header h2 { font-size: 36px; font-weight: 800; margin-bottom: 15px; }
+        .section-header p { font-size: 17px; color: var(--text-muted); }
+
+        .timeline { position: relative; padding-left: 40px; }
+        .timeline::before {
+            content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 3px;
+            background: var(--purple-light); border-radius: 3px;
+        }
+        
+        .timeline-item { position: relative; margin-bottom: 40px; }
+        .timeline-item:last-child { margin-bottom: 0; }
+        
+        .timeline-dot {
+            position: absolute; left: -40px; top: 5px; width: 23px; height: 23px;
+            background: white; border: 4px solid var(--primary); border-radius: 50%;
+            box-shadow: 0 0 0 4px var(--pink-light); z-index: 2;
+        }
+        
+        .timeline-content {
+            background: #FAFAFA; padding: 24px; border-radius: 16px; border: 1px solid var(--border);
+            transition: 0.3s;
+        }
+        .timeline-content:hover { background: white; border-color: var(--primary); box-shadow: 0 10px 20px rgba(0,0,0,0.03); }
+        .timeline-date { font-size: 14px; font-weight: 800; color: var(--primary); margin-bottom: 8px; display: block; }
+        .timeline-content h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+        .timeline-content p { font-size: 15px; color: var(--text-muted); line-height: 1.6; }
+
+        /* --- NEDEN UZMANODA --- */
+        .why-section { padding: 100px 5%; background: var(--pink-light); }
+        .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        
+        .why-card {
+            background: white; padding: 40px; border-radius: 24px;
+            border: 1px solid var(--border); transition: 0.4s; position: relative; overflow: hidden;
+        }
+        .why-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(123, 44, 191, 0.08); }
+        .why-icon {
+            width: 60px; height: 60px; background: var(--purple-light); color: var(--primary);
+            border-radius: 16px; display: flex; align-items: center; justify-content: center;
+            font-size: 28px; margin-bottom: 24px;
+        }
+        .why-card h3 { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
+        .why-card p { font-size: 15px; color: var(--text-muted); line-height: 1.7; }
+
+        /* --- CTA ALANI --- */
+        .cta-section { padding: 100px 5%; text-align: center; background: var(--text-dark); color: white; }
+        .cta-section h2 { font-size: 40px; font-weight: 800; margin-bottom: 20px; }
+        .cta-section p { font-size: 18px; color: #9CA3AF; margin-bottom: 40px; max-width: 600px; margin-inline: auto; }
+        .btn-cta {
+            display: inline-block; padding: 18px 40px; background: var(--primary); color: white;
+            text-decoration: none; border-radius: 50px; font-weight: 700; font-size: 16px; transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3);
+        }
+        .btn-cta:hover { background: var(--primary-hover); transform: translateY(-3px); }
+
+        /* --- MOBİL UYUMLULUK --- */
+        @media (max-width: 768px) {
+            .hero { padding: 80px 5% 60px; }
+            .hero h1 { font-size: 38px; }
+            .hero p { font-size: 16px; }
+            .stats-banner { flex-direction: column; gap: 40px; padding: 40px 5%; }
+            .section-header h2 { font-size: 28px; }
+            .timeline { padding-left: 30px; }
+            .timeline-dot { left: -30px; width: 19px; height: 19px; }
+            .cta-section h2 { font-size: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            UzmanOda
+        </a>
+        <a href="index.html" class="btn-home"><i class="ph ph-arrow-left"></i> Ana Sayfa</a>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-content">
+            <span class="badge">Geleceğin Danışmanlık Platformu</span>
+            <h1>Profesyonel Danışmanlığı <span>Yeniden Tanımlıyoruz.</span></h1>
+            <p>UzmanOda, psikologlardan avukatlara, eğitmenlerden danışmanlara kadar tüm profesyonellerin kendi dijital ofislerini kurmasını sağlayan yeni nesil bir iletişim ekosistemidir.</p>
+        </div>
+    </section>
+
+    <!-- İSTATİSTİKLER -->
+    <div class="stats-banner">
+        <div class="stat-item">
+            <h3>10K+</h3>
+            <p>Güvenli Görüşme</p>
+        </div>
+        <div class="stat-item">
+            <h3>500+</h3>
+            <p>Aktif Uzman</p>
+        </div>
+        <div class="stat-item">
+            <h3>%99.9</h3>
+            <p>Bağlantı Kalitesi</p>
+        </div>
+        <div class="stat-item">
+            <h3>0</h3>
+            <p>Kayıtlı Görüşme</p>
+        </div>
+    </div>
+
+    <!-- HİKAYEMİZ / YOLCULUĞUMUZ -->
+    <section class="timeline-section">
+        <div class="section-header">
+            <h2>Nereden Nereye?</h2>
+            <p>UzmanOda'nın doğuşu ve gelişim hikayesi.</p>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="timeline-date">2024 - Fikir Aşaması</span>
+                    <h3>Karmaşayı Bitirme Kararı</h3>
+                    <p>Uzmanların danışanlarıyla iletişim kurarken yaşadığı "Zoom linki at, WhatsApp'tan yaz, uygulama indir" karmaşasını görerek yola çıktık. Sadece bir tıkla görüşmeye odaklanan bir sistem hayal ettik.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="timeline-date">2025 - Geliştirme Süreci</span>
+                    <h3>WebRTC ve Güvenlik</h3>
+                    <p>Görüşmelerin hiçbir sunucuda kaydedilmediği, tamamen uçtan uca şifreli (P2P) altyapımızı kurduk. Sadece danışmanlığa özel test sistemleri ve danışan yönetim araçları geliştirdik.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="timeline-date">2026 - Şimdi</span>
+                    <h3>Profesyonellerle Buluşma</h3>
+                    <p>Şu an Türkiye'nin dört bir yanındaki psikolog, avukat ve eğitmenlerin kendi dijital odalarını açıp danışanlarıyla güvenle buluştuğu modern platformuz. Geleceği birlikte inşa ediyoruz.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NEDEN UZMANODA -->
+    <section class="why-section">
+        <div class="section-header">
+            <h2>Neden UzmanOda?</h2>
+            <p>Çünkü biz teknolojiyi karmaşıklaştırmak için değil, basitleştirmek için varız.</p>
+        </div>
+
+        <div class="why-grid">
+            <div class="why-card">
+                <div class="why-icon"><i class="ph ph-shield-check"></i></div>
+                <h3>Sıfır Kayıt, Tam Gizlilik</h3>
+                <p>Yaptığınız görüşmeler WebRTC teknolojisi ile doğrudan cihazlar arasında gerçekleşir. Sunucularımız sesinizi veya görüntünüzü asla kaydetmez, işleyemez. Mahremiyet bir özellik değil, temelimizdir.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-icon"><i class="ph ph-rocket-launch"></i></div>
+                <h3>Kurulum Gerektirmeyen Altyapı</h3>
+                <p>Danışanlarınız uygulama indirmek, hesap onaylatmak veya karmaşık ayarlarla uğraşmak zorunda kalmaz. Linki atın, tıklasın ve görüşme anında başlasın.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-icon"><i class="ph ph-exam"></i></div>
+                <h3>Uzmana Özel Test Araçları</h3>
+                <p>Danışanlarınıza görüşme sırasında veya dışında testler atayın. Cevaplar anında panelinize düşsün. Değerlendirme ve yorum tamamen sizin uzmanlığınıza kalsın.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA (HAREKETE GEÇİRİCİ) -->
+    <section class="cta-section">
+        <h2>Siz de Yerinizi Alın.</h2>
+        <p>İster uzman olarak kendi odanızı açın, ister danışan olarak güvenli görüşmelere katılın. Geleceğin danışmanlık deneyimi sizi bekliyor.</p>
+        <a href="uzman-kayit.html" class="btn-cta">Hemen Uzman Ol</a>
+    </section>
+
+</body>
+</html>
