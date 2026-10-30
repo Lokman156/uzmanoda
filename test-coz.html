@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Test Çöz</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --pink-light: #FDF2F8;
+            --purple-light: #F3E8FF;
+            --text-dark: #1F2937;
+            --text-muted: #6B7280;
+            --surface: #FFFFFF;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --radius-lg: 24px;
+            --radius-md: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); min-height: 100vh; }
+
+        /* --- ÜST BAR --- */
+        .top-bar {
+            background: var(--surface); padding: 20px 5%; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
+        .nav-logo img { height: 36px; border-radius: 8px; }
+        
+        .user-badge { background: var(--purple-light); color: var(--primary); padding: 8px 16px; border-radius: 50px; font-weight: 700; font-size: 14px; }
+
+        /* --- ANA İÇERİK --- */
+        .main-wrapper { padding: 40px 5%; display: flex; justify-content: center; }
+        .test-container {
+            background: var(--surface); width: 100%; max-width: 800px;
+            border-radius: var(--radius-lg); box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid var(--border); overflow: hidden;
+        }
+
+        /* --- TEST BAŞLIĞI --- */
+        .test-header {
+            background: linear-gradient(135deg, #7B2CBF 0%, #C77DFF 100%);
+            padding: 30px; color: white;
+        }
+        .test-header h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
+        .test-header p { font-size: 15px; opacity: 0.9; }
+
+        /* --- SORULAR --- */
+        .questions-area { padding: 30px; }
+        .question-box {
+            margin-bottom: 30px; padding-bottom: 30px; border-bottom: 1px dashed var(--border);
+        }
+        .question-box:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        
+        .question-text { font-size: 18px; font-weight: 700; margin-bottom: 20px; display: flex; gap: 10px; }
+        .question-num { color: var(--primary); }
+
+        .options-list { display: flex; flex-direction: column; gap: 12px; }
+        .option-label {
+            display: flex; align-items: center; gap: 12px; padding: 16px 20px;
+            border: 1px solid var(--border); border-radius: var(--radius-md);
+            cursor: pointer; transition: 0.2s; font-weight: 600; color: var(--text-dark);
+        }
+        .option-label:hover { border-color: var(--primary); background: var(--pink-light); }
+        
+        /* Radyo Butonu Gizle ve Özelleştir */
+        .option-label input[type="radio"] { display: none; }
+        .custom-radio {
+            width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .option-label input[type="radio"]:checked + .custom-radio {
+            border-color: var(--primary);
+        }
+        .option-label input[type="radio"]:checked + .custom-radio::after {
+            content: ''; width: 10px; height: 10px; background: var(--primary); border-radius: 50%;
+        }
+        .option-label input[type="radio"]:checked ~ span { color: var(--primary); }
+        
+        /* --- ALT BUTON --- */
+        .test-footer { padding: 30px; background: #FAFAFA; border-top: 1px solid var(--border); text-align: center; }
+        .btn-submit {
+            width: 100%; max-width: 400px; padding: 18px;
+            background: linear-gradient(135deg, #7B2CBF, #C77DFF);
+            color: white; border: none; border-radius: var(--radius-md);
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3);
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(123, 44, 191, 0.4); }
+        .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        /* --- BAŞARI EKRANI --- */
+        .success-screen {
+            display: none; text-align: center; padding: 60px 30px;
+        }
+        .success-icon {
+            width: 80px; height: 80px; background: #D1FAE5; color: var(--success);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 40px; margin: 0 auto 20px auto;
+        }
+        .success-screen h2 { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
+        .success-screen p { color: var(--text-muted); font-size: 16px; margin-bottom: 30px; }
+        .btn-home {
+            display: inline-block; padding: 14px 30px; background: var(--primary); color: white;
+            text-decoration: none; border-radius: var(--radius-md); font-weight: 700; transition: 0.2s;
+        }
+        .btn-home:hover { background: #5a189a; }
+
+        /* --- MOBİL UYUMLULUK --- */
+        @media (max-width: 768px) {
+            .main-wrapper { padding: 20px 15px; }
+            .test-header { padding: 25px 20px; }
+            .questions-area { padding: 20px; }
+            .test-footer { padding: 20px; }
+            .question-text { font-size: 16px; }
+            .option-label { padding: 14px 16px; font-size: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ÜST BAR -->
+    <div class="top-bar">
+        <a href="danisan-panel.html" class="nav-logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            UzmanOda
+        </a>
+        <div class="user-badge" id="testDurumu">Test Çözülüyor</div>
+    </div>
+
+    <!-- ANA İÇERİK -->
+    <div class="main-wrapper">
+        <div class="test-container" id="testKonteyner">
+            
+            <div class="test-header">
+                <h1 id="testBaslik">Test Yükleniyor...</h1>
+                <p id="testAciklama">Lütfen bekleyin, sorular hazırlanıyor.</p>
+            </div>
+
+            <form id="testFormu">
+                <div class="questions-area" id="sorularAlani">
+                    <!-- Sorular JS ile buraya gelecek -->
+                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        <i class="ph ph-spinner ph-spin" style="font-size: 32px; margin-bottom: 10px;"></i>
+                        <p>Sorular yükleniyor...</p>
+                    </div>
+                </div>
+
+                <div class="test-footer" id="testAltKisim" style="display:none;">
+                    <button type="submit" class="btn-submit" id="gonderBtn">
+                        <i class="ph ph-paper-plane-right"></i> Testi Gönder
+                    </button>
+                </div>
+            </form>
+
+            <!-- BAŞARI EKRANI -->
+            <div class="success-screen" id="basariEkrani">
+                <div class="success-icon"><i class="ph ph-check"></i></div>
+                <h2>Cevaplarınız İletildi!</h2>
+                <p>Test başarıyla tamamlandı. Cevaplarınız uzmanınıza güvenle iletildi.</p>
+                <a href="danisan-panel.html" class="btn-home">Panele Dön</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MOTOR (FIREBASE VE TEST MANTIĞI) -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
+            authDomain: "uzmanoda.firebaseapp.com",
+            projectId: "uzmanoda",
+            storageBucket: "uzmanoda.firebasestorage.app",
+            messagingSenderId: "71880478784",
+            appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let aktifDanisanId = null;
+        let aktifTestId = null;
+        let mevcutTest = null; // Veritabanından gelecek test
+
+        // URL'den Test ID'sini Al (?test=abc123)
+        const urlParams = new URLSearchParams(window.location.search);
+        aktifTestId = urlParams.get('test');
+
+        // 1. GÜVENLİK DUVARI
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                aktifDanisanId = user.uid;
+                testiYukle();
+            } else {
+                window.location.href = "danisan-giris.html";
+            }
+        });
+
+        // 2. TESTİ YÜKLE
+        async function testiYukle() {
+            if (!aktifTestId) {
+                // Eğer URL'de test yoksa (Tasarım testi için sahte bir test gösterelim)
+                document.getElementById('testBaslik').innerText = "Örnek Stres Değerlendirme Testi";
+                document.getElementById('testAciklama').innerText = "Bu test, son 1 haftadaki stres durumunuzu ölçmeyi amaçlar.";
+                
+                mevcutTest = {
+                    baslik: "Örnek Stres Değerlendirme Testi",
+                    aciklama: "Bu test, son 1 haftadaki stres durumunuzu ölçmeyi amaçlar.",
+                    sorular: [
+                        { metin: "Son 1 haftada kendinizi gergin hissettiniz mi?", secenekler: ["Hiç", "Bazen", "Sık Sık", "Her Zaman"] },
+                        { metin: "Uykuya dalmakta zorlandınız mı?", secenekler: ["Hiç", "Bazen", "Sık Sık", "Her Zaman"] },
+                        { metin: "Günlük işlerinizi yapmakta zorlandınız mı?", secenekler: ["Hiç", "Bazen", "Sık Sık", "Her Zaman"] }
+                    ]
+                };
+                testiEkranaCiz();
+                return;
+            }
+            
+            // Gerçek test çekme (Firebase'den) - Şimdilik tasarım için yukarıdaki örneği kullanıyoruz
+            testiEkranaCiz();
+        }
+
+        // 3. TESTİ EKRANA ÇİZ
+        function testiEkranaCiz() {
+            document.getElementById('testBaslik').innerText = mevcutTest.baslik;
+            document.getElementById('testAciklama').innerText = mevcutTest.aciklama;
+            
+            const sorularAlani = document.getElementById('sorularAlani');
+            sorularAlani.innerHTML = "";
+
+            mevcutTest.sorular.forEach((soru, index) => {
+                const box = document.createElement('div');
+                box.className = 'question-box';
+                
+                let seceneklerHTML = "";
+                soru.secenekler.forEach((secenek, secIndex) => {
+                    seceneklerHTML += `
+                        <label class="option-label">
+                            <input type="radio" name="soru_${index}" value="${secenek}" required>
+                            <div class="custom-radio"></div>
+                            <span>${secenek}</span>
+                        </label>
+                    `;
+                });
+
+                box.innerHTML = `
+                    <div class="question-text">
+                        <span class="question-num">${index + 1}.</span>
+                        ${soru.metin}
+                    </div>
+                    <div class="options-list">
+                        ${seceneklerHTML}
+                    </div>
+                `;
+                sorularAlani.appendChild(box);
+            });
+
+            // Alt butonu göster
+            document.getElementById('testAltKisim').style.display = 'block';
+        }
+
+        // 4. FORMU GÖNDER (KAYDET)
+        document.getElementById('testFormu').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('gonderBtn');
+            btn.innerText = "Gönderiliyor...";
+            btn.disabled = true;
+
+            // Cevapları topla
+            let cevaplar = [];
+            mevcutTest.sorular.forEach((soru, index) => {
+                const secili = document.querySelector(`input[name="soru_${index}"]:checked`);
+                if(secili) {
+                    cevaplar.push({
+                        soruMetni: soru.metin,
+                        verilenCevap: secili.value
+                    });
+                }
+            });
+
+            try {
+                // Firebase'e kaydet (Şimdilik test sonuçları koleksiyonuna)
+                await db.collection('testSonuclari').add({
+                    testId: aktifTestId || 'ornek_test',
+                    danisanId: aktifDanisanId,
+                    cevaplar: cevaplar,
+                    gonderimTarihi: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Başarı ekranını göster
+                document.getElementById('testKonteyner').style.display = 'none';
+                document.getElementById('testDurumu').innerText = "Tamamlandı";
+                document.getElementById('testDurumu').style.background = "#D1FAE5";
+                document.getElementById('testDurumu').style.color = "#10B981";
+                
+                const basari = document.getElementById('basariEkrani');
+                basari.style.display = 'block';
+
+            } catch (error) {
+                console.error("Hata:", error);
+                alert("Cevaplar kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.");
+                btn.innerText = "Testi Gönder";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
