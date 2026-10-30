@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Uzman Paneli</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --primary-hover: #5a189a;
+            --pink-light: #FDF2F8;
+            --purple-light: #F3E8FF;
+            --text-dark: #1F2937;
+            --text-muted: #6B7280;
+            --bg-color: #FAFAFA;
+            --surface: #FFFFFF;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --radius-lg: 24px;
+            --radius-md: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { overflow-x: hidden; background-color: var(--bg-color); color: var(--text-dark); display: flex; min-height: 100vh; }
+
+        /* --- SOL MENÜ --- */
+        .sidebar {
+            width: 260px; background: var(--surface); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 24px;
+            position: fixed; height: 100vh; z-index: 100;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; margin-bottom: 40px; }
+        .nav-logo img { height: 36px; border-radius: 8px; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+            color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px;
+            border-radius: var(--radius-md); margin-bottom: 8px; transition: 0.2s;
+        }
+        .nav-link:hover, .nav-link.active { background-color: var(--purple-light); color: var(--primary); }
+        .nav-link i { font-size: 20px; }
+        
+        .user-profile { margin-top: auto; display: flex; align-items: center; gap: 12px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .user-avatar { width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .user-info h4 { font-size: 14px; }
+        .user-info p { font-size: 12px; color: var(--text-muted); }
+
+        /* --- ANA İÇERİK --- */
+        .main-wrapper {
+            flex: 1; margin-left: 260px; padding: 40px;
+            background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); min-height: 100vh;
+        }
+        .panel-container { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+        /* --- ODA AÇMA ALANI --- */
+        .room-card {
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 1); border-radius: var(--radius-lg);
+            padding: 30px; box-shadow: 0 20px 40px -10px rgba(123, 44, 191, 0.15);
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+        }
+        .room-info h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+        .room-info p { color: var(--text-muted); font-size: 15px; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7B2CBF, #C77DFF); color: white; border: none;
+            padding: 16px 28px; border-radius: var(--radius-md); font-weight: 700; font-size: 16px;
+            cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(123, 44, 191, 0.4); }
+
+        /* Link Sonuç Alanı */
+        .link-result { display: none; background: white; border: 2px dashed var(--primary); padding: 20px; border-radius: var(--radius-md); margin-top: 20px; width: 100%; }
+        .link-result.active { display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap; }
+        .link-input { flex: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; font-weight: 600; color: var(--text-dark); background: var(--bg-color); outline: none; }
+        .btn-copy { background: var(--success); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-copy:hover { background: #059669; }
+
+        /* --- İSTATİSTİK KARTLARI --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column; }
+        .stat-header { display: flex; justify-content: space-between; align-items: center; color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; }
+        .stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .stat-value { font-size: 28px; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
+        .stat-desc { font-size: 13px; color: var(--text-muted); }
+
+        /* --- DANIŞAN LİSTESİ --- */
+        .list-container { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .list-header { font-size: 18px; font-weight: 800; margin-bottom: 20px; }
+        .list-item { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 12px; transition: 0.2s; }
+        .list-item:hover { border-color: var(--primary); }
+        .user-info-list { display: flex; align-items: center; gap: 16px; }
+        .avatar-list { width: 44px; height: 44px; background: var(--purple-light); color: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; }
+        .user-details h4 { font-size: 16px; color: var(--text-dark); }
+        .user-details p { font-size: 13px; color: var(--text-muted); }
+        .list-actions { display: flex; align-items: center; gap: 16px; }
+        .status-badge { background: #D1FAE5; color: var(--success); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .icon-btn { background: transparent; border: 1px solid var(--border); width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); transition: 0.2s; }
+        .icon-btn:hover { color: var(--primary); border-color: var(--primary); background: var(--purple-light); }
+
+        /* --- MOBİL UYUMLULUK --- */
+        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; justify-content: space-between; align-items: center; padding: 15px 20px; border-right: none; border-bottom: 1px solid var(--border); }
+            .nav-logo { margin-bottom: 0; }
+            .nav-link, .user-profile { display: none; } /* Mobilde menü gizlenir */
+            .main-wrapper { margin-left: 0; padding: 20px; }
+            .room-card { flex-direction: column; text-align: center; }
+            .btn-primary { width: 100%; justify-content: center; }
+            .link-result.active { flex-direction: column; }
+            .btn-copy { width: 100%; justify-content: center; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .list-item { flex-direction: column; align-items: flex-start; gap: 16px; }
+            .list-actions { width: 100%; justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SOL MENÜ -->
+    <aside class="sidebar">
+        <a href="index.html" class="nav-logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            UzmanOda
+        </a>
+        
+        <div style="display: flex; flex-direction: column; flex: 1;">
+            <a href="uzman-panel.html" class="nav-link active">
+                <i class="ph ph-squares-four"></i> Panel
+            </a>
+            <a href="danisanlarim.html" class="nav-link">
+                <i class="ph ph-users"></i> Danışanlarım
+            </a>
+            <a href="testlerim.html" class="nav-link">
+                <i class="ph ph-exam"></i> Testlerim
+            </a>
+        </div>
+
+        <!-- KULLANICI PROFİLİ (Dinamik) -->
+        <div class="user-profile">
+            <div class="user-avatar" id="profilAvatar">U</div>
+            <div class="user-info">
+                <h4 id="profilIsim">Yükleniyor...</h4>
+                <p>Uzman</p>
+            </div>
+            <a href="#" onclick="cikisYap()" title="Çıkış Yap" style="margin-left: auto; color: var(--text-muted); text-decoration: none;"><i class="ph ph-sign-out" style="font-size: 20px;"></i></a>
+        </div>
+    </aside>
+
+    <!-- ANA İÇERİK -->
+    <main class="main-wrapper">
+        <div class="panel-container">
+            
+            <!-- ODA AÇMA ALANI -->
+            <div class="room-card">
+                <div class="room-info">
+                    <h2 id="hosgeldinMesaji">Hoş Geldiniz</h2>
+                    <p>Tek tıkla oda oluşturun ve linki danışanınıza gönderin.</p>
+                </div>
+                <button class="btn-primary" onclick="odaAc()">
+                    <i class="ph ph-plus-circle"></i> Yeni Oda Aç
+                </button>
+
+                <div class="link-result" id="linkAlani">
+                    <input type="text" id="odaLink" class="link-input" value="" readonly>
+                    <button class="btn-copy" onclick="linkiKopyala()">
+                        <i class="ph ph-copy"></i> Linki Kopyala
+                    </button>
+                </div>
+            </div>
+
+            <!-- İSTATİSTİKLER -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">TOPLAM DANIŞAN <div class="stat-icon" style="background:#F3E8FF; color:#7B2CBF;"><i class="ph ph-users"></i></div></div>
+                    <div class="stat-value">0</div>
+                    <div class="stat-desc">Kayıtlı danışan</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">GÖRÜŞMELER <div class="stat-icon" style="background:#D1FAE5; color:#10B981;"><i class="ph ph-video-camera"></i></div></div>
+                    <div class="stat-value">0</div>
+                    <div class="stat-desc">Bu ay yapılan</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">GÖNDERİLEN TEST <div class="stat-icon" style="background:#DBEAFE; color:#3B82F6;"><i class="ph ph-paper-plane-right"></i></div></div>
+                    <div class="stat-value">0</div>
+                    <div class="stat-desc">Son 30 gün</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">BİLDİRİMLER <div class="stat-icon" style="background:#FEF3C7; color:#F59E0B;"><i class="ph ph-bell"></i></div></div>
+                    <div class="stat-value">0</div>
+                    <div class="stat-desc">Okunmamış mesaj</div>
+                </div>
+            </div>
+
+            <!-- SON DANIŞANLAR LİSTESİ (Temsili) -->
+            <div class="list-container">
+                <h3 class="list-header">Son Eklenen Danışanlar</h3>
+                
+                <div class="list-item">
+                    <div class="user-info-list">
+                        <div class="avatar-list">ÖD</div>
+                        <div class="user-details">
+                            <h4>Örnek Danışan</h4>
+                            <p>Henüz danışan eklenmedi</p>
+                        </div>
+                    </div>
+                    <div class="list-actions">
+                        <div class="status-badge">Bekliyor</div>
+                        <button class="icon-btn" title="Detay"><i class="ph ph-caret-right"></i></button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MOTOR (FIREBASE VE ODA MANTIĞI) -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
+            authDomain: "uzmanoda.firebaseapp.com",
+            projectId: "uzmanoda",
+            storageBucket: "uzmanoda.firebasestorage.app",
+            messagingSenderId: "71880478784",
+            appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // 1. GÜVENLİK DUVARI: Kullanıcı giriş yapmış mı?
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // Giriş yapılmış, veritabanından adını çekelim
+                db.collection('uzmanlar').doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        document.getElementById('profilIsim').innerText = data.isim;
+                        document.getElementById('profilAvatar').innerText = data.isim.charAt(0).toUpperCase();
+                        document.getElementById('hosgeldinMesaji').innerText = "Hoş geldiniz, " + data.isim;
+                    }
+                });
+            } else {
+                // Giriş yapılmamışsa giriş sayfasına geri at
+                window.location.href = "uzman-giris.html";
+            }
+        });
+
+        // 2. ODA AÇMA MANTIĞI
+        function odaAc() {
+    const harfler = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let kod = "";
+    for (let i = 0; i < 6; i++) { kod += harfler.charAt(Math.floor(Math.random() * harfler.length)); }
+    
+    // SABİT LİNK YERİNE BULUNDUĞU ADRESE GÖRE OTOMATİK LİNK ÜRETİR
+    const link = window.location.href.replace("uzman-panel.html", "gorusme-odasi.html?oda=" + kod);
+    
+    document.getElementById("odaLink").value = link;
+    document.getElementById("linkAlani").classList.add("active");
+}
+
+        // 3. LİNK KOPYALAMA
+        function linkiKopyala() {
+            const linkInput = document.getElementById("odaLink");
+            linkInput.select();
+            linkInput.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(linkInput.value);
+            
+            const btn = event.target.closest('.btn-copy');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="ph ph-check"></i> Kopyalandı!';
+            btn.style.background = '#059669';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.background = 'var(--success)';
+            }, 2000);
+        }
+
+        // 4. ÇIKIŞ YAPMA
+        function cikisYap() {
+            auth.signOut().then(() => {
+                window.location.href = "index.html";
+            });
+        }
+    </script>
+</body>
+</html>
