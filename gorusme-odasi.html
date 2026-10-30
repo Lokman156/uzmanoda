@@ -22,8 +22,11 @@
         html, body { overflow: hidden; height: 100vh; background-color: var(--bg-dark); color: var(--text-light); }
 
         .video-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        
+        /* Karşı tarafın videosu */
         #remoteVideo { width: 100%; height: 100%; object-fit: cover; background: #000; }
 
+        /* Kendi videomuz */
         .local-video-container {
             position: absolute; bottom: 100px; right: 30px; width: 180px; height: 120px;
             border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
@@ -43,6 +46,16 @@
         }
         .room-code { font-weight: 800; letter-spacing: 1px; color: var(--primary); }
         .timer { font-size: 14px; color: #9CA3AF; font-variant-numeric: tabular-nums; }
+
+        /* Bağlantı durumu göstergesi */
+        .conn-status {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.6); color: white; padding: 8px 16px; border-radius: 20px;
+            font-size: 13px; font-weight: 600; z-index: 10; display: flex; align-items: center; gap: 8px;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: orange; }
+        .dot.connected { background: var(--success); box-shadow: 0 0 10px var(--success); }
+        .dot.failed { background: var(--danger); }
 
         .controls {
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
@@ -84,9 +97,18 @@
 <body>
 
     <div class="video-wrapper">
+        <!-- Karşı Taraf -->
         <video id="remoteVideo" autoplay playsinline></video>
+
+        <!-- Kendi Videomuz -->
         <div class="local-video-container">
             <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+
+        <!-- Durum Göstergesi -->
+        <div class="conn-status">
+            <div class="dot" id="connDot"></div>
+            <span id="connText">Bağlanılıyor...</span>
         </div>
 
         <div class="top-bar">
@@ -129,7 +151,7 @@
             appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
         };
 
-        // TURN SUNUCU
+        // TURN SUNUCULARI
         const iceServers = {
             iceServers: [
                 { urls: "stun:stun.relay.metered.ca:80" },
@@ -144,23 +166,38 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        let localStream, peerConnection;
-        let odaKodu, isHost = false, currentUser = null;
-        let sureInterval, saniye = 0;
-        let unsubOffer, unsubAnswer, unsubCandidates;
+        let localStream;
+        let peerConnection;
+        let odaKodu;
+        let isHost = false; // Uzman mı?
+        let currentUser = null;
+        let sureInterval;
+        let saniye = 0;
         
-        // KRİTİK: Geç gelen ICE adaylarını tutacağımız havuz
+        // Dinleyicileri kapatmak için
+        let unsubOffer = null, unsubAnswer = null, unsubCandidates = null;
+        
+        // Sinyalizasyon Havuzları (Kritik Nokta)
         let pendingCandidates = [];
 
         const urlParams = new URLSearchParams(window.location.search);
         odaKodu = urlParams.get('oda');
 
         if (!odaKodu) {
-            alert("Oda kodu bulunamadı! Ana sayfaya dönüyorsunuz.");
+            alert("Oda kodu bulunamadı!");
             window.location.href = "index.html";
         }
 
         document.getElementById('odaKoduEkran').innerText = "Oda: " + odaKodu;
+
+        // Durum güncelleme fonksiyonu
+        function updateStatus(text, state) {
+            document.getElementById('connText').innerText = text;
+            const dot = document.getElementById('connDot');
+            dot.className = 'dot';
+            if (state === 'connected') dot.classList.add('connected');
+            if (state === 'failed') dot.classList.add('failed');
+        }
 
         // --- 1. BAŞLATMA ---
         auth.onAuthStateChanged(async (user) => {
@@ -170,48 +207,39 @@
             }
             currentUser = user;
             
-            // Kim olduğunu kontrol et (Uzman mı?)
             try {
                 const uzmanDoc = await db.collection('uzmanlar').doc(user.uid).get();
-                if (uzmanDoc.exists) {
-                    isHost = true;
-                    console.log("Rol: UZMAN (Host)");
-                } else {
-                    console.log("Rol: DANIŞAN (Guest)");
-                }
+                isHost = uzmanDoc.exists;
             } catch(e) { console.log(e); }
 
             await kamerayiBaslat();
             baglantiKur();
         });
 
-        // --- 2. KAMERA ---
+        // --- 2. MEDYA (KAMERA) ---
         async function kamerayiBaslat() {
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('localVideo').srcObject = localStream;
-                console.log("Kamera başarıyla başlatıldı.");
             } catch (err) {
-                alert("Kamera açılamadı. İzin verdiğinizden emin olun.");
+                alert("Kamera açılamadı! Lütfen tarayıcıdan izin verin.");
                 console.error(err);
             }
         }
 
-        // --- 3. WEBRTC ---
+        // --- 3. WEBRTC VE SİNYALLEŞME ---
         function baglantiKur() {
             peerConnection = new RTCPeerConnection(iceServers);
-            console.log("RTCPeerConnection oluşturuldu.");
 
             // A. Karşı tarafın videosu geldiğinde
             peerConnection.ontrack = (event) => {
-                console.log("KARŞI TARAFIN VİDEOSU GELDİ!");
+                console.log("Karşı tarafın videosu geldi!");
                 const remoteVideo = document.getElementById('remoteVideo');
-                if (remoteVideo.srcObject !== event.streams[0]) {
-                    remoteVideo.srcObject = event.streams[0];
-                }
+                remoteVideo.srcObject = event.streams[0];
+                // Tarayıcı sesi engelliyorsa, kullanıcı ekrana tıklayınca açılır
             };
 
-            // B. Kendi ICE adaylarımızı gönder
+            // B. Ağ adaylarımızı (ICE) Firebase'e gönder
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
                     db.collection('gorusmeler').doc(odaKodu).collection('adaylar').add({
@@ -221,38 +249,49 @@
                 }
             };
 
-            // C. Bağlantı durumunu izle
+            // C. Bağlantı durumu değiştiğinde
             peerConnection.onconnectionstatechange = () => {
                 console.log("Bağlantı Durumu:", peerConnection.connectionState);
+                if (peerConnection.connectionState === 'connected') {
+                    updateStatus("Bağlandı", "connected");
+                } else if (peerConnection.connectionState === 'failed') {
+                    updateStatus("Bağlantı Koptu", "failed");
+                } else {
+                    updateStatus("Bağlanılıyor...", "connecting");
+                }
             };
 
-            // D. Medyayı ekle
+            // D. Kendi medyamızı (Kamera/Ses) bağlantıya ekle
             if (localStream) {
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
             }
 
-            // E. SİNYALLEŞME
+            // --- SİNYALLEŞME MANTIĞI ---
             if (isHost) {
-                // 1. Cevabı (Answer) dinle
+                // UZMAN (Host) -> Teklif (Offer) Oluşturur
+                
+                // 1. Danışandan gelecek Cevabı (Answer) dinle
                 unsubAnswer = db.collection('gorusmeler').doc(odaKodu).onSnapshot(snapshot => {
                     const data = snapshot.data();
                     if (data && data.answer && !peerConnection.currentRemoteDescription) {
-                        console.log("Danışandan cevap (Answer) geldi, kaydediliyor...");
+                        console.log("Cevap (Answer) geldi, bağlantı kuruluyor...");
                         peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer))
                         .then(() => {
-                            // Cevap geldikten sonra biriken ICE adaylarını ekle
-                            pendingCandidates.forEach(c => peerConnection.addIceCandidate(c).catch(e => console.log("Aday ekleme hatası:", e)));
-                            pendingCandidates = [];
+                            // Cevap kurulduktan sonra bekleyen ICE adaylarını ekle
+                            pendingCandidates.forEach(c => {
+                                peerConnection.addIceCandidate(c).catch(e => console.log("Aday hatası:", e));
+                            });
+                            pendingCandidates = []; // Havuzu temizle
                         });
                     }
                 });
 
-                // 2. Teklifi (Offer) oluştur ve gönder
+                // 2. Teklifi (Offer) oluştur ve Firebase'e kaydet
                 setTimeout(async () => {
                     try {
                         const offer = await peerConnection.createOffer();
                         await peerConnection.setLocalDescription(offer);
-                        console.log("Uzman teklifi (Offer) gönderiyor...");
+                        console.log("Teklif (Offer) gönderiliyor...");
                         
                         await db.collection('gorusmeler').doc(odaKodu).set({
                             offer: { type: offer.type, sdp: offer.sdp },
@@ -260,15 +299,18 @@
                             odaKodu: odaKodu,
                             olusturmaTarihi: firebase.firestore.FieldValue.serverTimestamp()
                         });
-                    } catch(e) { console.error("Offer hatası:", e); }
-                }, 1000); // 1 saniye bekle (bağlantı stabilleşsin)
+                    } catch(e) { console.error("Teklif hatası:", e); }
+                }, 1000);
 
             } else {
-                // DANIŞAN
+                // DANIŞAN (Guest) -> Cevap (Answer) Oluşturur
+
+                // 1. Uzmandan gelecek Teklifi (Offer) dinle
                 unsubOffer = db.collection('gorusmeler').doc(odaKodu).onSnapshot(async snapshot => {
                     const data = snapshot.data();
                     if (data && data.offer && !peerConnection.currentRemoteDescription) {
-                        console.log("Uzmandan teklif (Offer) geldi, cevap hazırlanıyor...");
+                        console.log("Teklif (Offer) geldi, cevap hazırlanıyor...");
+                        
                         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
                         
                         const answer = await peerConnection.createAnswer();
@@ -278,14 +320,16 @@
                             answer: { type: answer.type, sdp: answer.sdp }
                         });
                         
-                        // Cevap gönderildikten sonra biriken ICE adaylarını ekle
-                        pendingCandidates.forEach(c => peerConnection.addIceCandidate(c).catch(e => console.log("Aday ekleme hatası:", e)));
-                        pendingCandidates = [];
+                        // Cevap oluşturulduktan sonra bekleyen ICE adaylarını ekle
+                        pendingCandidates.forEach(c => {
+                            peerConnection.addIceCandidate(c).catch(e => console.log("Aday hatası:", e));
+                        });
+                        pendingCandidates = []; // Havuzu temizle
                     }
                 });
             }
 
-            // F. Karşı tarafın ICE adaylarını dinle
+            // 2. Karşı tarafın ICE adaylarını dinle (Havuzlama Mantığı)
             unsubCandidates = db.collection('gorusmeler').doc(odaKodu).collection('adaylar').onSnapshot(snapshot => {
                 snapshot.docChanges().forEach(change => {
                     if (change.type === 'added') {
@@ -293,9 +337,9 @@
                         if (data.gonderen !== (isHost ? 'host' : 'guest')) {
                             const candidate = new RTCIceCandidate(data.candidate);
                             
-                            // EĞER KARŞI TARAF HENÜZ TANIMLI DEĞİLSE HAVUZA AT
+                            // EĞER KARŞI TARAF HENÜZ SET EDİLMEDİYSE HAVUZA AT
                             if (peerConnection.remoteDescription) {
-                                peerConnection.addIceCandidate(candidate).catch(e => console.log("Aday ekleme hatası:", e));
+                                peerConnection.addIceCandidate(candidate).catch(e => console.log("Aday hatası:", e));
                             } else {
                                 pendingCandidates.push(candidate);
                             }
@@ -304,7 +348,7 @@
                 });
             });
 
-            // G. Süre
+            // 3. Süre
             sureInterval = setInterval(() => {
                 saniye++;
                 let dk = Math.floor(saniye / 60).toString().padStart(2, '0');
