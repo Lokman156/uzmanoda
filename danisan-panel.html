@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Danışan Paneli</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --pink-light: #FDF2F8;
+            --purple-light: #F3E8FF;
+            --text-dark: #1F2937;
+            --text-muted: #6B7280;
+            --surface: #FFFFFF;
+            --border: #E5E7EB;
+            --danger: #EF4444;
+            --radius-lg: 24px;
+            --radius-md: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); display: flex; min-height: 100vh; }
+
+        /* --- SOL MENÜ --- */
+        .sidebar {
+            width: 260px; background: var(--surface); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 24px;
+            position: fixed; height: 100vh; z-index: 100;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; margin-bottom: 40px; }
+        .nav-logo img { height: 36px; border-radius: 8px; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+            color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px;
+            border-radius: var(--radius-md); margin-bottom: 8px; transition: 0.2s;
+        }
+        .nav-link:hover, .nav-link.active { background-color: var(--purple-light); color: var(--primary); }
+        .nav-link i { font-size: 20px; }
+        
+        .user-profile { margin-top: auto; display: flex; align-items: center; gap: 12px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .user-avatar { width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        /* --- ANA İÇERİK --- */
+        .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); min-height: 100vh; }
+        .panel-container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+        /* --- HOŞ GELDİN KARTI --- */
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 1); border-radius: var(--radius-lg);
+            padding: 30px; box-shadow: 0 20px 40px -10px rgba(123, 44, 191, 0.15);
+        }
+        .welcome-card h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
+        .welcome-card p { color: var(--text-muted); font-size: 15px; }
+
+        /* --- ODAYA KATILMA ALANI --- */
+        .join-room-card {
+            background: var(--surface); padding: 24px; border-radius: var(--radius-lg);
+            border: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+        }
+        .join-input {
+            flex: 1; min-width: 200px; padding: 14px 16px; border: 1px solid var(--border);
+            border-radius: var(--radius-md); font-size: 15px; outline: none; background: #FAFAFA;
+        }
+        .join-input:focus { border-color: var(--primary); background: white; }
+        .btn-join {
+            background: linear-gradient(135deg, #7B2CBF, #C77DFF); color: white; border: none;
+            padding: 14px 24px; border-radius: var(--radius-md); font-weight: 700; font-size: 15px;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-join:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3); }
+
+        /* --- BİLDİRİM VE TEST SEKMELERİ --- */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .section-card { background: var(--surface); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .section-header h3 { font-size: 18px; font-weight: 800; }
+        
+        .empty-state { text-align: center; padding: 30px 10px; color: var(--text-muted); }
+        .empty-state i { font-size: 40px; opacity: 0.3; margin-bottom: 10px; }
+
+        /* Bildirim Öğesi */
+        .notification-item {
+            background: #FAFAFA; border-left: 4px solid var(--primary);
+            padding: 16px; border-radius: 8px; margin-bottom: 12px;
+        }
+        .notification-item h4 { font-size: 15px; margin-bottom: 4px; color: var(--text-dark); }
+        .notification-item p { font-size: 13px; color: var(--text-muted); }
+        .notification-item span { font-size: 11px; color: var(--primary); font-weight: 700; margin-top: 8px; display: block; }
+
+        /* Test Öğesi */
+        .test-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #FAFAFA; padding: 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px;
+        }
+        .test-item h4 { font-size: 15px; margin-bottom: 4px; }
+        .btn-solve {
+            background: var(--purple-light); color: var(--primary); border: none;
+            padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+        .btn-solve:hover { background: #E0AAFF; }
+
+        /* --- MOBİL UYUMLULUK --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; justify-content: space-between; align-items: center; padding: 15px 20px; border-right: none; border-bottom: 1px solid var(--border); }
+            .nav-logo { margin-bottom: 0; }
+            .nav-link, .user-profile { display: none; }
+            .main-wrapper { margin-left: 0; padding: 20px; }
+            
+            .grid-2 { grid-template-columns: 1fr; } /* Alt alta iner */
+            .join-room-card { flex-direction: column; align-items: stretch; }
+            .btn-join { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SOL MENÜ -->
+    <aside class="sidebar">
+        <a href="index.html" class="nav-logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            UzmanOda
+        </a>
+        
+        <div style="display: flex; flex-direction: column; flex: 1;">
+            <a href="danisan-panel.html" class="nav-link active">
+                <i class="ph ph-squares-four"></i> Panel
+            </a>
+            <a href="#" class="nav-link">
+                <i class="ph ph-clock-counter-clockwise"></i> Geçmiş
+            </a>
+        </div>
+
+        <div class="user-profile">
+            <div class="user-avatar" id="profilAvatar">D</div>
+            <div class="user-info">
+                <h4 id="profilIsim">Yükleniyor...</h4>
+                <p style="font-size: 12px; color: var(--text-muted);">Danışan</p>
+            </div>
+            <a href="#" onclick="cikisYap()" title="Çıkış Yap" style="margin-left: auto; color: var(--text-muted); text-decoration: none;"><i class="ph ph-sign-out" style="font-size: 20px;"></i></a>
+        </div>
+    </aside>
+
+    <!-- ANA İÇERİK -->
+    <main class="main-wrapper">
+        <div class="panel-container">
+            
+            <div class="welcome-card">
+                <h1 id="hosgeldinMesaji">Hoş Geldiniz</h1>
+                <p>Uzmanınızdan gelen bildirimleri ve testleri buradan takip edebilirsiniz.</p>
+            </div>
+
+            <!-- ODAYA KATILMA -->
+            <div class="join-room-card">
+                <i class="ph ph-link" style="font-size: 24px; color: var(--primary);"></i>
+                <input type="text" id="odaKoduInput" class="join-input" placeholder="Uzmanınızın verdiği oda kodunu girin (Örn: X7Y9Z1)">
+                <button class="btn-join" onclick="odayaKatil()">
+                    <i class="ph ph-video-camera"></i> Görüşmeye Katıl
+                </button>
+            </div>
+
+            <div class="grid-2">
+                <!-- BİLDİRİMLER -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3>Bildirimler</h3>
+                        <i class="ph ph-bell" style="font-size: 20px; color: var(--text-muted);"></i>
+                    </div>
+                    <div id="bildirimAlani">
+                        <!-- Örnek Bildirim (Firebase bağlanınca dinamik olacak) -->
+                        <div class="notification-item">
+                            <h4>Sisteme Hoş Geldiniz!</h4>
+                            <p>Uzmanınız size bir görüşme linki gönderdiğinde burada görünecektir.</p>
+                            <span>Şimdi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TESTLER -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3>Testlerim</h3>
+                        <i class="ph ph-exam" style="font-size: 20px; color: var(--text-muted);"></i>
+                    </div>
+                    <div id="testAlani">
+                        <!-- Örnek Test -->
+                        <div class="test-item">
+                            <div>
+                                <h4>Stres Değerlendirme Testi</h4>
+                                <p style="font-size: 12px; color: var(--text-muted);">Gönderen: Dr. Ayşe</p>
+                            </div>
+                            <button class="btn-solve" onclick="alert('Test çözme ekranı yakında eklenecek!')">Çöz</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MOTOR (FIREBASE) -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
+            authDomain: "uzmanoda.firebaseapp.com",
+            projectId: "uzmanoda",
+            storageBucket: "uzmanoda.firebasestorage.app",
+            messagingSenderId: "71880478784",
+            appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // 1. GÜVENLİK DUVARI VE KULLANICIYI TANIMA
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // Veritabanından danışanın adını çek
+                db.collection('danisanlar').doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        const tamIsim = data.isim + " " + data.soyisim;
+                        document.getElementById('profilIsim').innerText = tamIsim;
+                        document.getElementById('profilAvatar').innerText = data.isim.charAt(0).toUpperCase();
+                        document.getElementById('hosgeldinMesaji').innerText = "Hoş Geldiniz, " + data.isim;
+                    }
+                });
+            } else {
+                // Giriş yapılmamışsa giriş sayfasına at
+                window.location.href = "danisan-giris.html";
+            }
+        });
+
+        // 2. ODAYA KATILMA MANTIĞI
+        function odayaKatil() {
+            const kod = document.getElementById('odaKoduInput').value.trim().toUpperCase();
+            if(kod.length > 0) {
+                // Kodu URL parametresi olarak gorusme odasina gönder
+                window.location.href = "gorusme-odasi.html?oda=" + kod;
+            } else {
+                alert("Lütfen bir oda kodu girin.");
+            }
+        }
+
+        // 3. ÇIKIŞ YAPMA
+        function cikisYap() {
+            auth.signOut().then(() => {
+                window.location.href = "index.html";
+            });
+        }
+    </script>
+</body>
+</html>
