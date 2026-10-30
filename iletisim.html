@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | İletişim & Destek</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --primary-hover: #5a189a;
+            --pink-light: #FDF2F8;
+            --purple-light: #F3E8FF;
+            --text-dark: #111827;
+            --text-muted: #6B7280;
+            --surface: #FFFFFF;
+            --border: #E5E7EB;
+            --gradient: linear-gradient(135deg, #7B2CBF 0%, #C77DFF 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); scroll-behavior: smooth; }
+
+        /* --- NAVBAR --- */
+        .navbar { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); padding: 20px 5%; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
+        .nav-logo img { height: 36px; border-radius: 8px; }
+        .btn-home { text-decoration: none; color: var(--primary); font-weight: 700; font-size: 15px; padding: 10px 24px; border-radius: 50px; transition: 0.3s; border: 1px solid var(--purple-light); background: var(--purple-light); }
+        .btn-home:hover { background: white; border-color: var(--primary); }
+
+        /* --- HERO ALANI --- */
+        .hero {
+            padding: 80px 5% 60px; text-align: center; 
+            background: linear-gradient(180deg, var(--purple-light) 0%, #FAFAFA 100%);
+            border-bottom: 1px solid var(--border);
+        }
+        .hero h1 { font-size: 46px; font-weight: 800; color: var(--text-dark); margin-bottom: 20px; letter-spacing: -1px; }
+        .hero p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto; line-height: 1.6; }
+
+        /* --- HIZLI İLETİŞİM KARTLARI --- */
+        .contact-cards { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; max-width: 1100px; margin: -40px auto 60px; padding: 0 5%; position: relative; z-index: 10; }
+        .contact-card {
+            background: var(--surface); padding: 40px 30px; border-radius: 24px;
+            border: 1px solid var(--border); text-align: center; flex: 1; min-width: 280px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.04); transition: 0.3s;
+        }
+        .contact-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(123, 44, 191, 0.08); }
+        
+        .icon-wrapper {
+            width: 70px; height: 70px; background: var(--purple-light); color: var(--primary);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 32px; margin: 0 auto 20px auto;
+        }
+        
+        .contact-card h3 { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
+        .contact-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 15px; }
+        .contact-card a { display: inline-block; font-size: 16px; font-weight: 700; color: var(--primary); text-decoration: none; transition: 0.2s; }
+        .contact-card a:hover { color: var(--primary-hover); text-decoration: underline; }
+
+        /* --- ANA İÇERİK (FORM VE SSS) --- */
+        .main-content { display: flex; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; padding: 0 5% 100px; gap: 50px; }
+        
+        /* Sol Taraf: Form */
+        .form-section { flex: 1.2; min-width: 320px; }
+        .form-section h2 { font-size: 28px; font-weight: 800; margin-bottom: 10px; }
+        .form-section > p { font-size: 15px; color: var(--text-muted); margin-bottom: 30px; }
+        
+        .form-box {
+            background: var(--surface); padding: 40px; border-radius: 24px;
+            border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--text-dark); }
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%; padding: 15px 16px; border: 1px solid var(--border); border-radius: 12px;
+            font-size: 15px; outline: none; transition: 0.3s; background: #FAFAFA; font-family: inherit;
+        }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px var(--purple-light); }
+        .input-group textarea { height: 140px; resize: none; }
+
+        .btn-submit {
+            width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-submit:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(123, 44, 191, 0.2); }
+
+        /* Sağ Taraf: SSS */
+        .faq-section { flex: 1; min-width: 320px; }
+        .faq-section h2 { font-size: 28px; font-weight: 800; margin-bottom: 10px; }
+        .faq-section > p { font-size: 15px; color: var(--text-muted); margin-bottom: 30px; }
+
+        .faq-item {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+            margin-bottom: 16px; overflow: hidden; transition: 0.3s;
+        }
+        .faq-item:hover { border-color: #D1D5DB; }
+        
+        .faq-question {
+            padding: 24px; font-size: 16px; font-weight: 700; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center; color: var(--text-dark);
+            transition: 0.2s;
+        }
+        .faq-question:hover { color: var(--primary); }
+        
+        .faq-answer { padding: 0 24px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; font-size: 15px; color: var(--text-muted); line-height: 1.7; }
+        
+        .faq-item.active { border-color: var(--primary); box-shadow: 0 5px 15px rgba(123, 44, 191, 0.05); }
+        .faq-item.active .faq-answer { padding: 0 24px 24px 24px; max-height: 300px; }
+        .faq-item.active .faq-question { color: var(--primary); }
+        .faq-item.active .faq-question i { transform: rotate(180deg); color: var(--primary); }
+
+        /* --- GÜVEN / OFİS ALANI --- */
+        .trust-banner {
+            background: var(--text-dark); color: white; padding: 60px 5%; text-align: center;
+        }
+        .trust-banner h3 { font-size: 24px; font-weight: 800; margin-bottom: 15px; }
+        .trust-banner p { font-size: 16px; color: #9CA3AF; max-width: 600px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 32px; }
+            .hero p { font-size: 16px; }
+            .contact-cards { margin-top: 20px; }
+            .form-box { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            UzmanOda
+        </a>
+        <a href="index.html" class="btn-home"><i class="ph ph-arrow-left"></i> Ana Sayfa</a>
+    </nav>
+
+    <section class="hero">
+        <h1>Size Nasıl Yardımcı Olabiliriz?</h1>
+        <p>Platformumuzla ilgili sorularınız, teknik bir sorun veya iş birliği talepleriniz için profesyonel destek ekibimiz burada.</p>
+    </section>
+
+    <!-- Hızlı Erişim Kartları -->
+    <div class="contact-cards">
+        <div class="contact-card">
+            <div class="icon-wrapper"><i class="ph ph-envelope-simple"></i></div>
+            <h3>E-posta Desteği</h3>
+            <p>Sorularınızı detaylıca iletin, 24 saat içinde dönüş yapalım.</p>
+            <a href="mailto:destek@uzmanoda.com">destek@uzmanoda.com</a>
+        </div>
+        <div class="contact-card">
+            <div class="icon-wrapper"><i class="ph ph-headset"></i></div>
+            <h3>Çağrı Merkezi</h3>
+            <p>Hafta içi her gün 09:00 - 18:00 saatleri arasında bize ulaşın.</p>
+            <a href="tel:08500000000">0850 000 00 00</a>
+        </div>
+        <div class="contact-card">
+            <div class="icon-wrapper"><i class="ph ph-chat-circle-dots"></i></div>
+            <h3>Canlı Destek</h3>
+            <p>Uzman panelinize giriş yaparak anlık destek ekibimize bağlanın.</p>
+            <a href="#">Canlı Chat Başlat</a>
+        </div>
+    </div>
+
+    <!-- Form ve SSS -->
+    <div class="main-content">
+        
+        <!-- İletişim Formu -->
+        <div class="form-section">
+            <h2>Bize Mesaj Gönderin</h2>
+            <p>Formu doldurun, uzman ekibimiz en kısa sürede sizinle iletişime geçsin.</p>
+            
+            <div class="form-box">
+                <form id="iletisimFormu" onsubmit="mesajGonder(event)">
+                    <div class="input-group">
+                        <label>Adınız Soyadınız</label>
+                        <input type="text" placeholder="Adınızı ve soyadınızı girin" required>
+                    </div>
+                    <div class="input-group">
+                        <label>E-posta Adresiniz</label>
+                        <input type="email" placeholder="ornek@mail.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Konu</label>
+                        <select required>
+                            <option value="">Lütfen bir konu seçin...</option>
+                            <option value="hesap">Hesap İşlemleri</option>
+                            <option value="odeme">Fatura ve Ödeme</option>
+                            <option value="teknik">Teknik Destek</option>
+                            <option value="oneri">Öneri ve Şikayet</option>
+                            <option value="isbirligi">Kurumsal İş Birliği</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Mesajınız</label>
+                        <textarea placeholder="Bize nasıl yardımcı olabileceğimizi detaylıca anlatın..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">
+                        <i class="ph ph-paper-plane-right"></i> Mesajı Gönder
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sıkça Sorulan Sorular -->
+        <div class="faq-section">
+            <h2>Sıkça Sorulan Sorular</h2>
+            <p>Merak edilenler ve hızlı cevapları.</p>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="sssAc(this)">
+                    Görüşmelerim gizli tutuluyor mu? <i class="ph ph-caret-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Evet, platformumuzda mahremiyet en üst düzeydedir. Yaptığınız tüm görüşmeler tamamen size ve uzmanınıza özeldir. Hiçbir üçüncü şahıs veya sistem yöneticisi görüşmelerinizi izleyemez, kayıt altına alamaz.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="sssAc(this)">
+                    Danışan olarak uygulama indirmem gerekiyor mu? <i class="ph ph-caret-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Hayır. Uzmanınızın size ilettiği bağlantıya tıklamanız veya oda kodunu girmeniz yeterlidir. Herhangi bir uygulama indirmeden, doğrudan internet tarayıcınız üzerinden görüşmeye katılabilirsiniz.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="sssAc(this)">
+                    Uzman başvurum ne kadar sürede onaylanır? <i class="ph ph-caret-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Uzman kayıt formunu doldurduktan sonra, yönetici ekibimiz bilgilerinizi ve uzmanlık alanınızı inceler. Başvurular ortalama 24-48 saat içerisinde sonuçlandırılır ve e-posta ile bilgilendirme yapılır.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="sssAc(this)">
+                    Fatura ve ödeme süreçleri nasıl işliyor? <i class="ph ph-caret-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Platformumuz uzmanlar için esnek paketler sunar. Faturalandırma işlemleri ve abonelik detayları hakkında detaylı bilgiye "Fiyatlandırma" sayfamızdan ulaşabilir veya destek ekibimizle iletişime geçebilirsiniz.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Güven Bandı -->
+    <div class="trust-banner">
+        <h3>UzmanOda Güvencesi</h3>
+        <p><i class="ph ph-check-circle" style="color: var(--success); font-size: 20px;"></i> Tüm görüşmeleriniz ve verileriniz en üst düzey gizlilik standartları ile korunmaktadır.</p>
+    </div>
+
+    <script>
+        function mesajGonder(e) {
+            e.preventDefault();
+            alert("Mesajınız başarıyla iletildi! Destek ekibimiz en kısa sürede size dönüş yapacaktır.");
+            document.getElementById('iletisimFormu').reset();
+        }
+
+        // SSS Akordiyon Mantığı
+        function sssAc(element) {
+            const parent = element.parentElement;
+            
+            // Diğerlerini kapat
+            document.querySelectorAll('.faq-item').forEach(item => {
+                if (item !== parent && item.classList.contains('active')) {
+                    item.classList.remove('active');
+                }
+            });
+
+            parent.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
