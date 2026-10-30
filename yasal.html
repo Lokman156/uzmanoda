@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Yasal Metinler</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --pink-light: #FDF2F8;
+            --purple-light: #F3E8FF;
+            --text-dark: #1F2937;
+            --text-muted: #6B7280;
+            --surface: #FFFFFF;
+            --border: #E5E7EB;
+            --radius-lg: 24px;
+            --radius-md: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { overflow-x: hidden; background-color: var(--pink-light); color: var(--text-dark); min-height: 100vh; }
+
+        /* --- ÜST MENÜ --- */
+        .navbar { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 20px 5%; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
+        .nav-logo img { height: 36px; border-radius: 8px; }
+        .btn-home { text-decoration: none; color: var(--text-dark); font-weight: 600; font-size: 15px; padding: 10px 20px; border-radius: var(--radius-md); transition: 0.2s; background: var(--purple-light); color: var(--primary); }
+        .btn-home:hover { background: #E0AAFF; }
+
+        /* --- İÇERİK --- */
+        .main-wrapper { padding: 40px 5%; display: flex; justify-content: center; }
+        .legal-container {
+            background: var(--surface); width: 100%; max-width: 900px; border-radius: var(--radius-lg);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid var(--border); padding: 40px; overflow: hidden;
+        }
+        .page-header { text-align: center; margin-bottom: 30px; }
+        .page-header h1 { font-size: 32px; font-weight: 800; color: var(--text-dark); margin-bottom: 10px; }
+        .page-header p { color: var(--text-muted); font-size: 16px; }
+
+        /* --- SEKMELER --- */
+        .tabs { display: flex; gap: 10px; border-bottom: 1px solid var(--border); margin-bottom: 30px; flex-wrap: wrap; justify-content: center; }
+        .tab-btn { background: none; border: none; padding: 12px 24px; font-size: 16px; font-weight: 700; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* --- İÇERİK --- */
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        .tab-content h2 { font-size: 22px; margin-bottom: 20px; color: var(--text-dark); }
+        .tab-content h3 { font-size: 18px; margin: 20px 0 10px 0; color: var(--text-dark); }
+        .tab-content p { font-size: 15px; color: var(--text-muted); line-height: 1.8; margin-bottom: 15px; text-align: justify; }
+        .tab-content ul { margin-left: 20px; margin-bottom: 15px; }
+        .tab-content ul li { font-size: 15px; color: var(--text-muted); line-height: 1.8; margin-bottom: 8px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- MOBİL UYUMLULUK --- */
+        @media (max-width: 768px) {
+            .legal-container { padding: 25px 20px; }
+            .page-header h1 { font-size: 26px; }
+            .tabs { flex-direction: column; border-bottom: none; gap: 5px; }
+            .tab-btn { border-bottom: 1px solid var(--border); border-radius: var(--radius-md); text-align: left; }
+            .tab-btn.active { background: var(--purple-light); border-bottom-color: var(--border); }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            UzmanOda
+        </a>
+        <a href="index.html" class="btn-home"><i class="ph ph-arrow-left"></i> Ana Sayfa</a>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="legal-container">
+            <div class="page-header">
+                <h1>Yasal Bilgilendirmeler</h1>
+                <p>Platformumuzu kullanırken geçerli olan kurallar ve politikalar.</p>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="sekmeDegistir('kvkk', this)">KVKK Aydınlatma Metni</button>
+                <button class="tab-btn" onclick="sekmeDegistir('gizlilik', this)">Gizlilik Politikası</button>
+                <button class="tab-btn" onclick="sekmeDegistir('kullanim', this)">Kullanım Şartları</button>
+            </div>
+
+            <!-- KVKK Sekmesi -->
+            <div id="tab-kvkk" class="tab-content active">
+                <h2>Kişisel Verilerin Korunması Hakkında Aydınlatma Metni</h2>
+                <p>UzmanOda olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) uyarınca, kişisel verilerinizin güvenliği ve gizliliği bizim için en üst düzeyde önem taşımaktadır. Bu metin, platformumuzu kullanırken verilerinizin nasıl işlendiği konusunda sizi bilgilendirmek amacıyla hazırlanmıştır.</p>
+                
+                <h3>1. Hangi Verileriniz İşleniyor?</h3>
+                <p>Sisteme üye olurken sağladığınız ad, soyad, e-posta adresi ve telefon numarası gibi kimlik ve iletişim verileriniz işlenmektedir.</p>
+
+                <h3>2. Verileriniz Hangi Amaçla Kullanılıyor?</h3>
+                <p>Verileriniz; hesabınızın oluşturulması, güvenli bir şekilde giriş yapabilmeniz, uzman danışan eşleşmelerinin sağlanması ve görüşmelerinizin güvenliği amacıyla kullanılır. Üçüncü şahıslarla asla ticari amaçla paylaşılmaz.</p>
+
+                <h3>3. Veri Güvenliği</h3>
+                <p>Platformumuz üzerinden gerçekleştirilen sesli ve görüntülü görüşmeler, WebRTC teknolojisi kullanılarak uçtan uca (P2P) şifrelenir. Görüşmelerinizin kaydı hiçbir şekilde tutulmaz.</p>
+            </div>
+
+            <!-- Gizlilik Sekmesi -->
+            <div id="tab-gizlilik" class="tab-content">
+                <h2>Gizlilik Politikası</h2>
+                <p>UzmanOda, kullanıcılarının gizliliğini korumak için tasarlanmış bir platformdur. Görüşmelerinizin gizliliği en temel prensibimizdir.</p>
+                
+                <h3>Görüşmelerin Gizliliği</h3>
+                <p>Sistemimiz üzerinden yapılan görüşmeler doğrudan iki tarafın cihazları arasında gerçekleşir. Sunucularımız görüşme içeriğini (ses veya görüntü) kaydetmez, dinlemez veya izlemez.</p>
+
+                <h3>Çerezler (Cookies)</h3>
+                <p>Sitemiz, oturumunuzun açık kalması ve güvenliğiniz için temel düzeyde çerezler kullanmaktadır. Bu çerezler reklam veya pazarlama amacı taşımaz.</p>
+
+                <h3>Veri Saklama</h3>
+                <p>Hesabınızı sildiğiniz anda, sistemdeki tüm kişisel verileriniz (geçmiş görüşmeler, test sonuçları, notlar) kalıcı olarak silinir ve geri getirilemez.</p>
+            </div>
+
+            <!-- Kullanım Şartları Sekmesi -->
+            <div id="tab-kullanim" class="tab-content">
+                <h2>Kullanım Şartları</h2>
+                <p>UzmanOda platformunu kullanarak aşağıdaki şartları kabul etmiş sayılırsınız.</p>
+                
+                <h3>Uzmanların Sorumlulukları</h3>
+                <ul>
+                    <li>Uzmanlar, platform üzerinden sundukları hizmetlerin (psikolojik danışmanlık, hukuki danışmanlık vb.) yasal sorumluluğunu taşır.</li>
+                    <li>Uzmanlar, danışanlarına karşı etik kurallara uygun davranmakla yükümlüdür.</li>
+                    <li>Platform, sadece bir iletişim ve görüşme aracıdır. Uzman ve danışan arasındaki anlaşmazlıklarda taraf değildir.</li>
+                </ul>
+
+                <h3>Danışanların Sorumlulukları</h3>
+                <ul>
+                    <li>Danışanlar, gerçek bilgilerle kayıt olmak zorundadır.</li>
+                    <li>Sistem üzerinden yapılan görüşmelerin gizliliği ihlal edilemez, üçüncü kişilerle paylaşılamaz.</li>
+                    <li>18 yaşından küçük bireyler, veli izni olmadan sistemi kullanamaz.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function sekmeDegistir(sekmeId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + sekmeId).classList.add('active');
+            btn.classList.add('active');
+        }
+    </script>
+</body>
+</html>
