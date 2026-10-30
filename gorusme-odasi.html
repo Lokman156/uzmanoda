@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Görüşme Odası</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --purple-light: #F3E8FF;
+            --text-light: #F9FAFB;
+            --danger: #EF4444;
+            --success: #10B981;
+            --bg-dark: #0F172A; /* Koyu lacivert/siyah arka plan */
+            --surface-dark: #1E293B;
+            --radius-lg: 24px;
+            --radius-md: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { overflow: hidden; height: 100vh; background-color: var(--bg-dark); color: var(--text-light); }
+
+        /* --- ANA VİDEO ALANI --- */
+        .video-wrapper {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #remoteVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+        }
+
+        /* --- KÜÇÜK YEREL VİDEO (PiP) --- */
+        .local-video-container {
+            position: absolute;
+            bottom: 100px;
+            right: 30px;
+            width: 180px;
+            height: 120px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.2);
+            background: #000;
+            z-index: 10;
+            transition: 0.3s;
+        }
+
+        #localVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Ayna efekti */
+        }
+
+        /* --- ÜST BİLGİ ÇUBUĞU --- */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none; /* Tıklamaları videoya geçir */
+        }
+
+        .room-info {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+        }
+        
+        .room-code { font-weight: 800; letter-spacing: 1px; color: var(--primary); }
+        .timer { font-size: 14px; color: #9CA3AF; font-variant-numeric: tabular-nums; }
+
+        /* --- ALT KONTROL ÇUBUĞU --- */
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+            z-index: 10;
+        }
+
+        .control-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .control-btn:hover { background: rgba(255,255,255,0.2); }
+        .control-btn.active { background: var(--primary); }
+        .control-btn.danger { background: var(--danger); }
+        .control-btn.danger:hover { background: #DC2626; }
+        
+        /* Test Gönderme Butonu (Özel) */
+        .control-btn.test-btn { background: var(--success); color: white; width: auto; padding: 0 20px; border-radius: 28px; font-size: 15px; font-weight: 700; gap: 8px; }
+        .control-btn.test-btn:hover { background: #059669; }
+
+        /* --- YAN PANEL (SOHBET & TEST) --- */
+        .sidebar {
+            position: absolute;
+            top: 0;
+            right: -400px; /* Başlangıçta gizli */
+            width: 380px;
+            height: 100vh;
+            background: var(--surface-dark);
+            border-left: 1px solid rgba(255,255,255,0.1);
+            z-index: 20;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.open { right: 0; }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sidebar-header h3 { font-size: 18px; }
+        .close-sidebar { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+
+        /* Sohbet Alanı */
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message { background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 12px; max-width: 85%; }
+        .message.mine { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
+        .message.theirs { align-self: flex-start; border-bottom-left-radius: 2px; }
+
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input-area input {
+            flex: 1; padding: 12px 16px; border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2);
+            color: white; outline: none;
+        }
+        .btn-send { background: var(--primary); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* --- MOBİL UYUMLULUK --- */
+        @media (max-width: 768px) {
+            .local-video-container { width: 120px; height: 160px; bottom: 90px; right: 15px; }
+            .controls { padding: 10px 20px; gap: 10px; width: 95%; justify-content: center; }
+            .control-btn { width: 48px; height: 48px; font-size: 20px; }
+            .control-btn.test-btn { padding: 0 15px; font-size: 14px; }
+            .sidebar { width: 100%; right: -100%; }
+            .top-bar { top: 10px; left: 10px; right: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="video-wrapper">
+        <!-- Karşı Tarafın Videosu -->
+        <video id="remoteVideo" autoplay playsinline></video>
+
+        <!-- Kullanıcının Kendi Videosu (PiP) -->
+        <div class="local-video-container">
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+
+        <!-- Üst Bilgi -->
+        <div class="top-bar">
+            <div class="room-info">
+                <i class="ph ph-video-camera" style="color: var(--primary); font-size: 20px;"></i>
+                <span class="room-code" id="odaKoduEkran">Oda Yükleniyor...</span>
+                <span class="timer" id="sure">00:00</span>
+            </div>
+        </div>
+
+        <!-- Alt Kontroller -->
+        <div class="controls">
+            <button class="control-btn" id="micBtn" onclick="toggleMic()" title="Mikrofonu Kapat/Aç">
+                <i class="ph ph-microphone"></i>
+            </button>
+            <button class="control-btn" id="camBtn" onclick="toggleCam()" title="Kamerayı Kapat/Aç">
+                <i class="ph ph-video-camera"></i>
+            </button>
+            <button class="control-btn" id="screenBtn" onclick="shareScreen()" title="Ekran Paylaş">
+                <i class="ph ph-monitor"></i>
+            </button>
+            
+            <!-- Sadece Uzman Görecek -->
+            <button class="control-btn test-btn" id="testBtn" onclick="testGonderModalAc()" style="display:none;">
+                <i class="ph ph-exam"></i> Test Gönder
+            </button>
+
+            <button class="control-btn" id="chatBtn" onclick="toggleChat()" title="Sohbet">
+                <i class="ph ph-chat-teardrop-text"></i>
+            </button>
+            <button class="control-btn danger" onclick="gorusmeyiBitir()" title="Görüşmeyi Bitir">
+                <i class="ph ph-phone-disconnect"></i>
+            </button>
+        </div>
+
+        <!-- Yan Panel (Sohbet) -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>Görüşme Sohbeti</h3>
+                <button class="close-sidebar" onclick="toggleChat()">&times;</button>
+            </div>
+            <div class="chat-area" id="chatArea">
+                <div class="message theirs">Merhaba, görüşmeye bağlandınız.</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Mesaj yazın..." onkeypress="if(event.key === 'Enter') mesajGonder()">
+                <button class="btn-send" onclick="mesajGonder()"><i class="ph ph-paper-plane-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOTOR (WEBRTC & FIREBASE) -->
+    <script>
+        // --- AYARLAR ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
+            authDomain: "uzmanoda.firebaseapp.com",
+            projectId: "uzmanoda",
+            storageBucket: "uzmanoda.firebasestorage.app",
+            messagingSenderId: "71880478784",
+            appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
+        };
+
+        // SENİN METERED TURN SUNUCU BİLGİLERİN
+        const iceServers = {
+            iceServers: [
+                { urls: "stun:stun.relay.metered.ca:80" },
+                { urls: "turn:global.relay.metered.ca:80", username: "f987b1568451597d97387c26", credential: "mq65sbWBbmx/e70b" },
+                { urls: "turn:global.relay.metered.ca:80?transport=tcp", username: "f987b1568451597d97387c26", credential: "mq65sbWBbmx/e70b" },
+                { urls: "turn:global.relay.metered.ca:443", username: "f987b1568451597d97387c26", credential: "mq65sbWBbmx/e70b" },
+                { urls: "turns:global.relay.metered.ca:443?transport=tcp", username: "f987b1568451597d97387c26", credential: "mq65sbWBbmx/e70b" }
+            ]
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // --- DEĞİŞKENLER ---
+        let localStream;
+        let remoteStream;
+        let peerConnection;
+        let odaKodu;
+        let isHost = false; // Uzman mı?
+        let currentUser = null;
+        let sureInterval;
+        let saniye = 0;
+        let unsubOffer = null;
+        let unsubAnswer = null;
+        let unsubCandidates = null;
+
+        // URL'den Oda Kodunu Al (?oda=X7Y9Z1)
+        const urlParams = new URLSearchParams(window.location.search);
+        odaKodu = urlParams.get('oda');
+
+        if (!odaKodu) {
+            // Eğer URL'de oda kodu yoksa, bu bir uzmandır ve yeni oda açıyordur.
+            odaKodu = Math.random().toString(36).substring(2, 8).toUpperCase();
+            isHost = true;
+            document.getElementById('testBtn').style.display = 'flex'; // Test butonunu göster
+        }
+
+        document.getElementById('odaKoduEkran').innerText = "Oda: " + odaKodu;
+
+        // --- 1. BAŞLATMA ---
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                // Uzman mı kontrol et
+                const doc = await db.collection('uzmanlar').doc(user.uid).get();
+                if (doc.exists) {
+                    isHost = true;
+                    document.getElementById('testBtn').style.display = 'flex';
+                }
+            }
+            
+            // Kamerayı ve mikrofonu başlat
+            await kamerayiBaslat();
+            
+            // WebRTC Bağlantısını Kur
+            baglantiKur();
+        });
+
+        // --- 2. MEDYA (KAMERA/MİKROFON) ---
+        async function kamerayiBaslat() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+            } catch (err) {
+                alert("Kamera veya mikrofona erişilemedi. Lütfen izin verin.");
+                console.error(err);
+            }
+        }
+
+        // --- 3. WEBRTC BAĞLANTISI ---
+        function baglantiKur() {
+            peerConnection = new RTCPeerConnection(iceServers);
+
+            // Yerel medyayı bağlantıya ekle
+            if (localStream) {
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+            }
+
+            // Karşı taraftan video/ses geldiğinde
+            peerConnection.ontrack = (event) => {
+                remoteStream = event.streams[0];
+                document.getElementById('remoteVideo').srcObject = remoteStream;
+            };
+
+            // ICE Adaylarını (Ağ bilgilerini) Firestore'a kaydet
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    db.collection('gorusmeler').doc(odaKodu).collection('adaylar').add({
+                        candidate: event.candidate,
+                        gonderen: isHost ? 'host' : 'guest'
+                    });
+                }
+            };
+
+            // Firestore'dan gelen sinyalleri dinle
+            if (isHost) {
+                // UZMAN: Teklifi (Offer) oluştur ve kaydet
+                peerConnection.onnegotiationneeded = async () => {
+                    try {
+                        const offer = await peerConnection.createOffer();
+                        await peerConnection.setLocalDescription(offer);
+                        await db.collection('gorusmeler').doc(odaKodu).set({
+                            offer: { type: offer.type, sdp: offer.sdp },
+                            hostId: currentUser ? currentUser.uid : 'anonim'
+                        });
+                    } catch (err) { console.error(err); }
+                };
+                
+                // Danışandan gelen cevabı (Answer) dinle
+                unsubAnswer = db.collection('gorusmeler').doc(odaKodu).onSnapshot(snapshot => {
+                    const data = snapshot.data();
+                    if (data && data.answer && !peerConnection.currentRemoteDescription) {
+                        peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    }
+                });
+            } else {
+                // DANIŞAN: Uzmanın teklifini (Offer) dinle
+                unsubOffer = db.collection('gorusmeler').doc(odaKodu).onSnapshot(async snapshot => {
+                    const data = snapshot.data();
+                    if (data && data.offer && !peerConnection.currentRemoteDescription) {
+                        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                        const answer = await peerConnection.createAnswer();
+                        await peerConnection.setLocalDescription(answer);
+                        await db.collection('gorusmeler').doc(odaKodu).update({
+                            answer: { type: answer.type, sdp: answer.sdp }
+                        });
+                    }
+                });
+            }
+
+            // Karşı tarafın ICE Adaylarını dinle
+            unsubCandidates = db.collection('gorusmeler').doc(odaKodu).collection('adaylar').onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const data = change.doc.data();
+                        // Eğer aday bizden gelmediyse karşı tarafın adayıdır
+                        if (data.gonderen !== (isHost ? 'host' : 'guest')) {
+                            peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                        }
+                    }
+                });
+            });
+
+            // Süre sayacını başlat
+            sureInterval = setInterval(() => {
+                saniye++;
+                let dk = Math.floor(saniye / 60).toString().padStart(2, '0');
+                let sn = (saniye % 60).toString().padStart(2, '0');
+                document.getElementById('sure').innerText = `${dk}:${sn}`;
+            }, 1000);
+        }
+
+        // --- 4. KONTROLLER (MİKROFON, KAMERA, EKRAN) ---
+        function toggleMic() {
+            const btn = document.getElementById('micBtn');
+            const audioTrack = localStream.getAudioTracks()[0];
+            audioTrack.enabled = !audioTrack.enabled;
+            btn.classList.toggle('active', !audioTrack.enabled);
+            btn.innerHTML = audioTrack.enabled ? '<i class="ph ph-microphone"></i>' : '<i class="ph ph-microphone-slash"></i>';
+        }
+
+        function toggleCam() {
+            const btn = document.getElementById('camBtn');
+            const videoTrack = localStream.getVideoTracks()[0];
+            videoTrack.enabled = !videoTrack.enabled;
+            btn.classList.toggle('active', !videoTrack.enabled);
+            btn.innerHTML = videoTrack.enabled ? '<i class="ph ph-video-camera"></i>' : '<i class="ph ph-video-camera-slash"></i>';
+        }
+
+        async function shareScreen() {
+            try {
+                const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                const screenTrack = screenStream.getVideoTracks()[0];
+                
+                // Ekran paylaşımı bittiğinde kameraya geri dön
+                screenTrack.onended = () => {
+                    const videoTrack = localStream.getVideoTracks()[0];
+                    const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
+                    if (sender) sender.replaceTrack(videoTrack);
+                    document.getElementById('localVideo').srcObject = localStream;
+                };
+
+                // Ekranı karşı tarafa gönder
+                const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
+                if (sender) sender.replaceTrack(screenTrack);
+                document.getElementById('localVideo').srcObject = screenStream;
+                
+            } catch (err) {
+                console.log("Ekran paylaşımı iptal edildi.");
+            }
+        }
+
+        // --- 5. SOHBET (Temsili) ---
+        function toggleChat() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+        function mesajGonder() {
+            const input = document.getElementById('chatInput');
+            if(input.value.trim() === "") return;
+            
+            const chatArea = document.getElementById('chatArea');
+            const msg = document.createElement('div');
+            msg.className = 'message mine';
+            msg.innerText = input.value;
+            chatArea.appendChild(msg);
+            
+            input.value = "";
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // --- 6. GÖRÜŞMEYİ BİTİR ---
+        function gorusmeyiBitir() {
+            if(confirm("Görüşmeyi bitirmek istediğinize emin misiniz?")) {
+                if(peerConnection) peerConnection.close();
+                if(localStream) localStream.getTracks().forEach(track => track.stop());
+                clearInterval(sureInterval);
+                
+                // Temizlik (Firestore)
+                db.collection('gorusmeler').doc(odaKodu).delete().catch(e => console.log(e));
+                
+                // Yönlendir
+                if(isHost) window.location.href = "uzman-panel.html";
+                else window.location.href = "index.html";
+            }
+        }
+
+        // --- 7. TEST GÖNDERME (Uzman İçin) ---
+        function testGonderModalAc() {
+            alert("Test gönderme paneli yakında aktif olacak. Şimdilik tasarım aşamasında!");
+        }
+    </script>
+</body>
+</html>
