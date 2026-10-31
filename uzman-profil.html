@@ -66,12 +66,20 @@
         .form-group { display: flex; flex-direction: column; }
         .form-group.full { grid-column: 1 / -1; }
         .form-group label { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--text-dark); }
-        .form-group input { padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 15px; outline: none; transition: 0.3s; background: #FAFAFA; font-family: inherit; }
-        .form-group input:focus { border-color: var(--primary); background: white; }
+        .form-group input, .form-group select, .form-group textarea { padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 15px; outline: none; transition: 0.3s; background: #FAFAFA; font-family: inherit; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); background: white; }
         .form-group input:disabled { background: #F3F4F6; color: var(--text-muted); cursor: not-allowed; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
         .btn-save { background: linear-gradient(135deg, #7B2CBF, #C77DFF); color: white; border: none; padding: 14px 30px; border-radius: var(--radius-md); font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; margin-top: 20px; }
         .btn-save:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3); }
         .btn-save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .quick-replies-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .quick-reply-item { display: flex; align-items: center; gap: 12px; background: #FAFAFA; padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+        .quick-reply-item span { flex: 1; font-size: 14px; }
+        .btn-remove-qr { background: #FEE2E2; color: var(--danger); border: none; padding: 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .add-qr-input { display: flex; gap: 10px; }
+        .add-qr-input input { flex: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 14px; outline: none; }
+        .btn-add-qr { background: var(--purple-light); color: var(--primary); border: none; padding: 12px 20px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; }
         .password-hint { background: #FEF3C7; color: #92400E; padding: 12px 16px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px; }
         .password-hint i { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
         .toast { position: fixed; top: 90px; right: 20px; padding: 16px 24px; border-radius: var(--radius-md); color: white; font-weight: 700; z-index: 2000; opacity: 0; transform: translateX(100px); transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
@@ -93,6 +101,7 @@
             .section-card { padding: 20px; }
             .form-grid { grid-template-columns: 1fr; }
             .profile-photo-section { flex-direction: column; text-align: center; }
+            .add-qr-input { flex-direction: column; }
         }
     </style>
 </head>
@@ -109,7 +118,7 @@
                 <span class="notif-badge" id="notifBadge">0</span>
             </button>
             <div class="user-info-nav">
-                <div class="avatar-nav" id="navbarAvatar">D</div>
+                <div class="avatar-nav" id="navbarAvatar">U</div>
                 <span class="user-name" id="navbarIsim">Yükleniyor...</span>
             </div>
             <button onclick="cikisYap()" class="btn-logout"><i class="ph ph-sign-out"></i> Çıkış</button>
@@ -119,13 +128,17 @@
     <div class="app-body">
         <aside class="sidebar">
             <div class="nav-menu">
-                <a href="danisan-panel.html" class="nav-link"><i class="ph ph-squares-four"></i> Panel</a>
-                <a href="danisan-gecmis.html" class="nav-link"><i class="ph ph-clock-counter-clockwise"></i> Geçmiş</a>
+                <a href="uzman-panel.html" class="nav-link"><i class="ph ph-squares-four"></i> Panel</a>
+                <a href="danisanlarim.html" class="nav-link"><i class="ph ph-users"></i> Danışanlar</a>
+                <a href="testlerim.html" class="nav-link"><i class="ph ph-exam"></i> Testler</a>
+                <a href="randevular.html" class="nav-link"><i class="ph ph-calendar"></i> Randevular</a>
+                <a href="raporlar.html" class="nav-link"><i class="ph ph-chart-line-up"></i> Raporlar</a>
+                <a href="gecmis.html" class="nav-link"><i class="ph ph-clock-counter-clockwise"></i> Geçmiş</a>
                 <a href="bildirimler.html" class="nav-link">
                     <i class="ph ph-bell"></i> Bildirimler
                     <span class="menu-badge" id="menuBadge" style="display:none;">0</span>
                 </a>
-                <a href="danisan-profil.html" class="nav-link active"><i class="ph ph-user-circle"></i> Profilim</a>
+                <a href="uzman-profil.html" class="nav-link active"><i class="ph ph-user-circle"></i> Profilim</a>
             </div>
         </aside>
 
@@ -133,15 +146,14 @@
             <div class="panel-container">
                 <div class="page-header">
                     <h1>Profilim</h1>
-                    <p>Hesap bilgilerinizi ve şifrenizi buradan yönetin.</p>
+                    <p>Hesap bilgilerinizi, şifrenizi ve hızlı yanıtlarınızı buradan yönetin.</p>
                 </div>
 
-                <!-- Profil Bilgileri -->
                 <div class="section-card">
                     <h2 class="section-title"><i class="ph ph-user"></i> Profil Bilgileri</h2>
                     <div class="profile-photo-section">
                         <div class="profile-photo" id="profilFoto">
-                            <span id="profilHarf">D</span>
+                            <span id="profilHarf">U</span>
                         </div>
                         <div class="photo-actions">
                             <input type="file" id="fotoInput" accept="image/*" style="display:none;" onchange="fotoSecildi(event)">
@@ -154,24 +166,39 @@
                             </button>
                         </div>
                     </div>
-
                     <form id="profilFormu" onsubmit="profilKaydet(event)">
                         <div class="form-grid">
                             <div class="form-group">
-                                <label>İsim</label>
+                                <label>Ad Soyad</label>
                                 <input type="text" id="inputIsim" required>
                             </div>
                             <div class="form-group">
-                                <label>Soyisim</label>
-                                <input type="text" id="inputSoyisim" required>
+                                <label>Unvan</label>
+                                <input type="text" id="inputUnvan" placeholder="Örn: Dr., Av., Psk.">
                             </div>
                             <div class="form-group">
-                                <label>Telefon Numarası</label>
+                                <label>Meslek</label>
+                                <select id="inputMeslek" required>
+                                    <option value="">Seçiniz...</option>
+                                    <option value="psikolog">Psikolog</option>
+                                    <option value="avukat">Avukat</option>
+                                    <option value="veteriner">Veteriner</option>
+                                    <option value="ogretmen">Öğretmen</option>
+                                    <option value="doktor">Doktor</option>
+                                    <option value="diger">Diğer</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Telefon</label>
                                 <input type="tel" id="inputTelefon" placeholder="05XX XXX XX XX">
                             </div>
-                            <div class="form-group">
+                            <div class="form-group full">
                                 <label>E-posta (Değiştirilemez)</label>
                                 <input type="email" id="inputEmail" disabled>
+                            </div>
+                            <div class="form-group full">
+                                <label>Kısa Biyografi</label>
+                                <textarea id="inputBio" placeholder="Kendinizden ve uzmanlık alanınızdan kısaca bahsedin..."></textarea>
                             </div>
                         </div>
                         <button type="submit" class="btn-save" id="profilKaydetBtn">
@@ -180,7 +207,20 @@
                     </form>
                 </div>
 
-                <!-- Şifre Değiştirme -->
+                <div class="section-card">
+                    <h2 class="section-title"><i class="ph ph-lightning"></i> Hızlı Yanıt Şablonları</h2>
+                    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">Görüşme sohbetinde tek tıkla gönderebileceğiniz hazır mesajlar.</p>
+                    <div class="quick-replies-list" id="quickRepliesList">
+                        <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:14px;">Henüz şablon eklemediniz.</div>
+                    </div>
+                    <div class="add-qr-input">
+                        <input type="text" id="yeniQuickReply" placeholder="Örn: 5 dakika sonra hazırım..." maxlength="150">
+                        <button class="btn-add-qr" onclick="quickReplyEkle()">
+                            <i class="ph ph-plus"></i> Ekle
+                        </button>
+                    </div>
+                </div>
+
                 <div class="section-card">
                     <h2 class="section-title"><i class="ph ph-lock-key"></i> Şifre Değiştir</h2>
                     <div class="password-hint">
@@ -226,8 +266,9 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        let aktifDanisanId = null;
+        let aktifUzmanId = null;
         let mevcutFotoBase64 = null;
+        let quickReplies = [];
         let unsubBildirim = null;
 
         function toast(mesaj, tip = 'success') {
@@ -239,12 +280,13 @@
 
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
-                window.location.href = "danisan-giris.html";
+                window.location.href = "uzman-giris.html";
                 return;
             }
-            aktifDanisanId = user.uid;
+            aktifUzmanId = user.uid;
+
             try {
-                const doc = await db.collection('danisanlar').doc(user.uid).get();
+                const doc = await db.collection('uzmanlar').doc(user.uid).get();
                 if (doc.exists) {
                     const data = doc.data();
                     verileriDoldur(data, user.email);
@@ -259,7 +301,7 @@
         function bildirimSayaciDinle() {
             if (unsubBildirim) unsubBildirim();
             unsubBildirim = db.collection('bildirimler')
-                .where('aliciId', '==', aktifDanisanId)
+                .where('aliciId', '==', aktifUzmanId)
                 .where('okundu', '==', false)
                 .onSnapshot(snapshot => {
                     const count = snapshot.size;
@@ -274,13 +316,14 @@
 
         function verileriDoldur(data, email) {
             document.getElementById('inputIsim').value = data.isim || '';
-            document.getElementById('inputSoyisim').value = data.soyisim || '';
+            document.getElementById('inputUnvan').value = data.unvan || '';
+            document.getElementById('inputMeslek').value = data.meslek || '';
             document.getElementById('inputTelefon').value = data.telefon || '';
             document.getElementById('inputEmail').value = email || '';
+            document.getElementById('inputBio').value = data.bio || '';
 
-            const tamIsim = (data.isim || 'D') + (data.soyisim ? " " + data.soyisim : "");
-            document.getElementById('navbarIsim').innerText = tamIsim;
-            document.getElementById('navbarAvatar').innerText = (data.isim || 'D').charAt(0).toUpperCase();
+            document.getElementById('navbarIsim').innerText = data.isim || 'Uzman';
+            document.getElementById('navbarAvatar').innerText = (data.isim || 'U').charAt(0).toUpperCase();
 
             if (data.fotoBase64) {
                 mevcutFotoBase64 = data.fotoBase64;
@@ -288,8 +331,11 @@
                 document.getElementById('navbarAvatar').innerHTML = `<img src="${data.fotoBase64}" alt="Profil">`;
                 document.getElementById('fotoSilBtn').style.display = 'flex';
             } else {
-                document.getElementById('profilHarf').innerText = (data.isim || 'D').charAt(0).toUpperCase();
+                document.getElementById('profilHarf').innerText = (data.isim || 'U').charAt(0).toUpperCase();
             }
+
+            quickReplies = data.quickReplies || [];
+            quickRepliesRender();
         }
 
         function fotoSecildi(event) {
@@ -312,11 +358,10 @@
         async function fotoSil() {
             if (!confirm("Profil fotoğrafını silmek istediğinize emin misiniz?")) return;
             mevcutFotoBase64 = null;
-            const harf = document.getElementById('inputIsim').value.charAt(0).toUpperCase() || 'D';
-            document.getElementById('profilFoto').innerHTML = `<span id="profilHarf">${harf}</span>`;
-            document.getElementById('navbarAvatar').innerText = harf;
+            document.getElementById('profilFoto').innerHTML = `<span id="profilHarf">${document.getElementById('inputIsim').value.charAt(0).toUpperCase()}</span>`;
+            document.getElementById('navbarAvatar').innerText = document.getElementById('inputIsim').value.charAt(0).toUpperCase();
             document.getElementById('fotoSilBtn').style.display = 'none';
-            await db.collection('danisanlar').doc(aktifDanisanId).update({ fotoBase64: null });
+            await db.collection('uzmanlar').doc(aktifUzmanId).update({ fotoBase64: null });
             toast("Fotoğraf silindi");
         }
 
@@ -329,23 +374,73 @@
             try {
                 const guncelVeri = {
                     isim: document.getElementById('inputIsim').value.trim(),
-                    soyisim: document.getElementById('inputSoyisim').value.trim(),
-                    telefon: document.getElementById('inputTelefon').value.trim()
+                    unvan: document.getElementById('inputUnvan').value.trim(),
+                    meslek: document.getElementById('inputMeslek').value,
+                    telefon: document.getElementById('inputTelefon').value.trim(),
+                    bio: document.getElementById('inputBio').value.trim(),
+                    quickReplies: quickReplies
                 };
                 if (mevcutFotoBase64) {
                     guncelVeri.fotoBase64 = mevcutFotoBase64;
                 } else {
                     guncelVeri.fotoBase64 = null;
                 }
-                await db.collection('danisanlar').doc(aktifDanisanId).update(guncelVeri);
-                const tamIsim = guncelVeri.isim + " " + guncelVeri.soyisim;
-                document.getElementById('navbarIsim').innerText = tamIsim;
+                await db.collection('uzmanlar').doc(aktifUzmanId).update(guncelVeri);
+                document.getElementById('navbarIsim').innerText = guncelVeri.isim;
                 toast("Profil başarıyla güncellendi");
             } catch(e) {
                 toast("Kaydetme hatası: " + e.message, "error");
             }
             btn.disabled = false;
             btn.innerHTML = '<i class="ph ph-check"></i> Bilgileri Kaydet';
+        }
+
+        function quickRepliesRender() {
+            const container = document.getElementById('quickRepliesList');
+            if (quickReplies.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:14px;">Henüz şablon eklemediniz.</div>';
+                return;
+            }
+            container.innerHTML = '';
+            quickReplies.forEach((qr, index) => {
+                const item = document.createElement('div');
+                item.className = 'quick-reply-item';
+                item.innerHTML = `
+                    <i class="ph ph-chat-circle-text" style="color:var(--primary); font-size:20px;"></i>
+                    <span>${qr}</span>
+                    <button class="btn-remove-qr" onclick="quickReplySil(${index})"><i class="ph ph-x"></i></button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function quickReplyEkle() {
+            const input = document.getElementById('yeniQuickReply');
+            const metin = input.value.trim();
+            if (!metin) return;
+            if (quickReplies.length >= 10) {
+                toast("En fazla 10 şablon ekleyebilirsiniz", "error");
+                return;
+            }
+            quickReplies.push(metin);
+            input.value = '';
+            quickRepliesRender();
+            quickRepliesKaydet();
+        }
+
+        function quickReplySil(index) {
+            quickReplies.splice(index, 1);
+            quickRepliesRender();
+            quickRepliesKaydet();
+        }
+
+        async function quickRepliesKaydet() {
+            try {
+                await db.collection('uzmanlar').doc(aktifUzmanId).update({ quickReplies: quickReplies });
+                toast("Şablonlar kaydedildi");
+            } catch(e) {
+                toast("Kaydetme hatası", "error");
+            }
         }
 
         async function sifreDegistir(e) {
