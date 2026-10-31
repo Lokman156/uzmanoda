@@ -15,13 +15,15 @@
     <style>
         :root {
             --primary: #7B2CBF; --danger: #EF4444; --success: #10B981; 
-            --bg-dark: #0F172A; --surface-dark: #1E293B;
+            --bg-dark: #0F172A;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         html, body { overflow: hidden; height: 100vh; background-color: var(--bg-dark); color: white; }
 
         .video-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
-        #remoteVideo { width: 100%; height: 100%; object-fit: cover; background: #000; }
+        
+        /* Karşı taraf videosu (Başlangıçta otomatik oynatma engelini aşmak için tıklama dinleyicisi var) */
+        #remoteVideo { width: 100%; height: 100%; object-fit: cover; background: #000; cursor: pointer; }
 
         .local-video-container {
             position: absolute; bottom: 100px; right: 30px; width: 180px; height: 120px;
@@ -30,15 +32,23 @@
         }
         #localVideo { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
-        /* DEBUG KUTUSU */
-        .debug-box {
-            position: absolute; top: 20px; left: 20px; 
-            background: rgba(0, 0, 0, 0.85); border: 1px solid var(--primary);
-            padding: 15px; border-radius: 8px; font-size: 12px; font-family: monospace;
-            z-index: 9999; max-width: 300px; max-height: 300px; overflow-y: auto;
+        /* Ses Açma Uyarısı */
+        .unmute-alert {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.85); padding: 20px 40px; border-radius: 12px;
+            text-align: center; z-index: 50; cursor: pointer; display: none;
+            border: 2px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: pulse 2s infinite;
         }
-        .debug-box h4 { color: var(--primary); margin-bottom: 5px; }
-        .debug-box p { margin-bottom: 3px; color: #ccc; }
+        .unmute-alert i { font-size: 40px; color: var(--primary); margin-bottom: 10px; display: block; }
+        .unmute-alert h3 { font-size: 18px; margin-bottom: 5px; }
+        .unmute-alert p { font-size: 14px; color: #ccc; }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
 
         .conn-status {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
@@ -61,18 +71,18 @@
 <body>
 
     <div class="video-wrapper">
-        <video id="remoteVideo" autoplay playsinline></video>
+        <!-- Karşı tarafın videosu (Otomatik oynatma için muted eklendi) -->
+        <video id="remoteVideo" autoplay playsinline muted></video>
+
         <div class="local-video-container">
             <video id="localVideo" autoplay playsinline muted></video>
         </div>
 
-        <div class="debug-box">
-            <h4>Sistem Durumu</h4>
-            <p id="log1">Başlatılıyor...</p>
-            <p id="log2"></p>
-            <p id="log3"></p>
-            <p id="log4"></p>
-            <p id="log5"></p>
+        <!-- Ses açma butonu (Eğer otomatik başlamazsa) -->
+        <div class="unmute-alert" id="unmuteAlert" onclick="sesiAc()">
+            <i class="ph ph-speaker-high"></i>
+            <h3>Görüşmeye Bağlandınız!</h3>
+            <p>Sesi duymak için buraya tıklayın</p>
         </div>
 
         <div class="conn-status">
@@ -111,16 +121,6 @@
 
         let localStream, peerConnection, odaKodu, isHost = false, currentUser = null;
         let pendingCandidates = [];
-        let logCounter = 1;
-
-        function ekranaYaz(mesaj) {
-            console.log(mesaj);
-            if (logCounter <= 5) {
-                const p = document.getElementById('log' + logCounter);
-                if(p) p.innerText = "> " + mesaj;
-                logCounter++;
-            }
-        }
 
         function updateStatus(text, state) {
             document.getElementById('connText').innerText = text;
@@ -148,8 +148,7 @@
             try {
                 const uzmanDoc = await db.collection('uzmanlar').doc(user.uid).get();
                 isHost = uzmanDoc.exists;
-                ekranaYaz(isHost ? "Rol: UZMAN" : "Rol: DANIŞAN");
-            } catch(e) { ekranaYaz("Rol belirlenemedi"); }
+            } catch(e) { console.log("Rol belirlenemedi"); }
 
             await kamerayiBaslat();
             baglantiKur();
@@ -159,38 +158,50 @@
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('localVideo').srcObject = localStream;
-                ekranaYaz("Kamera açıldı");
             } catch (err) {
-                ekranaYaz("HATA: Kamera açılamadı!");
+                alert("Kamera açılamadı!");
             }
         }
 
         function baglantiKur() {
             peerConnection = new RTCPeerConnection(iceServers);
 
+            // Karşı taraftan video geldiğinde
             peerConnection.ontrack = (event) => {
-                ekranaYaz("Karşı taraf videosu GELDİ!");
-                document.getElementById('remoteVideo').srcObject = event.streams[0];
-                // Tarayıcı sesi engelliyorsa otomatik oynatmayı zorla
-                document.getElementById('remoteVideo').play().catch(e => console.log(e));
+                console.log("Karşı taraf videosu geldi!");
+                const remoteVideo = document.getElementById('remoteVideo');
+                remoteVideo.srcObject = event.streams[0];
+                
+                // Tarayıcıya "oynat" komutu ver
+                remoteVideo.play().then(() => {
+                    // Eğer video sessiz (muted) olarak başladıysa, kullanıcıya bildir
+                    if(remoteVideo.muted) {
+                        document.getElementById('unmuteAlert').style.display = 'block';
+                    }
+                }).catch(e => {
+                    console.log("Otomatik oynatma engellendi, kullanıcı etkileşimi bekleniyor.");
+                    document.getElementById('unmuteAlert').style.display = 'block';
+                });
             };
 
+            // Ağ adaylarını kaydet
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
                     db.collection('gorusmeler').doc(odaKodu).collection('adaylar').add({
                         candidate: event.candidate,
                         gonderen: isHost ? 'host' : 'guest'
-                    }).catch(e => ekranaYaz("Firebase Aday Hatası!"));
+                    });
                 }
             };
 
+            // Bağlantı durumunu izle
             peerConnection.onconnectionstatechange = () => {
                 if (peerConnection.connectionState === 'connected') {
                     updateStatus("Bağlandı", "connected");
-                    ekranaYaz("Bağlantı Başarılı!");
+                    // Ses açma uyarısını göster
+                    document.getElementById('unmuteAlert').style.display = 'block';
                 } else if (peerConnection.connectionState === 'failed') {
                     updateStatus("Bağlantı Koptu", "failed");
-                    ekranaYaz("Bağlantı Başarısız!");
                 }
             };
 
@@ -199,58 +210,44 @@
             }
 
             if (isHost) {
-                // UZMAN: Cevap bekle
                 db.collection('gorusmeler').doc(odaKodu).onSnapshot(snapshot => {
                     const data = snapshot.data();
                     if (data && data.answer && !peerConnection.currentRemoteDescription) {
-                        ekranaYaz("Danışandan cevap alındı");
                         peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer))
                         .then(() => {
                             pendingCandidates.forEach(c => peerConnection.addIceCandidate(c).catch(e => {}));
                             pendingCandidates = [];
-                        })
-                        .catch(e => ekranaYaz("HATA: Cevap eklenemedi"));
+                        });
                     }
                 });
 
-                // UZMAN: Teklif gönder
                 setTimeout(async () => {
                     try {
                         const offer = await peerConnection.createOffer();
                         await peerConnection.setLocalDescription(offer);
-                        
-                        ekranaYaz("Teklif Firebase'e yazılıyor...");
                         await db.collection('gorusmeler').doc(odaKodu).set({
                             offer: { type: offer.type, sdp: offer.sdp },
                             hostId: currentUser.uid
                         });
-                        ekranaYaz("Teklif Gönderildi");
-                    } catch(e) { ekranaYaz("HATA: Teklif oluşturulamadı"); }
-                }, 1500);
+                    } catch(e) { console.log("Offer hatası"); }
+                }, 1000);
 
             } else {
-                // DANIŞAN: Teklif bekle
                 db.collection('gorusmeler').doc(odaKodu).onSnapshot(async snapshot => {
                     const data = snapshot.data();
                     if (data && data.offer && !peerConnection.currentRemoteDescription) {
-                        ekranaYaz("Uzmandan teklif alındı");
                         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-                        
                         const answer = await peerConnection.createAnswer();
                         await peerConnection.setLocalDescription(answer);
-                        
                         await db.collection('gorusmeler').doc(odaKodu).update({
                             answer: { type: answer.type, sdp: answer.sdp }
                         });
-                        ekranaYaz("Cevap Gönderildi");
-                        
                         pendingCandidates.forEach(c => peerConnection.addIceCandidate(c).catch(e => {}));
                         pendingCandidates = [];
                     }
                 });
             }
 
-            // ICE Adaylarını dinle
             db.collection('gorusmeler').doc(odaKodu).collection('adaylar').onSnapshot(snapshot => {
                 snapshot.docChanges().forEach(change => {
                     if (change.type === 'added') {
@@ -266,6 +263,14 @@
                     }
                 });
             });
+        }
+
+        // Ses açma fonksiyonu (Ekrana tıklandığında çalışır)
+        function sesiAc() {
+            const remoteVideo = document.getElementById('remoteVideo');
+            remoteVideo.muted = false; // Sesi aç
+            remoteVideo.play(); // Oynatmayı zorla
+            document.getElementById('unmuteAlert').style.display = 'none'; // Uyarıyı gizle
         }
 
         function toggleMic() { const t = localStream.getAudioTracks()[0]; t.enabled = !t.enabled; }
