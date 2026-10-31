@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Randevular</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        :root { --primary:#7B2CBF; --purple-light:#F3E8FF; --text-dark:#1F2937; --text-muted:#6B7280; --surface:#FFF; --border:#E5E7EB; --success:#10B981; --danger:#EF4444; --warning:#F59E0B; --radius-lg:24px; --radius-md:12px; --nav-height:70px; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+        html, body { overflow-x:hidden; background:#FAFAFA; color:var(--text-dark); min-height:100vh; }
+        .top-navbar { position:fixed; top:0; left:0; width:100%; height:var(--nav-height); background:var(--surface); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; padding:0 24px; z-index:1000; }
+        .nav-logo { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--primary); font-size:22px; font-weight:800; }
+        .nav-logo img { height:36px; border-radius:8px; }
+        .nav-actions { display:flex; align-items:center; gap:16px; }
+        .notif-btn { position:relative; background:transparent; border:none; font-size:24px; color:var(--text-dark); cursor:pointer; padding:8px; border-radius:50%; transition:0.2s; }
+        .notif-btn:hover { background:var(--purple-light); color:var(--primary); }
+        .notif-badge { position:absolute; top:2px; right:2px; background:var(--danger); color:white; font-size:10px; font-weight:800; padding:2px 6px; border-radius:10px; min-width:18px; text-align:center; display:none; }
+        .notif-badge.show { display:block; }
+        .user-info-nav { display:flex; align-items:center; gap:10px; cursor:pointer; padding:6px 10px; border-radius:20px; transition:0.2s; }
+        .user-info-nav:hover { background:var(--purple-light); }
+        .avatar-nav { width:36px; height:36px; background:var(--purple-light); color:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; overflow:hidden; }
+        .avatar-nav img { width:100%; height:100%; object-fit:cover; }
+        .user-name { font-size:15px; font-weight:700; }
+        .btn-logout { background:#FEE2E2; color:var(--danger); border:none; padding:8px 16px; border-radius:var(--radius-md); font-weight:700; font-size:14px; cursor:pointer; }
+        .app-body { display:flex; margin-top:var(--nav-height); min-height:calc(100vh - var(--nav-height)); }
+        .sidebar { width:260px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:24px; position:fixed; top:var(--nav-height); bottom:0; left:0; z-index:100; overflow-y:auto; }
+        .nav-menu { display:flex; flex-direction:column; gap:6px; flex:1; }
+        .nav-link { display:flex; align-items:center; gap:12px; padding:13px 16px; color:var(--text-muted); text-decoration:none; font-weight:600; font-size:15px; border-radius:var(--radius-md); transition:0.2s; position:relative; }
+        .nav-link:hover, .nav-link.active { background:var(--purple-light); color:var(--primary); }
+        .nav-link i { font-size:20px; }
+        .nav-link .menu-badge { margin-left:auto; background:var(--danger); color:white; font-size:11px; font-weight:800; padding:2px 7px; border-radius:10px; }
+        .main-wrapper { flex:1; margin-left:260px; padding:40px; background:linear-gradient(135deg,#FDF2F8 0%,#F3E8FF 100%); }
+        .panel-container { max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:24px; }
+        .page-header h1 { font-size:28px; font-weight:800; margin-bottom:6px; }
+        .page-header p { color:var(--text-muted); font-size:15px; }
+        .tabs { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+        .tab-btn { background:var(--surface); border:1px solid var(--border); padding:12px 24px; border-radius:50px; font-weight:700; font-size:14px; cursor:pointer; transition:0.2s; color:var(--text-muted); }
+        .tab-btn.active { background:var(--primary); color:white; border-color:var(--primary); }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
+        .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; }
+        .card-title { font-size:18px; font-weight:800; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+        .card-title i { color:var(--primary); font-size:22px; }
+        .avail-form { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:12px; margin-bottom:20px; }
+        .avail-form select, .avail-form input { padding:12px 16px; border:1px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; background:#FAFAFA; font-family:inherit; }
+        .avail-form select:focus, .avail-form input:focus { border-color:var(--primary); background:white; }
+        .btn-add-avail { background:var(--primary); color:white; border:none; padding:12px 24px; border-radius:var(--radius-md); font-weight:700; font-size:14px; cursor:pointer; white-space:nowrap; }
+        .btn-add-avail:hover { background:#5a189a; }
+        .avail-list { display:flex; flex-direction:column; gap:10px; }
+        .avail-item { display:flex; align-items:center; gap:12px; background:#FAFAFA; padding:14px 18px; border-radius:var(--radius-md); border:1px solid var(--border); }
+        .avail-item .day-badge { background:var(--purple-light); color:var(--primary); padding:6px 12px; border-radius:6px; font-weight:700; font-size:13px; text-transform:capitalize; min-width:100px; text-align:center; }
+        .avail-item .time { font-weight:600; flex:1; }
+        .btn-del-avail { background:#FEE2E2; color:var(--danger); border:none; padding:8px; border-radius:6px; cursor:pointer; display:flex; align-items:center; }
+        .randevu-item { display:flex; align-items:center; gap:16px; padding:16px; border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:12px; }
+        .randevu-date { background:var(--purple-light); color:var(--primary); padding:12px 16px; border-radius:10px; text-align:center; min-width:80px; }
+        .randevu-date .day { font-size:22px; font-weight:800; line-height:1; }
+        .randevu-date .month { font-size:11px; text-transform:uppercase; font-weight:700; margin-top:4px; }
+        .randevu-info { flex:1; }
+        .randevu-info h4 { font-size:16px; font-weight:700; margin-bottom:4px; }
+        .randevu-info p { font-size:13px; color:var(--text-muted); display:flex; align-items:center; gap:6px; }
+        .randevu-status { padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700; }
+        .status-bekliyor { background:#FEF3C7; color:#92400E; }
+        .status-onaylandi { background:#D1FAE5; color:var(--success); }
+        .status-iptal { background:#FEE2E2; color:var(--danger); }
+        .status-bitti { background:#E5E7EB; color:var(--text-muted); }
+        .randevu-actions { display:flex; gap:8px; }
+        .btn-mini { padding:8px 14px; border-radius:8px; border:none; font-weight:700; font-size:13px; cursor:pointer; }
+        .btn-approve { background:#D1FAE5; color:var(--success); }
+        .btn-approve:hover { background:var(--success); color:white; }
+        .btn-reject { background:#FEE2E2; color:var(--danger); }
+        .btn-reject:hover { background:var(--danger); color:white; }
+        .btn-join { background:var(--primary); color:white; text-decoration:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:13px; display:flex; align-items:center; gap:4px; }
+        .share-box { background:#FAFAFA; border:2px dashed var(--primary); padding:20px; border-radius:var(--radius-md); margin-top:20px; display:none; }
+        .share-box.active { display:block; }
+        .share-box input { width:100%; padding:12px 16px; border:1px solid var(--border); border-radius:8px; font-size:14px; margin-bottom:10px; background:white; font-weight:600; }
+        .btn-copy-share { background:var(--success); color:white; border:none; padding:12px 24px; border-radius:8px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:8px; }
+        .empty-state { text-align:center; padding:50px 20px; color:var(--text-muted); }
+        .empty-state i { font-size:50px; opacity:0.3; margin-bottom:15px; display:block; }
+        @media (max-width:768px) {
+            .top-navbar { padding:0 12px; }
+            .user-name { display:none; }
+            .btn-logout { padding:8px 10px; font-size:12px; }
+            .nav-actions { gap:8px; }
+            .app-body { flex-direction:column; }
+            .sidebar { width:100%; height:70px; position:fixed; bottom:0; top:auto; flex-direction:row; justify-content:space-around; align-items:center; padding:8px 5px; border-right:none; border-top:1px solid var(--border); background:rgba(255,255,255,0.97); z-index:1000; overflow-x:auto; overflow-y:hidden; }
+            .nav-menu { flex-direction:row; gap:0; width:100%; justify-content:space-around; }
+            .nav-link { flex-direction:column; padding:6px 4px; font-size:10px; gap:2px; text-align:center; margin-bottom:0; min-width:0; }
+            .nav-link i { font-size:22px; }
+            .nav-link .menu-badge { position:absolute; top:2px; right:8px; margin-left:0; }
+            .main-wrapper { margin-left:0; padding:20px; padding-bottom:90px; }
+            .avail-form { grid-template-columns:1fr; }
+            .randevu-item { flex-direction:column; align-items:flex-start; gap:12px; }
+            .randevu-actions { width:100%; justify-content:space-between; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-navbar">
+        <a href="index.html" class="nav-logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda">
+            UzmanOda
+        </a>
+        <div class="nav-actions">
+            <button class="notif-btn" onclick="window.location.href='bildirimler.html'" title="Bildirimler">
+                <i class="ph ph-bell"></i>
+                <span class="notif-badge" id="notifBadge">0</span>
+            </button>
+            <div class="user-info-nav" onclick="window.location.href='uzman-profil.html'">
+                <div class="avatar-nav" id="navbarAvatar">U</div>
+                <span class="user-name" id="navbarIsim">Yükleniyor...</span>
+            </div>
+            <button onclick="cikisYap()" class="btn-logout"><i class="ph ph-sign-out"></i> Çıkış</button>
+        </div>
+    </header>
+
+    <div class="app-body">
+        <aside class="sidebar">
+            <div class="nav-menu">
+                <a href="uzman-panel.html" class="nav-link"><i class="ph ph-squares-four"></i> Panel</a>
+                <a href="danisanlarim.html" class="nav-link"><i class="ph ph-users"></i> Danışanlar</a>
+                <a href="testlerim.html" class="nav-link"><i class="ph ph-exam"></i> Testler</a>
+                <a href="randevular.html" class="nav-link active"><i class="ph ph-calendar"></i> Randevular</a>
+                <a href="raporlar.html" class="nav-link"><i class="ph ph-chart-line-up"></i> Raporlar</a>
+                <a href="gecmis.html" class="nav-link"><i class="ph ph-clock-counter-clockwise"></i> Geçmiş</a>
+                <a href="bildirimler.html" class="nav-link">
+                    <i class="ph ph-bell"></i> Bildirimler
+                    <span class="menu-badge" id="menuBadge" style="display:none;">0</span>
+                </a>
+                <a href="uzman-profil.html" class="nav-link"><i class="ph ph-user-circle"></i> Profilim</a>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <div class="panel-container">
+                <div class="page-header">
+                    <h1>Randevular</h1>
+                    <p>Müsaitlik saatlerinizi belirleyin ve randevu taleplerini yönetin.</p>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="sekmeDegistir('musaitlik', this)"><i class="ph ph-clock"></i> Müsaitlik Saatleri</button>
+                    <button class="tab-btn" onclick="sekmeDegistir('randevular', this)"><i class="ph ph-calendar-check"></i> Randevularım</button>
+                </div>
+
+                <div class="tab-content active" id="tab-musaitlik">
+                    <div class="card">
+                        <h2 class="card-title"><i class="ph ph-calendar-plus"></i> Müsaitlik Ekle</h2>
+                        <div class="avail-form">
+                            <select id="availGun">
+                                <option value="">Gün seçin...</option>
+                                <option value="pazartesi">Pazartesi</option>
+                                <option value="sali">Salı</option>
+                                <option value="carsamba">Çarşamba</option>
+                                <option value="persembe">Perşembe</option>
+                                <option value="cuma">Cuma</option>
+                                <option value="cumartesi">Cumartesi</option>
+                                <option value="pazar">Pazar</option>
+                            </select>
+                            <input type="time" id="availBaslangic">
+                            <input type="time" id="availBitis">
+                            <button class="btn-add-avail" onclick="musaitlikEkle()"><i class="ph ph-plus"></i> Ekle</button>
+                        </div>
+
+                        <h3 style="font-size:15px; font-weight:700; margin:20px 0 12px 0;">Haftalık Müsaitlikler</h3>
+                        <div class="avail-list" id="availList">
+                            <div class="empty-state" style="padding:20px;"><p>Henüz müsaitlik eklemediniz.</p></div>
+                        </div>
+
+                        <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--border);">
+                            <h3 style="font-size:15px; font-weight:700; margin-bottom:12px;">Danışan ile Paylaş</h3>
+                            <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Aşağıdaki link ile danışanlarınız müsait saatlerinizden randevu alabilir.</p>
+                            <button class="btn-add-avail" onclick="randevuLinkiOlustur()"><i class="ph ph-link"></i> Randevu Linki Oluştur</button>
+                            <div class="share-box" id="shareBox">
+                                <input type="text" id="shareInput" readonly>
+                                <button class="btn-copy-share" onclick="linkiKopyala()"><i class="ph ph-copy"></i> Kopyala</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-randevular">
+                    <div class="card">
+                        <h2 class="card-title"><i class="ph ph-calendar-check"></i> Gelen Randevular</h2>
+                        <div id="randevuListesi">
+                            <div class="empty-state"><i class="ph ph-calendar-x"></i><p>Henüz randevu yok.</p></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
+            authDomain: "uzmanoda.firebaseapp.com",
+            projectId: "uzmanoda",
+            storageBucket: "uzmanoda.firebasestorage.app",
+            messagingSenderId: "71880478784",
+            appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        let aktifUzmanId = null;
+        let unsubAvail = null, unsubRandevu = null, unsubBildirim = null;
+
+        function sekmeDegistir(id, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = "uzman-giris.html"; return; }
+            aktifUzmanId = user.uid;
+
+            const doc = await db.collection('uzmanlar').doc(user.uid).get();
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById('navbarIsim').innerText = data.isim || 'Uzman';
+                if (data.fotoBase64) {
+                    document.getElementById('navbarAvatar').innerHTML = `<img src="${data.fotoBase64}">`;
+                } else {
+                    document.getElementById('navbarAvatar').innerText = (data.isim || 'U').charAt(0).toUpperCase();
+                }
+            }
+
+            musaitlikleriDinle();
+            randevulariDinle();
+            bildirimSayaciDinle();
+        });
+
+        function bildirimSayaciDinle() {
+            if (unsubBildirim) unsubBildirim();
+            unsubBildirim = db.collection('bildirimler')
+                .where('aliciId', '==', aktifUzmanId)
+                .where('okundu', '==', false)
+                .onSnapshot(snapshot => {
+                    const count = snapshot.size;
+                    const badge = document.getElementById('notifBadge');
+                    const menuBadge = document.getElementById('menuBadge');
+                    badge.innerText = count;
+                    badge.classList.toggle('show', count > 0);
+                    menuBadge.innerText = count;
+                    menuBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                });
+        }
+
+        function musaitlikleriDinle() {
+            if (unsubAvail) unsubAvail();
+            unsubAvail = db.collection('musaitlikler')
+                .where('uzmanId', '==', aktifUzmanId)
+                .onSnapshot(snapshot => {
+                    const list = document.getElementById('availList');
+                    list.innerHTML = '';
+                    if (snapshot.empty) {
+                        list.innerHTML = '<div class="empty-state" style="padding:20px;"><p>Henüz müsaitlik eklemediniz.</p></div>';
+                        return;
+                    }
+                    const items = [];
+                    snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+                    items.sort((a,b) => gunSirasi(a.gun) - gunSirasi(b.gun));
+                    items.forEach(item => {
+                        const el = document.createElement('div');
+                        el.className = 'avail-item';
+                        el.innerHTML = `
+                            <span class="day-badge">${item.gun}</span>
+                            <span class="time">${item.baslangic} - ${item.bitis}</span>
+                            <button class="btn-del-avail" onclick="musaitlikSil('${item.id}')"><i class="ph ph-trash"></i></button>
+                        `;
+                        list.appendChild(el);
+                    });
+                });
+        }
+
+        function gunSirasi(gun) {
+            const sira = { pazartesi:1, sali:2, carsamba:3, persembe:4, cuma:5, cumartesi:6, pazar:7 };
+            return sira[gun] || 99;
+        }
+
+        async function musaitlikEkle() {
+            const gun = document.getElementById('availGun').value;
+            const baslangic = document.getElementById('availBaslangic').value;
+            const bitis = document.getElementById('availBitis').value;
+            if (!gun || !baslangic || !bitis) { alert("Tüm alanları doldurun."); return; }
+            if (baslangic >= bitis) { alert("Başlangıç saati bitişten önce olmalı."); return; }
+            try {
+                await db.collection('musaitlikler').add({
+                    uzmanId: aktifUzmanId,
+                    gun: gun, baslangic: baslangic, bitis: bitis,
+                    olusturmaTarihi: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                document.getElementById('availGun').value = '';
+                document.getElementById('availBaslangic').value = '';
+                document.getElementById('availBitis').value = '';
+            } catch(e) { alert("Hata: " + e.message); }
+        }
+
+        async function musaitlikSil(id) {
+            if (!confirm("Bu müsaitliği silmek istediğinize emin misiniz?")) return;
+            await db.collection('musaitlikler').doc(id).delete();
+        }
+
+        function randevuLinkiOlustur() {
+            const link = window.location.href.replace("randevular.html", "randevu-al.html?uzman=" + aktifUzmanId);
+            document.getElementById('shareInput').value = link;
+            document.getElementById('shareBox').classList.add('active');
+            navigator.clipboard.writeText(link);
+            alert("Link oluşturuldu ve panoya kopyalandı!");
+        }
+
+        function linkiKopyala() {
+            const input = document.getElementById('shareInput');
+            input.select();
+            navigator.clipboard.writeText(input.value);
+            alert("Kopyalandı!");
+        }
+
+        function randevulariDinle() {
+            if (unsubRandevu) unsubRandevu();
+            unsubRandevu = db.collection('randevular')
+                .where('uzmanId', '==', aktifUzmanId)
+                .onSnapshot(snapshot => {
+                    const list = document.getElementById('randevuListesi');
+                    list.innerHTML = '';
+                    if (snapshot.empty) {
+                        list.innerHTML = '<div class="empty-state"><i class="ph ph-calendar-x"></i><p>Henüz randevu yok.</p></div>';
+                        return;
+                    }
+                    const items = [];
+                    snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+                    items.sort((a,b) => {
+                        if (a.durum !== b.durum) return a.durum === 'bekliyor' ? -1 : 1;
+                        return (a.tarih || '').localeCompare(b.tarih || '');
+                    });
+                    items.forEach(r => randevuKartiOlustur(r, list));
+                });
+        }
+
+        function randevuKartiOlustur(r, container) {
+            const [yil, ay, gun] = (r.tarih || '').split('-');
+            const aylar = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+            const durumClass = { 'bekliyor':'status-bekliyor', 'onaylandi':'status-onaylandi', 'iptal':'status-iptal', 'bitti':'status-bitti' }[r.durum] || '';
+            const durumText = { 'bekliyor':'Bekliyor', 'onaylandi':'Onaylandı', 'iptal':'İptal', 'bitti':'Bitti' }[r.durum] || r.durum;
+
+            let actions = '';
+            if (r.durum === 'bekliyor') {
+                actions = `
+                    <button class="btn-mini btn-approve" onclick="randevuOnayla('${r.id}')"><i class="ph ph-check"></i> Onayla</button>
+                    <button class="btn-mini btn-reject" onclick="randevuReddet('${r.id}')"><i class="ph ph-x"></i> Reddet</button>
+                `;
+            } else if (r.durum === 'onaylandi') {
+                actions = `
+                    <button class="btn-mini btn-reject" onclick="randevuIptal('${r.id}')"><i class="ph ph-x"></i> İptal</button>
+                `;
+            }
+
+            const el = document.createElement('div');
+            el.className = 'randevu-item';
+            el.innerHTML = `
+                <div class="randevu-date">
+                    <div class="day">${gun || '?'}</div>
+                    <div class="month">${aylar[(parseInt(ay)||1)-1]}</div>
+                </div>
+                <div class="randevu-info">
+                    <h4>${r.danisanIsim || 'Danışan'}</h4>
+                    <p><i class="ph ph-clock"></i> ${r.saat} • ${r.sure || 30} dk</p>
+                    ${r.not ? `<p style="margin-top:4px;"><i class="ph ph-note"></i> ${r.not}</p>` : ''}
+                </div>
+                <span class="randevu-status ${durumClass}">${durumText}</span>
+                <div class="randevu-actions">${actions}</div>
+            `;
+            container.appendChild(el);
+        }
+
+        async function randevuOnayla(id) {
+            try {
+                const r = await db.collection('randevular').doc(id).get();
+                const rData = r.data();
+                await db.collection('randevular').doc(id).update({ durum: 'onaylandi' });
+                await db.collection('bildirimler').add({
+                    aliciId: rData.danisanId, gonderenId: aktifUzmanId,
+                    baslik: "Randevunuz Onaylandı",
+                    mesaj: `${rData.tarih} günü saat ${rData.saat} için randevunuz onaylandı.`,
+                    okundu: false, tarih: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch(e) { alert("Hata: " + e.message); }
+        }
+
+        async function randevuReddet(id) {
+            if (!confirm("Bu randevuyu reddetmek istediğinize emin misiniz?")) return;
+            try {
+                const r = await db.collection('randevular').doc(id).get();
+                const rData = r.data();
+                await db.collection('randevular').doc(id).update({ durum: 'iptal' });
+                await db.collection('bildirimler').add({
+                    aliciId: rData.danisanId, gonderenId: aktifUzmanId,
+                    baslik: "Randevu İptal Edildi",
+                    mesaj: `${rData.tarih} günü saat ${rData.saat} için randevunuz iptal edildi.`,
+                    okundu: false, tarih: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch(e) { alert("Hata: " + e.message); }
+        }
+
+        async function randevuIptal(id) {
+            if (!confirm("Bu randevuyu iptal etmek istediğinize emin misiniz?")) return;
+            await randevuReddet(id);
+        }
+
+        function cikisYap() {
+            auth.signOut().then(() => window.location.href = "index.html");
+        }
+    </script>
+</body>
+</html>
