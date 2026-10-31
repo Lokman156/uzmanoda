@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Randevu Al</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        :root { --primary:#7B2CBF; --purple-light:#F3E8FF; --text-dark:#1F2937; --text-muted:#6B7280; --surface:#FFF; --border:#E5E7EB; --success:#10B981; --danger:#EF4444; --radius-lg:24px; --radius-md:12px; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+        body { background:linear-gradient(135deg,#FDF2F8 0%,#F3E8FF 100%); min-height:100vh; padding:20px; display:flex; align-items:center; justify-content:center; }
+        
+        .container { background:var(--surface); width:100%; max-width:600px; border-radius:var(--radius-lg); box-shadow:0 20px 50px rgba(123,44,191,0.15); overflow:hidden; }
+        .header { background:linear-gradient(135deg,#7B2CBF,#C77DFF); color:white; padding:30px; text-align:center; }
+        .header i { font-size:48px; margin-bottom:12px; display:block; }
+        .header h1 { font-size:24px; font-weight:800; margin-bottom:6px; }
+        .header p { font-size:14px; opacity:0.9; }
+        .content { padding:30px; }
+        
+        .uzman-info { background:#FAFAFA; padding:20px; border-radius:var(--radius-md); margin-bottom:24px; display:flex; align-items:center; gap:16px; }
+        .uzman-avatar { width:56px; height:56px; background:var(--purple-light); color:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800; overflow:hidden; }
+        .uzman-avatar img { width:100%; height:100%; object-fit:cover; }
+        .uzman-details h3 { font-size:17px; font-weight:800; margin-bottom:4px; }
+        .uzman-details p { font-size:13px; color:var(--text-muted); }
+        
+        .form-group { margin-bottom:20px; }
+        .form-group label { display:block; font-size:14px; font-weight:700; margin-bottom:8px; }
+        .form-group input, .form-group select, .form-group textarea { width:100%; padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-md); font-size:15px; outline:none; background:#FAFAFA; font-family:inherit; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--primary); background:white; }
+        .form-group textarea { resize:none; min-height:80px; }
+        
+        .slots-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; margin-top:10px; }
+        .slot-btn { padding:14px; border:2px solid var(--border); border-radius:var(--radius-md); background:white; font-size:14px; font-weight:700; cursor:pointer; transition:0.2s; color:var(--text-dark); }
+        .slot-btn:hover:not(:disabled) { border-color:var(--primary); background:var(--purple-light); color:var(--primary); }
+        .slot-btn.selected { background:var(--primary); color:white; border-color:var(--primary); }
+        .slot-btn:disabled { background:#F3F4F6; color:#9CA3AF; cursor:not-allowed; text-decoration:line-through; }
+        
+        .btn-submit { width:100%; padding:16px; background:linear-gradient(135deg,#7B2CBF,#C77DFF); color:white; border:none; border-radius:var(--radius-md); font-weight:800; font-size:16px; cursor:pointer; transition:0.3s; margin-top:10px; }
+        .btn-submit:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 10px 20px rgba(123,44,191,0.3); }
+        .btn-submit:disabled { opacity:0.5; cursor:not-allowed; }
+        
+        .success-screen { display:none; text-align:center; padding:60px 30px; }
+        .success-icon { width:80px; height:80px; background:#D1FAE5; color:var(--success); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px; margin:0 auto 20px; }
+        .success-screen h2 { font-size:24px; font-weight:800; margin-bottom:10px; }
+        .success-screen p { color:var(--text-muted); margin-bottom:24px; }
+        .btn-home { display:inline-block; padding:14px 30px; background:var(--primary); color:white; text-decoration:none; border-radius:var(--radius-md); font-weight:700; }
+        
+        .empty-state { text-align:center; padding:40px 20px; color:var(--text-muted); }
+        .empty-state i { font-size:50px; opacity:0.3; margin-bottom:15px; display:block; }
+        
+        @media (max-width:500px) {
+            .slots-grid { grid-template-columns:repeat(2,1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <i class="ph ph-calendar-plus"></i>
+            <h1>Randevu Al</h1>
+            <p>Uygun bir tarih ve saat seçin</p>
+        </div>
+
+        <div class="content" id="mainContent">
+            <div class="uzman-info" id="uzmanInfo">
+                <div class="uzman-avatar" id="uzmanAvatar">?</div>
+                <div class="uzman-details">
+                    <h3 id="uzmanName">Yükleniyor...</h3>
+                    <p id="uzmanUnvan">Uzman</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Randevu Tarihi</label>
+                <input type="date" id="randevuTarih" min="" onchange="tarihDegisti()">
+            </div>
+
+            <div class="form-group" id="slotGroup" style="display:none;">
+                <label>Uygun Saatler</label>
+                <div class="slots-grid" id="slotsGrid"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Not (İsteğe Bağlı)</label>
+                <textarea id="randevuNot" placeholder="Görüşmek istediğiniz konu hakkında kısa bir not..."></textarea>
+            </div>
+
+            <button class="btn-submit" id="submitBtn" onclick="randevuAl()" disabled>
+                <i class="ph ph-check"></i> Randevu Talep Et
+            </button>
+        </div>
+
+        <div class="success-screen" id="successScreen">
+            <div class="success-icon"><i class="ph ph-check"></i></div>
+            <h2>Talebiniz Alındı!</h2>
+            <p>Uzmanınız randevunuzu onayladığında size bildirim gelecek.</p>
+            <a href="danisan-panel.html" class="btn-home">Panele Dön</a>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
+            authDomain: "uzmanoda.firebaseapp.com",
+            projectId: "uzmanoda",
+            storageBucket: "uzmanoda.firebasestorage.app",
+            messagingSenderId: "71880478784",
+            appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let uzmanId = null;
+        let aktifDanisanId = null;
+        let aktifDanisanIsim = "";
+        let secilenSaat = null;
+        let mevcutMusaitlikler = [];
+        let mevcutRandevular = [];
+
+        const urlParams = new URLSearchParams(window.location.search);
+        uzmanId = urlParams.get('uzman');
+        if (!uzmanId) { alert("Geçersiz link!"); window.location.href = "index.html"; }
+
+        // Bugünün tarihini ayarla
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('randevuTarih').min = today;
+
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = "danisan-giris.html"; return; }
+            aktifDanisanId = user.uid;
+
+            try {
+                const danisanDoc = await db.collection('danisanlar').doc(user.uid).get();
+                if (danisanDoc.exists) {
+                    const d = danisanDoc.data();
+                    aktifDanisanIsim = (d.isim || '') + ' ' + (d.soyisim || '');
+                }
+
+                const uzmanDoc = await db.collection('uzmanlar').doc(uzmanId).get();
+                if (uzmanDoc.exists) {
+                    const u = uzmanDoc.data();
+                    document.getElementById('uzmanName').innerText = (u.unvan || '') + ' ' + (u.isim || '');
+                    document.getElementById('uzmanUnvan').innerText = u.meslek || 'Uzman';
+                    if (u.fotoBase64) {
+                        document.getElementById('uzmanAvatar').innerHTML = `<img src="${u.fotoBase64}">`;
+                    } else {
+                        document.getElementById('uzmanAvatar').innerText = (u.isim || '?').charAt(0).toUpperCase();
+                    }
+                }
+
+                // Müsaitlikleri ve randevuları yükle
+                const availSnap = await db.collection('musaitlikler').where('uzmanId', '==', uzmanId).get();
+                availSnap.forEach(doc => mevcutMusaitlikler.push(doc.data()));
+
+                const randevuSnap = await db.collection('randevular').where('uzmanId', '==', uzmanId).get();
+                randevuSnap.forEach(doc => mevcutRandevular.push(doc.data()));
+
+            } catch(e) { console.error(e); alert("Yükleme hatası: " + e.message); }
+        });
+
+        function tarihDegisti() {
+            const tarih = document.getElementById('randevuTarih').value;
+            if (!tarih) return;
+            
+            const secilenGun = new Date(tarih + 'T00:00:00');
+            const gunIsmi = ['pazar','pazartesi','sali','carsamba','persembe','cuma','cumartesi'][secilenGun.getDay()];
+
+            const uygunMusaitlikler = mevcutMusaitlikler.filter(m => m.gun === gunIsmi);
+            if (uygunMusaitlikler.length === 0) {
+                alert("Seçtiğiniz günde uzman müsait değil. Lütfen başka bir gün seçin.");
+                document.getElementById('slotGroup').style.display = 'none';
+                return;
+            }
+
+            // Slotları oluştur (30 dakikalık aralıklarla)
+            const slotsGrid = document.getElementById('slotsGrid');
+            slotsGrid.innerHTML = '';
+            secilenSaat = null;
+            document.getElementById('submitBtn').disabled = true;
+
+            uygunMusaitlikler.forEach(m => {
+                const [bSaat, bDakika] = m.baslangic.split(':').map(Number);
+                const [eSaat, eDakika] = m.bitis.split(':').map(Number);
+                
+                let curSaat = bSaat, curDakika = bDakika;
+                
+                while (curSaat < eSaat || (curSaat === eSaat && curDakika < eDakika)) {
+                    const slotSaat = String(curSaat).padStart(2,'0') + ':' + String(curDakika).padStart(2,'0');
+                    
+                    // Bu slot dolu mu?
+                    const dolu = mevcutRandevular.some(r => r.tarih === tarih && r.saat === slotSaat && r.durum !== 'iptal');
+                    
+                    const btn = document.createElement('button');
+                    btn.className = 'slot-btn';
+                    btn.innerText = slotSaat;
+                    btn.disabled = dolu;
+                    if (dolu) btn.title = "Bu saat dolu";
+                    btn.onclick = () => slotSec(btn, slotSaat, tarih);
+                    slotsGrid.appendChild(btn);
+
+                    curDakika += 30;
+                    if (curDakika >= 60) { curDakika = 0; curSaat++; }
+                }
+            });
+
+            document.getElementById('slotGroup').style.display = 'block';
+        }
+
+        function slotSec(btn, saat, tarih) {
+            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            secilenSaat = { tarih: tarih, saat: saat };
+            document.getElementById('submitBtn').disabled = false;
+        }
+
+        async function randevuAl() {
+            if (!secilenSaat) { alert("Lütfen bir saat seçin."); return; }
+            
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Gönderiliyor...';
+
+            try {
+                await db.collection('randevular').add({
+                    uzmanId: uzmanId,
+                    danisanId: aktifDanisanId,
+                    danisanIsim: aktifDanisanIsim.trim(),
+                    tarih: secilenSaat.tarih,
+                    saat: secilenSaat.saat,
+                    sure: 30,
+                    not: document.getElementById('randevuNot').value.trim(),
+                    durum: 'bekliyor',
+                    olusturmaTarihi: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Uzmana bildirim
+                await db.collection('bildirimler').add({
+                    aliciId: uzmanId,
+                    gonderenId: aktifDanisanId,
+                    baslik: "Yeni Randevu Talebi",
+                    mesaj: `${aktifDanisanIsim} adlı danışanınız ${secilenSaat.tarih} günü saat ${secilenSaat.saat} için randevu talep etti.`,
+                    okundu: false,
+                    tarih: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                document.getElementById('mainContent').style.display = 'none';
+                document.getElementById('successScreen').style.display = 'block';
+
+            } catch(e) {
+                alert("Hata: " + e.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-check"></i> Randevu Talep Et';
+            }
+        }
+    </script>
+</body>
+</html>
