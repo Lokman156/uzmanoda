@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>UzmanOda | Görüşme Odası</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,50 +12,62 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <style>
-        :root { --primary: #7B2CBF; --danger: #EF4444; --success: #10B981; --bg-dark: #0F172A; --surface: #1E293B; }
+        :root { 
+            --primary: #7B2CBF; 
+            --danger: #EF4444; 
+            --success: #10B981; 
+            --bg-dark: #0F172A; 
+            --surface: #1E293B;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        html, body { overflow: hidden; height: 100vh; background-color: var(--bg-dark); color: white; }
+        html, body { overflow: hidden; height: 100vh; height: 100dvh; background-color: var(--bg-dark); color: white; }
 
-        .video-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .video-wrapper { position: relative; width: 100vw; height: 100vh; height: 100dvh; display: flex; align-items: center; justify-content: center; }
         #remoteVideo { width: 100%; height: 100%; object-fit: cover; background: #000; position: absolute; top: 0; left: 0; z-index: 1; }
 
         .local-video-container {
-            position: absolute; bottom: 110px; right: 30px; width: 180px; height: 120px;
+            position: absolute; bottom: calc(110px + var(--safe-bottom)); right: 20px; 
+            width: 160px; height: 110px;
             border-radius: 12px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
             border: 2px solid rgba(255,255,255,0.2); background: #000; z-index: 10;
         }
         #localVideo { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
         .ice-indicator {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 20px;
-            font-size: 13px; font-weight: 600; z-index: 20; display: flex; align-items: center; gap: 8px;
-            border: 1px solid rgba(255,255,255,0.2);
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: white; padding: 6px 14px; border-radius: 20px;
+            font-size: 12px; font-weight: 600; z-index: 20; display: flex; align-items: center; gap: 6px;
+            border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;
         }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: orange; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: orange; flex-shrink: 0; }
         .dot.connected { background: var(--success); box-shadow: 0 0 10px var(--success); }
         .dot.failed { background: var(--danger); }
 
         .top-info {
-            position: absolute; top: 20px; right: 20px;
-            background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 20px;
-            display: flex; align-items: center; gap: 12px; z-index: 20;
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(0,0,0,0.7); padding: 8px 14px; border-radius: 20px;
+            display: flex; align-items: center; gap: 10px; z-index: 20;
             border: 1px solid rgba(255,255,255,0.1);
         }
-        .top-info .room-code { color: var(--primary); font-weight: 800; font-size: 14px; }
-        .top-info .timer { color: #9CA3AF; font-variant-numeric: tabular-nums; font-size: 14px; }
+        .top-info .room-code { color: var(--primary); font-weight: 800; font-size: 13px; }
+        .top-info .timer { color: #9CA3AF; font-variant-numeric: tabular-nums; font-size: 13px; }
 
-        /* Mobil için tam sığan kontrol çubuğu */
+        /* --- KONTROL ÇUBUĞU --- */
         .controls {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; 
+            position: absolute; 
+            bottom: calc(15px + var(--safe-bottom)); 
+            left: 50%; transform: translateX(-50%);
+            display: flex; flex-wrap: wrap; justify-content: center; 
+            gap: 8px; 
             background: rgba(30, 41, 59, 0.95);
-            padding: 12px; border-radius: 30px; z-index: 20; 
-            max-width: 95vw; border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 14px; border-radius: 40px; z-index: 20; 
+            max-width: calc(100vw - 20px); 
+            border: 1px solid rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
         }
         .control-btn { 
-            width: 48px; height: 48px; border-radius: 50%; border: none; 
+            width: 46px; height: 46px; border-radius: 50%; border: none; 
             background: rgba(255,255,255,0.1); color: white; font-size: 20px; 
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: 0.2s; flex-shrink: 0;
@@ -63,62 +75,135 @@
         .control-btn:hover { background: rgba(255,255,255,0.2); }
         .control-btn.active { background: var(--primary); }
         .control-btn.danger { background: var(--danger); }
-        .control-btn.test-btn { background: var(--success); color: white; width: auto; padding: 0 16px; border-radius: 24px; font-size: 14px; font-weight: 700; gap: 6px; }
+        .control-btn.test-btn { 
+            background: var(--success); color: white; 
+            width: auto; padding: 0 14px; border-radius: 23px; 
+            font-size: 13px; font-weight: 700; gap: 5px; 
+        }
 
+        /* --- SOHBET PANELİ --- */
         .sidebar {
-            position: absolute; top: 0; right: -400px; width: 380px; height: 100vh;
+            position: absolute; top: 0; right: -100%; width: 380px; height: 100vh; height: 100dvh;
             background: var(--surface); border-left: 1px solid rgba(255,255,255,0.1);
             z-index: 30; transition: right 0.3s ease; display: flex; flex-direction: column;
         }
         .sidebar.open { right: 0; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .sidebar-header h3 { font-size: 18px; }
+        .sidebar-header { 
+            padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); 
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+        }
+        .sidebar-header h3 { font-size: 17px; }
         .close-sidebar { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
-        .chat-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        
+        .chat-area { 
+            flex: 1; padding: 16px; overflow-y: auto; 
+            display: flex; flex-direction: column; gap: 10px; 
+            min-height: 0;
+        }
         .message { background: rgba(255,255,255,0.08); padding: 10px 14px; border-radius: 12px; max-width: 85%; font-size: 14px; }
         .message.mine { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
         .message.theirs { align-self: flex-start; border-bottom-left-radius: 2px; }
         .message-sender { font-size: 11px; opacity: 0.7; margin-bottom: 3px; font-weight: 600; }
-        .chat-input-area { padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; }
-        .chat-input-area input { flex: 1; padding: 12px 16px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white; outline: none; font-size: 14px; }
-        .btn-send { background: var(--primary); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        /* Sohbet giriş alanı - mobilde güvenli mesafede */
+        .chat-input-area { 
+            padding: 12px 15px; 
+            padding-bottom: calc(12px + var(--safe-bottom));
+            border-top: 1px solid rgba(255,255,255,0.1); 
+            display: flex; gap: 8px; flex-shrink: 0;
+            background: var(--surface);
+        }
+        .chat-input-area input { 
+            flex: 1; padding: 12px 16px; border-radius: 50px; 
+            border: 1px solid rgba(255,255,255,0.2); 
+            background: rgba(0,0,0,0.2); color: white; 
+            outline: none; font-size: 14px; min-width: 0;
+        }
+        .btn-send { 
+            background: var(--primary); color: white; border: none; 
+            width: 44px; height: 44px; border-radius: 50%; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; 
+            flex-shrink: 0; font-size: 18px;
+        }
 
+        /* Modal */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center;
             z-index: 100; padding: 20px;
         }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: var(--surface); padding: 30px; border-radius: 20px; width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h3 { font-size: 20px; }
+        .modal-content { background: var(--surface); padding: 25px; border-radius: 20px; width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .modal-header h3 { font-size: 19px; }
         .modal-close { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
-        .test-select-item { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
+        .test-select-item { background: rgba(255,255,255,0.05); padding: 14px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
         .test-select-item:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); }
         .test-select-item h4 { font-size: 15px; margin-bottom: 4px; }
         .test-select-item p { font-size: 12px; color: #9CA3AF; }
-        .empty-tests { text-align: center; padding: 40px 20px; color: #9CA3AF; }
+        .empty-tests { text-align: center; padding: 30px 20px; color: #9CA3AF; font-size: 14px; }
 
         .ended-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.95); display: none; flex-direction: column;
             align-items: center; justify-content: center; z-index: 1000; text-align: center;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px); padding: 20px;
         }
         .ended-overlay.active { display: flex; }
-        .ended-icon { font-size: 80px; color: var(--danger); margin-bottom: 20px; }
-        .ended-overlay h2 { font-size: 32px; margin-bottom: 10px; }
-        .ended-overlay p { font-size: 16px; color: #9CA3AF; margin-bottom: 30px; white-space: pre-line; }
+        .ended-icon { font-size: 70px; color: var(--danger); margin-bottom: 20px; }
+        .ended-overlay h2 { font-size: 26px; margin-bottom: 10px; }
+        .ended-overlay p { font-size: 15px; color: #9CA3AF; margin-bottom: 30px; white-space: pre-line; }
 
+        /* === MOBİL UYUMLULUK (Kritik düzeltmeler) === */
         @media (max-width: 768px) {
-            .local-video-container { width: 100px; height: 140px; bottom: 100px; right: 15px; }
-            .controls { padding: 8px; gap: 6px; width: auto; max-width: 95%; }
-            .control-btn { width: 42px; height: 42px; font-size: 18px; }
-            .control-btn.test-btn { padding: 0 10px; font-size: 12px; }
-            .sidebar { width: 100%; right: -100%; }
-            .top-info { top: 10px; right: 10px; font-size: 12px; padding: 8px 12px; }
-            .ice-indicator { top: 60px; font-size: 11px; }
-            .ended-overlay h2 { font-size: 24px; }
+            .local-video-container { 
+                width: 100px; height: 130px; 
+                bottom: calc(85px + var(--safe-bottom)); 
+                right: 12px; 
+            }
+            
+            .controls { 
+                padding: 8px 10px; 
+                gap: 6px; 
+                border-radius: 30px;
+                max-width: calc(100vw - 15px);
+            }
+            
+            .control-btn { 
+                width: 40px; height: 40px; 
+                font-size: 17px; 
+            }
+            
+            .control-btn.test-btn { 
+                padding: 0 10px; font-size: 12px; 
+                gap: 4px;
+            }
+            
+            .sidebar { width: 100%; }
+            
+            /* Sohbet paneli açıldığında input alanı ekranın en altında ama güvenli */
+            .chat-input-area {
+                padding: 10px 12px;
+                padding-bottom: calc(10px + var(--safe-bottom));
+            }
+            .chat-input-area input {
+                padding: 10px 14px;
+                font-size: 15px;
+            }
+            .btn-send { width: 40px; height: 40px; font-size: 16px; }
+            
+            .top-info { top: 10px; right: 10px; font-size: 11px; padding: 6px 10px; }
+            .ice-indicator { top: 10px; left: 10px; transform: none; font-size: 10px; padding: 5px 10px; }
+            
+            .ended-overlay h2 { font-size: 22px; }
+            .ended-icon { font-size: 60px; }
+        }
+        
+        /* Çok küçük ekranlar için ekstra küçültme */
+        @media (max-width: 380px) {
+            .control-btn { width: 36px; height: 36px; font-size: 15px; }
+            .control-btn.test-btn { padding: 0 8px; font-size: 11px; }
+            .controls { gap: 5px; padding: 7px 8px; }
         }
     </style>
 </head>
@@ -214,6 +299,7 @@
         let sureInterval = null;
         let saniye = 0;
         let gorusmeBitti = false;
+        let videoSender = null; // Ekran paylaşımı için video gönderici referansı
 
         const urlParams = new URLSearchParams(window.location.search);
         odaKodu = urlParams.get('oda');
@@ -268,10 +354,14 @@
             peerConnection = new RTCPeerConnection(iceServers);
 
             peerConnection.ontrack = (event) => {
-                event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
-                const remoteVideo = document.getElementById('remoteVideo');
-                remoteVideo.srcObject = remoteStream;
-                remoteVideo.play().catch(e => console.log(e));
+                // Karşı tarafın stream'ini al
+                if (event.streams && event.streams[0]) {
+                    const remoteVideo = document.getElementById('remoteVideo');
+                    if (remoteVideo.srcObject !== event.streams[0]) {
+                        remoteVideo.srcObject = event.streams[0];
+                        remoteVideo.play().catch(e => console.log(e));
+                    }
+                }
             };
 
             peerConnection.onicecandidate = (event) => {
@@ -297,7 +387,13 @@
             };
 
             if (localStream) {
-                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+                localStream.getTracks().forEach(track => {
+                    const sender = peerConnection.addTrack(track, localStream);
+                    // Video sender'ı sakla (ekran paylaşımı için)
+                    if (track.kind === 'video') {
+                        videoSender = sender;
+                    }
+                });
             }
 
             if (isHost) {
@@ -394,7 +490,14 @@
             });
         }
 
-        function toggleChat() { document.getElementById('sidebar').classList.toggle('open'); }
+        function toggleChat() { 
+            document.getElementById('sidebar').classList.toggle('open'); 
+            // Sohbet açıldığında en alta scroll
+            setTimeout(() => {
+                const chatArea = document.getElementById('chatArea');
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }, 300);
+        }
 
         function mesajGonder() {
             const input = document.getElementById('chatInput');
@@ -437,8 +540,9 @@
                 });
                 const newVideoTrack = newStream.getVideoTracks()[0];
 
-                const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-                if (sender) await sender.replaceTrack(newVideoTrack);
+                if (videoSender) {
+                    await videoSender.replaceTrack(newVideoTrack);
+                }
 
                 localStream.removeTrack(videoTrack);
                 localStream.addTrack(newVideoTrack);
@@ -452,34 +556,79 @@
             }
         }
 
+        // === EKRAN PAYLAŞIMI (DÜZELTİLDİ) ===
         async function ekranPaylas() {
             const btn = document.getElementById('screenBtn');
-            if (screenStream) { ekranPaylasimiDurdur(); return; }
+            
+            // Zaten paylaşıyorsa durdur
+            if (screenStream) { 
+                ekranPaylasimiDurdur(); 
+                return; 
+            }
+
+            // Tarayıcı desteği kontrolü
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                alert("Tarayıcınız veya cihazınız ekran paylaşımını desteklemiyor.\n\nNot: Mobil cihazlarda ekran paylaşımı genellikle desteklenmez. Lütfen bilgisayardan deneyin.");
+                return;
+            }
 
             try {
-                screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+                    video: true, 
+                    audio: false 
+                });
                 const screenTrack = screenStream.getVideoTracks()[0];
 
-                const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-                if (sender) await sender.replaceTrack(screenTrack);
+                // Video sender'ı kontrol et
+                if (!videoSender) {
+                    // Sender yoksa yeniden bul
+                    videoSender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+                }
+
+                if (videoSender) {
+                    await videoSender.replaceTrack(screenTrack);
+                    console.log("Ekran paylaşımı başladı");
+                } else {
+                    alert("Video gönderici bulunamadı. Lütfen sayfayı yenileyin.");
+                    screenStream.getTracks().forEach(t => t.stop());
+                    screenStream = null;
+                    return;
+                }
 
                 document.getElementById('localVideo').srcObject = screenStream;
                 document.getElementById('localVideo').style.transform = 'none';
                 btn.classList.add('active');
 
+                // Paylaşım durdurulduğunda kameraya dön
                 screenTrack.onended = () => ekranPaylasimiDurdur();
-            } catch(e) { console.log(e); }
+
+            } catch(e) {
+                console.log("Ekran paylaşım hatası:", e);
+                if (e.name === 'NotAllowedError') {
+                    alert("Ekran paylaşım izni verilmedi.");
+                } else if (e.name === 'NotFoundError') {
+                    alert("Paylaşılacak ekran bulunamadı.");
+                } else {
+                    alert("Ekran paylaşımı başlatılamadı: " + e.message);
+                }
+            }
         }
 
         function ekranPaylasimiDurdur() {
             const videoTrack = localStream.getVideoTracks()[0];
-            const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-            if (sender && videoTrack) sender.replaceTrack(videoTrack);
+            
+            if (videoSender && videoTrack) {
+                videoSender.replaceTrack(videoTrack).catch(e => console.log(e));
+            }
+            
             document.getElementById('localVideo').srcObject = localStream;
             document.getElementById('localVideo').style.transform = 'scaleX(-1)';
             document.getElementById('screenBtn').classList.remove('active');
             
-            if (screenStream) { screenStream.getTracks().forEach(t => t.stop()); screenStream = null; }
+            if (screenStream) { 
+                screenStream.getTracks().forEach(t => t.stop()); 
+                screenStream = null; 
+            }
         }
 
         async function testModalAc() {
@@ -541,10 +690,9 @@
             }, 1000);
         }
 
-        // DÜZELTME: Doküman yoksa hiçbir şey yapma, sadece durum "bitti" ise sonlandır
         function gorusmeDurumunuDinle() {
             db.collection('gorusmeler').doc(odaKodu).onSnapshot(snapshot => {
-                if (!snapshot.exists) return; // Doküman yoksa bekle
+                if (!snapshot.exists) return;
                 const data = snapshot.data();
                 if (data && data.durum === "bitti" && !gorusmeBitti) {
                     gorusmeBitti = true;
