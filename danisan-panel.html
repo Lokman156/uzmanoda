@@ -4,239 +4,266 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UzmanOda | Danışan Paneli</title>
-    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-    <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
     <style>
         :root {
-            --primary: #7B2CBF; 
-            --pink-light: #FDF2F8;
-            --purple-light: #F3E8FF;
-            --text-dark: #1F2937;
-            --text-muted: #6B7280;
-            --surface: #FFFFFF;
-            --border: #E5E7EB;
-            --danger: #EF4444;
-            --radius-lg: 24px;
-            --radius-md: 12px;
-            --nav-height: 70px;
+            --primary:#7B2CBF; --pink-light:#FDF2F8; --purple-light:#F3E8FF;
+            --text-dark:#1F2937; --text-muted:#6B7280; --surface:#FFF;
+            --border:#E5E7EB; --success:#10B981; --danger:#EF4444; --warning:#F59E0B;
+            --radius-lg:24px; --radius-md:12px; --nav-height:70px;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); min-height: 100vh; }
-
-        /* --- ÜST NAVBAR --- */
-        .top-navbar {
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
-            background: var(--surface); border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 24px; z-index: 1000;
-        }
-        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
-        .nav-logo img { height: 36px; border-radius: 8px; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+        html, body { overflow-x:hidden; background:#FAFAFA; color:var(--text-dark); min-height:100vh; }
+        .top-navbar { position:fixed; top:0; left:0; width:100%; height:var(--nav-height); background:var(--surface); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; padding:0 24px; z-index:1000; }
+        .nav-logo { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--primary); font-size:22px; font-weight:800; }
+        .nav-logo img { height:36px; border-radius:8px; }
+        .nav-actions { display:flex; align-items:center; gap:16px; }
+        .notif-btn { position:relative; background:transparent; border:none; font-size:24px; color:var(--text-dark); cursor:pointer; padding:8px; border-radius:50%; transition:0.2s; }
+        .notif-btn:hover { background:var(--purple-light); color:var(--primary); }
+        .notif-badge { position:absolute; top:2px; right:2px; background:var(--danger); color:white; font-size:10px; font-weight:800; padding:2px 6px; border-radius:10px; min-width:18px; text-align:center; display:none; }
+        .notif-badge.show { display:block; }
+        .user-info-nav { display:flex; align-items:center; gap:10px; cursor:pointer; padding:6px 10px; border-radius:20px; transition:0.2s; }
+        .user-info-nav:hover { background:var(--purple-light); }
+        .avatar-nav { width:36px; height:36px; background:var(--purple-light); color:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; overflow:hidden; }
+        .avatar-nav img { width:100%; height:100%; object-fit:cover; }
+        .user-name { font-size:15px; font-weight:700; }
+        .btn-logout { background:#FEE2E2; color:var(--danger); border:none; padding:8px 16px; border-radius:var(--radius-md); font-weight:700; font-size:14px; cursor:pointer; }
+        .app-body { display:flex; margin-top:var(--nav-height); min-height:calc(100vh - var(--nav-height)); }
+        .sidebar { width:260px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:24px; position:fixed; top:var(--nav-height); bottom:0; left:0; z-index:100; overflow-y:auto; }
+        .nav-menu { display:flex; flex-direction:column; gap:6px; flex:1; }
+        .nav-link { display:flex; align-items:center; gap:12px; padding:13px 16px; color:var(--text-muted); text-decoration:none; font-weight:600; font-size:15px; border-radius:var(--radius-md); transition:0.2s; position:relative; }
+        .nav-link:hover, .nav-link.active { background:var(--purple-light); color:var(--primary); }
+        .nav-link i { font-size:20px; }
+        .nav-link .menu-badge { margin-left:auto; background:var(--danger); color:white; font-size:11px; font-weight:800; padding:2px 7px; border-radius:10px; }
+        .main-wrapper { flex:1; margin-left:260px; padding:40px; background:linear-gradient(135deg,#FDF2F8 0%,#F3E8FF 100%); }
+        .panel-container { max-width:1000px; margin:0 auto; display:flex; flex-direction:column; gap:24px; }
+        .welcome-card { background:rgba(255,255,255,0.85); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,1); border-radius:var(--radius-lg); padding:30px; box-shadow:0 20px 40px -10px rgba(123,44,191,0.15); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+        .welcome-card h1 { font-size:26px; font-weight:800; margin-bottom:8px; }
+        .welcome-card p { color:var(--text-muted); font-size:15px; }
+        .join-room-card { background:var(--surface); padding:24px; border-radius:var(--radius-lg); border:1px solid var(--border); display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+        .join-input { flex:1; min-width:200px; padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-md); font-size:15px; outline:none; background:#FAFAFA; }
+        .join-input:focus { border-color:var(--primary); background:white; }
+        .btn-join { background:linear-gradient(135deg,#7B2CBF,#C77DFF); color:white; border:none; padding:14px 24px; border-radius:var(--radius-md); font-weight:700; font-size:15px; cursor:pointer; transition:0.3s; display:flex; align-items:center; gap:8px; }
+        .btn-join:hover { transform:translateY(-2px); box-shadow:0 10px 20px rgba(123,44,191,0.3); }
+        .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+        .section-card { background:var(--surface); padding:24px; border-radius:var(--radius-lg); border:1px solid var(--border); }
+        .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+        .section-header h3 { font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px; }
+        .section-header h3 i { color:var(--primary); }
+        .section-header a { font-size:13px; color:var(--primary); text-decoration:none; font-weight:600; }
+        .empty-state { text-align:center; padding:30px 10px; color:var(--text-muted); }
+        .empty-state i { font-size:40px; opacity:0.3; margin-bottom:10px; display:block; }
+        .notification-item { background:#FAFAFA; border-left:4px solid var(--primary); padding:16px; border-radius:8px; margin-bottom:12px; }
+        .notification-item h4 { font-size:15px; margin-bottom:4px; color:var(--text-dark); }
+        .notification-item p { font-size:13px; color:var(--text-muted); }
+        .notification-item span { font-size:11px; color:var(--primary); font-weight:700; margin-top:8px; display:block; }
+        .test-item { display:flex; justify-content:space-between; align-items:center; background:#FAFAFA; padding:16px; border-radius:8px; border:1px solid var(--border); margin-bottom:12px; gap:10px; }
+        .test-item h4 { font-size:15px; margin-bottom:4px; }
+        .btn-solve { background:var(--purple-light); color:var(--primary); border:none; padding:8px 16px; border-radius:6px; font-weight:700; cursor:pointer; transition:0.2s; flex-shrink:0; }
+        .btn-solve:hover { background:#E0AAFF; }
         
-        .nav-actions { display: flex; align-items: center; gap: 20px; }
-        .user-info-nav { display: flex; align-items: center; gap: 10px; }
-        .avatar-nav { width: 36px; height: 36px; background: var(--purple-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
-        .user-name { font-size: 15px; font-weight: 700; color: var(--text-dark); }
-
-        .btn-logout {
-            display: flex; align-items: center; gap: 6px;
-            background: #FEE2E2; color: var(--danger); border: none;
-            padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px;
-            cursor: pointer; transition: 0.2s;
-        }
-        .btn-logout:hover { background: var(--danger); color: white; }
-
-        /* --- UYGULAMA GÖVDESİ --- */
-        .app-body { display: flex; margin-top: var(--nav-height); min-height: calc(100vh - var(--nav-height)); }
-
-        /* --- SOL MENÜ (SIDEBAR) --- */
-        .sidebar {
-            width: 260px; background: var(--surface); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; padding: 24px;
-            position: fixed; top: var(--nav-height); bottom: 0; left: 0; z-index: 100;
-        }
-        .nav-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .nav-link {
-            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-            color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px;
-            border-radius: var(--radius-md); transition: 0.2s;
-        }
-        .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--primary); }
-        .nav-link i { font-size: 20px; }
-
-        /* --- ANA İÇERİK --- */
-        .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); min-height: calc(100vh - var(--nav-height)); }
-        .panel-container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
-
-        /* --- HOŞ GELDİN KARTI --- */
-        .welcome-card {
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 1); border-radius: var(--radius-lg);
-            padding: 30px; box-shadow: 0 20px 40px -10px rgba(123, 44, 191, 0.15);
-        }
-        .welcome-card h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
-        .welcome-card p { color: var(--text-muted); font-size: 15px; }
-
-        /* --- ODAYA KATILMA ALANI --- */
-        .join-room-card {
-            background: var(--surface); padding: 24px; border-radius: var(--radius-lg);
-            border: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-        }
-        .join-input {
-            flex: 1; min-width: 200px; padding: 14px 16px; border: 1px solid var(--border);
-            border-radius: var(--radius-md); font-size: 15px; outline: none; background: #FAFAFA;
-        }
-        .join-input:focus { border-color: var(--primary); background: white; }
-        .btn-join {
-            background: linear-gradient(135deg, #7B2CBF, #C77DFF); color: white; border: none;
-            padding: 14px 24px; border-radius: var(--radius-md); font-weight: 700; font-size: 15px;
-            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
-        }
-        .btn-join:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3); }
-
-        /* --- BİLDİRİM VE TEST SEKMELERİ --- */
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .section-card { background: var(--surface); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .section-header h3 { font-size: 18px; font-weight: 800; }
+        /* RANDEVULARIM */
+        .appointments-section { background:var(--surface); padding:24px; border-radius:var(--radius-lg); border:1px solid var(--border); }
+        .appointments-tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+        .appt-tab { background:#FAFAFA; border:1px solid var(--border); padding:8px 18px; border-radius:50px; font-weight:700; font-size:13px; cursor:pointer; color:var(--text-muted); }
+        .appt-tab.active { background:var(--primary); color:white; border-color:var(--primary); }
+        .appointment-list { display:flex; flex-direction:column; gap:10px; }
+        .appointment-item { display:flex; align-items:center; gap:14px; padding:14px; border:1px solid var(--border); border-radius:var(--radius-md); background:#FAFAFA; }
+        .appt-date-box { background:var(--purple-light); color:var(--primary); padding:10px 14px; border-radius:10px; text-align:center; min-width:70px; flex-shrink:0; }
+        .appt-date-box .day { font-size:20px; font-weight:800; line-height:1; }
+        .appt-date-box .month { font-size:10px; text-transform:uppercase; font-weight:700; margin-top:3px; }
+        .appt-info { flex:1; min-width:0; }
+        .appt-info h4 { font-size:15px; font-weight:700; margin-bottom:3px; }
+        .appt-info p { font-size:13px; color:var(--text-muted); display:flex; align-items:center; gap:6px; }
+        .appt-status { padding:5px 12px; border-radius:20px; font-size:11px; font-weight:700; flex-shrink:0; }
+        .appt-status.bekliyor { background:#FEF3C7; color:#92400E; }
+        .appt-status.onaylandi { background:#D1FAE5; color:var(--success); }
+        .appt-status.iptal { background:#FEE2E2; color:var(--danger); }
+        .appt-status.bitti { background:#E5E7EB; color:var(--text-muted); }
+        .btn-new-appt { background:linear-gradient(135deg,#7B2CBF,#C77DFF); color:white; border:none; padding:10px 18px; border-radius:var(--radius-md); font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; }
+        .btn-new-appt:hover { transform:translateY(-2px); box-shadow:0 10px 20px rgba(123,44,191,0.3); }
         
-        .empty-state { text-align: center; padding: 30px 10px; color: var(--text-muted); }
-        .empty-state i { font-size: 40px; opacity: 0.3; margin-bottom: 10px; display: block; }
-
-        /* Bildirim Öğesi */
-        .notification-item {
-            background: #FAFAFA; border-left: 4px solid var(--primary);
-            padding: 16px; border-radius: 8px; margin-bottom: 12px;
-        }
-        .notification-item h4 { font-size: 15px; margin-bottom: 4px; color: var(--text-dark); }
-        .notification-item p { font-size: 13px; color: var(--text-muted); }
-        .notification-item span { font-size: 11px; color: var(--primary); font-weight: 700; margin-top: 8px; display: block; }
-
-        /* Test Öğesi */
-        .test-item {
-            display: flex; justify-content: space-between; align-items: center;
-            background: #FAFAFA; padding: 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px;
-        }
-        .test-item h4 { font-size: 15px; margin-bottom: 4px; }
-        .btn-solve {
-            background: var(--purple-light); color: var(--primary); border: none;
-            padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.2s;
-        }
-        .btn-solve:hover { background: #E0AAFF; }
-
-        /* --- MOBİL UYUMLULUK --- */
-        @media (max-width: 768px) {
-            .top-navbar { padding: 0 15px; }
-            .user-name { display: none; }
-            .btn-logout { padding: 8px 12px; font-size: 13px; }
-            
-            .app-body { flex-direction: column; }
-            .sidebar { 
-                width: 100%; height: 70px; position: fixed; bottom: 0; top: auto; 
-                flex-direction: row; justify-content: space-around; align-items: center; 
-                padding: 10px; border-right: none; border-top: 1px solid var(--border); 
-                z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
-            }
-            .nav-menu { flex-direction: row; gap: 0; width: 100%; justify-content: space-around; }
-            .nav-link { flex-direction: column; padding: 8px; font-size: 11px; gap: 4px; text-align: center; margin-bottom: 0; }
-            .nav-link i { font-size: 24px; }
-            
-            .main-wrapper { margin-left: 0; padding: 20px; padding-bottom: 90px; }
-            
-            .grid-2 { grid-template-columns: 1fr; }
-            .join-room-card { flex-direction: column; align-items: stretch; text-align: center; }
-            .btn-join { justify-content: center; }
+        /* NOTLARIM */
+        .note-input-area { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--border); }
+        .note-textarea { width:100%; padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-md); font-size:15px; outline:none; background:#FAFAFA; font-family:inherit; resize:vertical; min-height:100px; }
+        .note-textarea:focus { border-color:var(--primary); background:white; }
+        .note-actions { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+        .note-char-count { font-size:12px; color:var(--text-muted); }
+        .btn-add-note { background:linear-gradient(135deg,#7B2CBF,#C77DFF); color:white; border:none; padding:12px 24px; border-radius:var(--radius-md); font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:8px; }
+        .btn-add-note:hover { transform:translateY(-2px); box-shadow:0 10px 20px rgba(123,44,191,0.3); }
+        .btn-add-note:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+        .notes-list { display:flex; flex-direction:column; gap:12px; }
+        .note-card { background:#FAFAFA; border:1px solid var(--border); border-left:4px solid var(--primary); border-radius:8px; padding:16px; }
+        .note-card .note-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+        .note-card .note-date { font-size:11px; color:var(--primary); font-weight:700; text-transform:uppercase; }
+        .note-card .note-delete { background:transparent; border:none; color:var(--danger); cursor:pointer; padding:4px; border-radius:4px; display:flex; align-items:center; }
+        .note-card .note-delete:hover { background:#FEE2E2; }
+        .note-card .note-text { font-size:14px; color:var(--text-dark); line-height:1.6; white-space:pre-wrap; word-wrap:break-word; }
+        
+        /* MODAL */
+        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:2000; padding:20px; overflow-y:auto; }
+        .modal-overlay.active { display:flex; }
+        .modal-content { background:var(--surface); padding:28px; border-radius:var(--radius-lg); width:100%; max-width:550px; box-shadow:0 25px 50px rgba(0,0,0,0.3); max-height:90vh; overflow-y:auto; margin:auto; }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .modal-header h3 { font-size:20px; font-weight:800; }
+        .modal-close { background:none; border:none; font-size:26px; cursor:pointer; color:var(--text-muted); }
+        .modal-label { display:block; font-size:13px; font-weight:700; margin-bottom:8px; color:var(--text-dark); text-transform:uppercase; letter-spacing:0.5px; }
+        .modal-select, .modal-input { width:100%; padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-md); font-size:15px; outline:none; background:#FAFAFA; font-family:inherit; margin-bottom:18px; }
+        .modal-select:focus, .modal-input:focus { border-color:var(--primary); background:white; }
+        .days-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:8px; margin-bottom:18px; }
+        .day-btn { padding:12px 8px; border:2px solid var(--border); border-radius:var(--radius-md); background:white; font-weight:700; font-size:13px; cursor:pointer; text-align:center; transition:0.2s; color:var(--text-dark); }
+        .day-btn:hover:not(:disabled) { border-color:var(--primary); background:var(--purple-light); color:var(--primary); }
+        .day-btn.selected { background:var(--primary); color:white; border-color:var(--primary); }
+        .day-btn:disabled { opacity:0.4; cursor:not-allowed; }
+        .slots-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(85px,1fr)); gap:8px; margin-bottom:18px; }
+        .slot-btn { padding:12px; border:2px solid var(--border); border-radius:var(--radius-md); background:white; font-weight:700; font-size:14px; cursor:pointer; text-align:center; transition:0.2s; color:var(--text-dark); }
+        .slot-btn:hover:not(:disabled) { border-color:var(--primary); background:var(--purple-light); color:var(--primary); }
+        .slot-btn.selected { background:var(--primary); color:white; border-color:var(--primary); }
+        .slot-btn:disabled { opacity:0.4; cursor:not-allowed; text-decoration:line-through; }
+        .btn-submit-modal { width:100%; padding:16px; background:linear-gradient(135deg,#7B2CBF,#C77DFF); color:white; border:none; border-radius:var(--radius-md); font-weight:800; font-size:16px; cursor:pointer; margin-top:8px; }
+        .btn-submit-modal:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 10px 20px rgba(123,44,191,0.3); }
+        .btn-submit-modal:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+        .info-msg { background:#FEF3C7; color:#92400E; padding:12px 16px; border-radius:var(--radius-md); font-size:13px; margin-bottom:16px; display:flex; align-items:flex-start; gap:8px; }
+        .info-msg i { font-size:18px; flex-shrink:0; margin-top:2px; }
+        
+        .toast { position:fixed; top:90px; right:20px; padding:14px 22px; border-radius:var(--radius-md); color:white; font-weight:700; z-index:2000; opacity:0; transform:translateX(100px); transition:0.3s; box-shadow:0 10px 30px rgba(0,0,0,0.2); font-size:14px; }
+        .toast.show { opacity:1; transform:translateX(0); }
+        .toast.success { background:var(--success); }
+        .toast.error { background:var(--danger); }
+        
+        @media (max-width:768px) {
+            .top-navbar { padding:0 12px; }
+            .user-name { display:none; }
+            .btn-logout { padding:8px 10px; font-size:12px; }
+            .nav-actions { gap:8px; }
+            .app-body { flex-direction:column; }
+            .sidebar { width:100%; height:70px; position:fixed; bottom:0; top:auto; flex-direction:row; justify-content:space-around; align-items:center; padding:8px 5px; border-right:none; border-top:1px solid var(--border); background:rgba(255,255,255,0.97); z-index:1000; overflow-x:auto; overflow-y:hidden; }
+            .nav-menu { flex-direction:row; gap:0; width:100%; justify-content:space-around; }
+            .nav-link { flex-direction:column; padding:6px 4px; font-size:10px; gap:2px; text-align:center; margin-bottom:0; min-width:0; }
+            .nav-link i { font-size:22px; }
+            .nav-link .menu-badge { position:absolute; top:2px; right:8px; margin-left:0; }
+            .main-wrapper { margin-left:0; padding:20px; padding-bottom:90px; }
+            .grid-2 { grid-template-columns:1fr; }
+            .join-room-card { flex-direction:column; align-items:stretch; text-align:center; }
+            .btn-join { justify-content:center; }
+            .modal-content { padding:22px; }
+            .days-grid { grid-template-columns:repeat(2,1fr); }
         }
     </style>
 </head>
 <body>
 
-    <!-- ÜST NAVBAR -->
     <header class="top-navbar">
         <a href="index.html" class="nav-logo">
-            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda">
             UzmanOda
         </a>
         <div class="nav-actions">
-            <div class="user-info-nav">
+            <button class="notif-btn" onclick="window.location.href='bildirimler.html'" title="Bildirimler">
+                <i class="ph ph-bell"></i>
+                <span class="notif-badge" id="notifBadge">0</span>
+            </button>
+            <div class="user-info-nav" onclick="window.location.href='danisan-profil.html'">
                 <div class="avatar-nav" id="profilAvatar">D</div>
                 <span class="user-name" id="profilIsim">Yükleniyor...</span>
             </div>
             <button onclick="cikisYap()" class="btn-logout">
-                <i class="ph ph-sign-out"></i> Çıkış Yap
+                <i class="ph ph-sign-out"></i> Çıkış
             </button>
         </div>
     </header>
 
-    <!-- UYGULAMA GÖVDESİ -->
     <div class="app-body">
-        
-        <!-- SOL MENÜ -->
         <aside class="sidebar">
             <div class="nav-menu">
-                <a href="danisan-panel.html" class="nav-link active">
-                    <i class="ph ph-squares-four"></i> Panel
+                <a href="danisan-panel.html" class="nav-link active"><i class="ph ph-squares-four"></i> Panel</a>
+                <a href="danisan-gecmis.html" class="nav-link"><i class="ph ph-clock-counter-clockwise"></i> Geçmiş</a>
+                <a href="bildirimler.html" class="nav-link">
+                    <i class="ph ph-bell"></i> Bildirimler
+                    <span class="menu-badge" id="menuBadge" style="display:none;">0</span>
                 </a>
-                <!-- BURASI GÜNCELLENDİ -->
-                <a href="danisan-gecmis.html" class="nav-link">
-                    <i class="ph ph-clock-counter-clockwise"></i> Geçmiş
-                </a>
+                <a href="danisan-profil.html" class="nav-link"><i class="ph ph-user-circle"></i> Profilim</a>
             </div>
         </aside>
 
-        <!-- ANA İÇERİK -->
         <main class="main-wrapper">
             <div class="panel-container">
                 
                 <div class="welcome-card">
-                    <h1 id="hosgeldinMesaji">Hoş Geldiniz</h1>
-                    <p>Uzmanınızdan gelen bildirimleri ve testleri buradan takip edebilirsiniz.</p>
+                    <div>
+                        <h1 id="hosgeldinMesaji">Hoş Geldiniz</h1>
+                        <p>Uzmanınızdan gelen bildirimleri ve testleri buradan takip edebilirsiniz.</p>
+                    </div>
                 </div>
 
-                <!-- ODAYA KATILMA -->
                 <div class="join-room-card">
-                    <i class="ph ph-link" style="font-size: 24px; color: var(--primary);"></i>
+                    <i class="ph ph-link" style="font-size:24px; color:var(--primary);"></i>
                     <input type="text" id="odaKoduInput" class="join-input" placeholder="Uzmanınızın verdiği oda kodunu girin (Örn: X7Y9Z1)">
                     <button class="btn-join" onclick="odayaKatil()">
                         <i class="ph ph-video-camera"></i> Görüşmeye Katıl
                     </button>
                 </div>
 
-                <div class="grid-2">
-                    <!-- BİLDİRİMLER -->
-                    <div class="section-card">
-                        <div class="section-header">
-                            <h3>Bildirimler</h3>
-                            <i class="ph ph-bell" style="font-size: 20px; color: var(--text-muted);"></i>
-                        </div>
-                        <div id="bildirimAlani">
-                            <div class="empty-state">
-                                <i class="ph ph-spinner ph-spin"></i>
-                                <p>Yükleniyor...</p>
-                            </div>
-                        </div>
+                <!-- RANDEVULARIM -->
+                <div class="appointments-section">
+                    <div class="section-header">
+                        <h3><i class="ph ph-calendar-check"></i> Randevularım</h3>
+                        <button class="btn-new-appt" onclick="randevuModalAc()">
+                            <i class="ph ph-plus"></i> Yeni Randevu Al
+                        </button>
                     </div>
+                    <div class="appointments-tabs">
+                        <button class="appt-tab active" onclick="randevuFiltre('yaklasan', this)">Yaklaşan</button>
+                        <button class="appt-tab" onclick="randevuFiltre('gecmis', this)">Geçmiş</button>
+                    </div>
+                    <div class="appointment-list" id="appointmentList">
+                        <div class="empty-state"><i class="ph ph-spinner ph-spin"></i><p>Randevularınız yükleniyor...</p></div>
+                    </div>
+                </div>
 
-                    <!-- TESTLER -->
+                <div class="grid-2">
                     <div class="section-card">
                         <div class="section-header">
                             <h3>Testlerim</h3>
-                            <i class="ph ph-exam" style="font-size: 20px; color: var(--text-muted);"></i>
+                            <i class="ph ph-exam" style="font-size:20px; color:var(--text-muted);"></i>
                         </div>
                         <div id="testAlani">
-                            <div class="empty-state">
-                                <i class="ph ph-spinner ph-spin"></i>
-                                <p>Yükleniyor...</p>
-                            </div>
+                            <div class="empty-state"><i class="ph ph-spinner ph-spin"></i><p>Yükleniyor...</p></div>
                         </div>
+                    </div>
+
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3>Bildirimler</h3>
+                            <a href="bildirimler.html">Tümünü Gör →</a>
+                        </div>
+                        <div id="bildirimAlani">
+                            <div class="empty-state"><i class="ph ph-spinner ph-spin"></i><p>Yükleniyor...</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NOTLARIM -->
+                <div class="appointments-section">
+                    <div class="section-header">
+                        <h3><i class="ph ph-note-pencil"></i> Notlarım</h3>
+                        <span style="font-size:12px; color:var(--text-muted);">Uzmanınız görebilir</span>
+                    </div>
+                    <div class="note-input-area">
+                        <textarea id="noteInput" class="note-textarea" placeholder="Kendiniz için bir not yazın... (örn: bu hafta neler yaşadım, neler hissettim, sonraki görüşmede konuşmak istediklerim)" maxlength="1000" oninput="noteCharCount()"></textarea>
+                        <div class="note-actions">
+                            <span class="note-char-count" id="noteCharCount">0 / 1000</span>
+                            <button class="btn-add-note" id="btnAddNote" onclick="notEkle()">
+                                <i class="ph ph-plus"></i> Notu Kaydet
+                            </button>
+                        </div>
+                    </div>
+                    <div class="notes-list" id="notesList">
+                        <div class="empty-state"><i class="ph ph-spinner ph-spin"></i><p>Notlar yükleniyor...</p></div>
                     </div>
                 </div>
 
@@ -244,7 +271,46 @@
         </main>
     </div>
 
-    <!-- MOTOR (FIREBASE) -->
+    <!-- RANDEVU ALMA MODALI -->
+    <div class="modal-overlay" id="randevuModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="ph ph-calendar-plus" style="color:var(--primary); margin-right:8px;"></i>Yeni Randevu Al</h3>
+                <button class="modal-close" onclick="randevuModalKapat()">&times;</button>
+            </div>
+
+            <!-- Uzman Seç -->
+            <label class="modal-label">Uzman Seçin</label>
+            <select id="randevuUzmanSelect" class="modal-select" onchange="uzmanSecildi()">
+                <option value="">Yükleniyor...</option>
+            </select>
+
+            <!-- Gün Seç -->
+            <div id="gunSection" style="display:none;">
+                <label class="modal-label">Gün Seçin</label>
+                <div class="days-grid" id="daysGrid"></div>
+            </div>
+
+            <!-- Saat Seç -->
+            <div id="saatSection" style="display:none;">
+                <label class="modal-label">Saat Seçin</label>
+                <div class="slots-grid" id="slotsGrid"></div>
+            </div>
+
+            <!-- Not -->
+            <div id="notSection" style="display:none;">
+                <label class="modal-label">Not (Opsiyonel)</label>
+                <textarea id="randevuNot" class="modal-input" placeholder="Görüşmek istediğiniz konu hakkında kısa bir not..." style="resize:none; min-height:70px;"></textarea>
+            </div>
+
+            <button class="btn-submit-modal" id="randevuSubmitBtn" onclick="randevuTalepGonder()" disabled>
+                <i class="ph ph-check"></i> Randevu Talep Et
+            </button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
@@ -254,61 +320,88 @@
             messagingSenderId: "71880478784",
             appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
         };
-
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         let aktifDanisanId = null;
+        let aktifDanisanIsim = "";
+        let unsubBildirim = null;
+        let tumRandevular = [];
+        let aktifRandevuFiltre = 'yaklasan';
+        
+        // Randevu modal state
+        let uzmanlarList = [];
+        let secilenUzmanId = null;
+        let musaitlikler = [];
+        let secilenGun = null;
+        let secilenSaat = null;
 
-        // 1. GÜVENLİK DUVARI VE KULLANICIYI TANIMA
+        function toast(mesaj, tip = 'success') {
+            const t = document.getElementById('toast');
+            t.innerText = mesaj;
+            t.className = 'toast show ' + tip;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
         auth.onAuthStateChanged((user) => {
             if (user) {
                 aktifDanisanId = user.uid;
-                
                 db.collection('danisanlar').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const data = doc.data();
-                        const tamIsim = data.isim + " " + data.soyisim;
-                        document.getElementById('profilIsim').innerText = tamIsim;
-                        document.getElementById('profilAvatar').innerText = data.isim.charAt(0).toUpperCase();
+                        aktifDanisanIsim = data.isim + " " + data.soyisim;
+                        document.getElementById('profilIsim').innerText = aktifDanisanIsim;
+                        if (data.fotoBase64) {
+                            document.getElementById('profilAvatar').innerHTML = `<img src="${data.fotoBase64}">`;
+                        } else {
+                            document.getElementById('profilAvatar').innerText = data.isim.charAt(0).toUpperCase();
+                        }
                         document.getElementById('hosgeldinMesaji').innerText = "Hoş Geldiniz, " + data.isim;
                     }
                 });
-
                 bildirimleriYukle();
+                bildirimSayaciDinle();
                 testleriYukle();
-
+                notlariYukle();
+                randevulariYukle();
             } else {
                 window.location.href = "danisan-giris.html";
             }
         });
 
-        // 2. BİLDİRİMLERİ ÇEK
+        function bildirimSayaciDinle() {
+            if (unsubBildirim) unsubBildirim();
+            unsubBildirim = db.collection('bildirimler')
+                .where('aliciId', '==', aktifDanisanId)
+                .where('okundu', '==', false)
+                .onSnapshot(snapshot => {
+                    const count = snapshot.size;
+                    const badge = document.getElementById('notifBadge');
+                    const menuBadge = document.getElementById('menuBadge');
+                    badge.innerText = count;
+                    badge.classList.toggle('show', count > 0);
+                    menuBadge.innerText = count;
+                    menuBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                });
+        }
+
         function bildirimleriYukle() {
             const container = document.getElementById('bildirimAlani');
-            
             db.collection('bildirimler')
                 .where('aliciId', '==', aktifDanisanId)
-                .orderBy('tarih', 'desc')
-                .limit(5)
+                .orderBy('tarih', 'desc').limit(5)
                 .onSnapshot((snapshot) => {
                     container.innerHTML = "";
-                    
                     if (snapshot.empty) {
-                        container.innerHTML = `<div class="empty-state">
-                            <i class="ph ph-bell-slash"></i>
-                            <p>Henüz bir bildiriminiz yok.</p>
-                        </div>`;
+                        container.innerHTML = `<div class="empty-state"><i class="ph ph-bell-slash"></i><p>Henüz bir bildiriminiz yok.</p></div>`;
                         return;
                     }
-
                     snapshot.forEach(doc => {
                         const data = doc.data();
                         let tarihStr = "Yeni";
                         if(data.tarih) {
                             tarihStr = data.tarih.toDate().toLocaleDateString('tr-TR', { hour: '2-digit', minute:'2-digit' });
                         }
-
                         container.innerHTML += `
                             <div class="notification-item">
                                 <h4>${data.baslik}</h4>
@@ -320,31 +413,24 @@
                 });
         }
 
-        // 3. TESTLERİ ÇEK
         function testleriYukle() {
             const container = document.getElementById('testAlani');
-            
             db.collection('testGonderimleri')
                 .where('danisanId', '==', aktifDanisanId)
                 .where('durum', '==', 'bekliyor')
                 .onSnapshot((snapshot) => {
                     container.innerHTML = "";
-
                     if (snapshot.empty) {
-                        container.innerHTML = `<div class="empty-state">
-                            <i class="ph ph-check-circle" style="color: var(--success);"></i>
-                            <p>Bekleyen testiniz bulunmuyor.</p>
-                        </div>`;
+                        container.innerHTML = `<div class="empty-state"><i class="ph ph-check-circle" style="color:var(--success);"></i><p>Bekleyen testiniz yok.</p></div>`;
                         return;
                     }
-
                     snapshot.forEach(doc => {
                         const data = doc.data();
                         container.innerHTML += `
                             <div class="test-item">
                                 <div>
                                     <h4>${data.testBaslik}</h4>
-                                    <p style="font-size: 12px; color: var(--text-muted);">Uzmanınız tarafından gönderildi</p>
+                                    <p style="font-size:12px; color:var(--text-muted);">Uzmanınız tarafından gönderildi</p>
                                 </div>
                                 <button class="btn-solve" onclick="testCoz('${doc.id}', '${data.testId}')">Çöz</button>
                             </div>
@@ -353,12 +439,10 @@
                 });
         }
 
-        // 4. TEST ÇÖZME EKRANINA GİT
         function testCoz(gonderimId, testId) {
             window.location.href = `test-coz.html?test=${testId}&gonderim=${gonderimId}`;
         }
 
-        // 5. ODAYA KATILMA MANTIĞI
         function odayaKatil() {
             const kod = document.getElementById('odaKoduInput').value.trim().toUpperCase();
             if(kod.length > 0) {
@@ -368,11 +452,412 @@
             }
         }
 
-        // 6. ÇIKIŞ YAPMA
-        function cikisYap() {
-            auth.signOut().then(() => {
-                window.location.href = "index.html";
+        // === RANDEVULARIM ===
+        function randevulariYukle() {
+            db.collection('randevular')
+                .where('danisanId', '==', aktifDanisanId)
+                .onSnapshot(snapshot => {
+                    tumRandevular = [];
+                    snapshot.forEach(doc => tumRandevular.push({ id: doc.id, ...doc.data() }));
+                    randevulariCiz();
+                });
+        }
+
+        function randevuFiltre(filtre, btn) {
+            aktifRandevuFiltre = filtre;
+            document.querySelectorAll('.appt-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            randevulariCiz();
+        }
+
+        function randevulariCiz() {
+            const container = document.getElementById('appointmentList');
+            const bugun = new Date().toISOString().split('T')[0];
+            
+            let filtreli = tumRandevular;
+            if (aktifRandevuFiltre === 'yaklasan') {
+                filtreli = tumRandevular.filter(r => r.tarih >= bugun && r.durum !== 'iptal' && r.durum !== 'bitti');
+                filtreli.sort((a, b) => (a.tarih + a.saat).localeCompare(b.tarih + b.saat));
+            } else {
+                filtreli = tumRandevular.filter(r => r.tarih < bugun || r.durum === 'iptal' || r.durum === 'bitti');
+                filtreli.sort((a, b) => (b.tarih + b.saat).localeCompare(a.tarih + a.saat));
+            }
+
+            if (filtreli.length === 0) {
+                container.innerHTML = `<div class="empty-state">
+                    <i class="ph ph-calendar-x"></i>
+                    <p>${aktifRandevuFiltre === 'yaklasan' ? 'Yaklaşan randevunuz yok. Yukarıdaki "Yeni Randevu Al" butonunu kullanın.' : 'Geçmiş randevunuz yok.'}</p>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            const aylar = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+            const durumText = { 'bekliyor':'Onay Bekliyor', 'onaylandi':'Onaylandı', 'iptal':'İptal', 'bitti':'Tamamlandı' };
+
+            filtreli.forEach(r => {
+                const [yil, ay, gun] = (r.tarih || '').split('-');
+                const el = document.createElement('div');
+                el.className = 'appointment-item';
+                el.innerHTML = `
+                    <div class="appt-date-box">
+                        <div class="day">${gun || '?'}</div>
+                        <div class="month">${aylar[(parseInt(ay)||1)-1]}</div>
+                    </div>
+                    <div class="appt-info">
+                        <h4>${r.uzmanIsim || 'Uzman'}</h4>
+                        <p><i class="ph ph-clock"></i> ${r.saat} • ${r.sure || 30} dk</p>
+                    </div>
+                    <span class="appt-status ${r.durum || 'bekliyor'}">${durumText[r.durum] || r.durum}</span>
+                `;
+                container.appendChild(el);
             });
+        }
+
+        // === RANDEVU ALMA MODALI ===
+        async function randevuModalAc() {
+            document.getElementById('randevuModal').classList.add('active');
+            
+            // Reset
+            secilenUzmanId = null;
+            secilenGun = null;
+            secilenSaat = null;
+            musaitlikler = [];
+            document.getElementById('gunSection').style.display = 'none';
+            document.getElementById('saatSection').style.display = 'none';
+            document.getElementById('notSection').style.display = 'none';
+            document.getElementById('randevuSubmitBtn').disabled = true;
+            document.getElementById('randevuNot').value = '';
+
+            // Uzmanları yükle (danışanın bağlı olduğu uzmanlar)
+            const select = document.getElementById('randevuUzmanSelect');
+            select.innerHTML = '<option value="">Yükleniyor...</option>';
+            uzmanlarList = [];
+
+            try {
+                const baglantilar = await db.collection('uzmanDanisanlari')
+                    .where('danisanId', '==', aktifDanisanId).get();
+                
+                if (baglantilar.empty) {
+                    select.innerHTML = '<option value="">Bağlı uzmanınız yok</option>';
+                    return;
+                }
+
+                const uzmanIdler = [];
+                baglantilar.forEach(doc => uzmanIdler.push(doc.data().uzmanId));
+
+                // Her uzmanı çek
+                for (const uid of uzmanIdler) {
+                    const uDoc = await db.collection('uzmanlar').doc(uid).get();
+                    if (uDoc.exists) {
+                        const u = uDoc.data();
+                        uzmanlarList.push({ id: uid, isim: (u.unvan || '') + ' ' + (u.isim || 'Uzman') });
+                    }
+                }
+
+                if (uzmanlarList.length === 0) {
+                    select.innerHTML = '<option value="">Uzman bulunamadı</option>';
+                    return;
+                }
+
+                select.innerHTML = '<option value="">Uzman seçin...</option>';
+                uzmanlarList.forEach(u => {
+                    select.innerHTML += `<option value="${u.id}">${u.isim}</option>`;
+                });
+
+            } catch(e) {
+                console.error(e);
+                select.innerHTML = '<option value="">Yükleme hatası</option>';
+            }
+        }
+
+        function randevuModalKapat() {
+            document.getElementById('randevuModal').classList.remove('active');
+        }
+
+        async function uzmanSecildi() {
+            secilenUzmanId = document.getElementById('randevuUzmanSelect').value;
+            secilenGun = null;
+            secilenSaat = null;
+            document.getElementById('saatSection').style.display = 'none';
+            document.getElementById('notSection').style.display = 'none';
+            document.getElementById('randevuSubmitBtn').disabled = true;
+
+            if (!secilenUzmanId) {
+                document.getElementById('gunSection').style.display = 'none';
+                return;
+            }
+
+            // Uzmanın müsaitliklerini çek
+            try {
+                const snap = await db.collection('musaitlikler')
+                    .where('uzmanId', '==', secilenUzmanId).get();
+                
+                musaitlikler = [];
+                snap.forEach(doc => musaitlikler.push(doc.data()));
+
+                if (musaitlikler.length === 0) {
+                    toast("Uzmanın henüz müsait saati yok", "error");
+                    document.getElementById('gunSection').style.display = 'none';
+                    return;
+                }
+
+                gunleriCiz();
+                document.getElementById('gunSection').style.display = 'block';
+
+            } catch(e) {
+                console.error(e);
+                toast("Müsaitlikler yüklenemedi", "error");
+            }
+        }
+
+        function gunleriCiz() {
+            const grid = document.getElementById('daysGrid');
+            grid.innerHTML = '';
+
+            const gunler = ['pazartesi','sali','carsamba','persembe','cuma','cumartesi','pazar'];
+            const gunLabels = { pazartesi:'Pzt', sali:'Sal', carsamba:'Çar', persembe:'Per', cuma:'Cum', cumartesi:'Cmt', pazar:'Paz' };
+            
+            // Bugünden itibaren 14 gün göster
+            const bugun = new Date();
+            const musaitGunler = [...new Set(musaitlikler.map(m => m.gun))];
+
+            for (let i = 0; i < 14; i++) {
+                const d = new Date(bugun);
+                d.setDate(d.getDate() + i);
+                const gunIsmi = ['pazar','pazartesi','sali','carsamba','persembe','cuma','cumartesi'][d.getDay()];
+                const tarihStr = d.toISOString().split('T')[0];
+                
+                const musait = musaitGunler.includes(gunIsmi);
+                
+                const btn = document.createElement('button');
+                btn.className = 'day-btn';
+                btn.disabled = !musait;
+                btn.innerHTML = `
+                    <div style="font-size:11px; color:inherit; opacity:0.7;">${gunLabels[gunIsmi]}</div>
+                    <div style="font-size:16px; margin-top:2px;">${d.getDate()}</div>
+                    <div style="font-size:10px; opacity:0.7;">${['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'][d.getMonth()]}</div>
+                `;
+                if (musait) {
+                    btn.onclick = () => gunSec(btn, tarihStr, gunIsmi);
+                }
+                grid.appendChild(btn);
+            }
+        }
+
+        function gunSec(btn, tarihStr, gunIsmi) {
+            document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            secilenGun = { tarih: tarihStr, gun: gunIsmi };
+            secilenSaat = null;
+            
+            // O günün saatlerini göster
+            saatleriCiz(tarihStr, gunIsmi);
+            document.getElementById('saatSection').style.display = 'block';
+        }
+
+        async function saatleriCiz(tarih, gunIsmi) {
+            const grid = document.getElementById('slotsGrid');
+            grid.innerHTML = '<div style="padding:10px; color:var(--text-muted); font-size:13px;">Yükleniyor...</div>';
+
+            // O gün için zaten alınmış randevular
+            const alinanSnap = await db.collection('randevular')
+                .where('uzmanId', '==', secilenUzmanId)
+                .where('tarih', '==', tarih).get();
+            
+            const doluSaatler = [];
+            alinanSnap.forEach(doc => {
+                const r = doc.data();
+                if (r.durum !== 'iptal') doluSaatler.push(r.saat);
+            });
+
+            // O günün müsaitlik aralıkları
+            const gununMusaitlikleri = musaitlikler.filter(m => m.gun === gunIsmi);
+            
+            grid.innerHTML = '';
+            let slotVar = false;
+
+            gununMusaitlikleri.forEach(m => {
+                const [bS, bD] = m.baslangic.split(':').map(Number);
+                const [eS, eD] = m.bitis.split(':').map(Number);
+                
+                let curS = bS, curD = bD;
+                while (curS < eS || (curS === eS && curD < eD)) {
+                    const saat = String(curS).padStart(2,'0') + ':' + String(curD).padStart(2,'0');
+                    const dolu = doluSaatler.includes(saat);
+                    
+                    const btn = document.createElement('button');
+                    btn.className = 'slot-btn';
+                    btn.textContent = saat;
+                    btn.disabled = dolu;
+                    if (!dolu) {
+                        slotVar = true;
+                        btn.onclick = () => saatSec(btn, saat);
+                    }
+                    grid.appendChild(btn);
+
+                    curD += 30;
+                    if (curD >= 60) { curD = 0; curS++; }
+                }
+            });
+
+            if (!slotVar) {
+                grid.innerHTML = '<div style="padding:10px; color:var(--text-muted); font-size:13px; grid-column:1/-1;">Bu gün için uygun saat yok.</div>';
+            }
+        }
+
+        function saatSec(btn, saat) {
+            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            secilenSaat = saat;
+            document.getElementById('notSection').style.display = 'block';
+            document.getElementById('randevuSubmitBtn').disabled = false;
+        }
+
+        async function randevuTalepGonder() {
+            if (!secilenUzmanId || !secilenGun || !secilenSaat) {
+                toast("Lütfen tüm alanları doldurun", "error");
+                return;
+            }
+
+            const btn = document.getElementById('randevuSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Gönderiliyor...';
+
+            try {
+                const uzman = uzmanlarList.find(u => u.id === secilenUzmanId);
+                
+                await db.collection('randevular').add({
+                    uzmanId: secilenUzmanId,
+                    uzmanIsim: uzman ? uzman.isim : 'Uzman',
+                    danisanId: aktifDanisanId,
+                    danisanIsim: aktifDanisanIsim,
+                    tarih: secilenGun.tarih,
+                    saat: secilenSaat,
+                    sure: 30,
+                    not: document.getElementById('randevuNot').value.trim(),
+                    durum: 'bekliyor',
+                    olusturmaTarihi: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Uzmana bildirim
+                await db.collection('bildirimler').add({
+                    aliciId: secilenUzmanId,
+                    gonderenId: aktifDanisanId,
+                    baslik: "Yeni Randevu Talebi",
+                    mesaj: `${aktifDanisanIsim} adlı danışanınız ${secilenGun.tarih} günü saat ${secilenSaat} için randevu talep etti.`,
+                    okundu: false,
+                    tarih: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                toast("Randevu talebiniz gönderildi! Uzmanınız onayladığında bildirim gelecek.");
+                randevuModalKapat();
+
+            } catch(e) {
+                console.error(e);
+                toast("Hata: " + e.message, "error");
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph ph-check"></i> Randevu Talep Et';
+        }
+
+        // === NOTLARIM ===
+        function noteCharCount() {
+            const len = document.getElementById('noteInput').value.length;
+            document.getElementById('noteCharCount').innerText = len + " / 1000";
+        }
+
+        function notlariYukle() {
+            db.collection('danisanNotlari')
+                .where('danisanId', '==', aktifDanisanId)
+                .orderBy('tarih', 'desc')
+                .onSnapshot(snapshot => {
+                    const container = document.getElementById('notesList');
+                    container.innerHTML = "";
+                    
+                    if (snapshot.empty) {
+                        container.innerHTML = `<div class="empty-state"><i class="ph ph-notebook"></i><p>Henüz not yazmadınız. İlk notunuzu yukarıdan ekleyin!</p></div>`;
+                        return;
+                    }
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        let tarihStr = "Bilinmiyor";
+                        if (data.tarih) {
+                            tarihStr = data.tarih.toDate().toLocaleDateString('tr-TR', { 
+                                day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+                            });
+                        }
+                        const card = document.createElement('div');
+                        card.className = 'note-card';
+                        card.innerHTML = `
+                            <div class="note-meta">
+                                <span class="note-date">${tarihStr}</span>
+                                <button class="note-delete" onclick="notSil('${doc.id}')" title="Notu Sil">
+                                    <i class="ph ph-trash"></i>
+                                </button>
+                            </div>
+                            <div class="note-text">${escapeHtml(data.metin)}</div>
+                        `;
+                        container.appendChild(card);
+                    });
+                });
+        }
+
+        async function notEkle() {
+            const input = document.getElementById('noteInput');
+            const metin = input.value.trim();
+            
+            if (!metin) {
+                toast("Lütfen bir not yazın", "error");
+                return;
+            }
+            if (metin.length < 5) {
+                toast("Not en az 5 karakter olmalı", "error");
+                return;
+            }
+
+            const btn = document.getElementById('btnAddNote');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Kaydediliyor...';
+
+            try {
+                await db.collection('danisanNotlari').add({
+                    danisanId: aktifDanisanId,
+                    metin: metin,
+                    tarih: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                input.value = "";
+                document.getElementById('noteCharCount').innerText = "0 / 1000";
+                toast("Not kaydedildi!");
+            } catch(e) {
+                toast("Not kaydedilemedi: " + e.message, "error");
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph ph-plus"></i> Notu Kaydet';
+        }
+
+        async function notSil(notId) {
+            if (!confirm("Bu notu silmek istediğinize emin misiniz?\n\nNot silindiğinde uzmanınız da artık göremez.")) return;
+            try {
+                await db.collection('danisanNotlari').doc(notId).delete();
+                toast("Not silindi");
+            } catch(e) {
+                toast("Not silinemedi: " + e.message, "error");
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function cikisYap() {
+            auth.signOut().then(() => { window.location.href = "index.html"; });
         }
     </script>
 </body>
