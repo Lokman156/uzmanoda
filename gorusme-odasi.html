@@ -13,42 +13,120 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <style>
-        :root { --primary: #7B2CBF; --danger: #EF4444; --success: #10B981; --bg-dark: #0F172A; }
+        :root { --primary: #7B2CBF; --danger: #EF4444; --success: #10B981; --bg-dark: #0F172A; --surface: #1E293B; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         html, body { overflow: hidden; height: 100vh; background-color: var(--bg-dark); color: white; }
 
         .video-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
-        
-        /* Karşı Taraf Videosu */
         #remoteVideo { width: 100%; height: 100%; object-fit: cover; background: #000; position: absolute; top: 0; left: 0; z-index: 1; }
 
-        /* Kendi Videomuz */
         .local-video-container {
-            position: absolute; bottom: 100px; right: 30px; width: 180px; height: 120px;
+            position: absolute; bottom: 110px; right: 30px; width: 180px; height: 120px;
             border-radius: 12px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
             border: 2px solid rgba(255,255,255,0.2); background: #000; z-index: 10;
         }
         #localVideo { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
-        /* ICE Bağlantı Göstergesi (Teşhis için) */
         .ice-indicator {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px;
-            font-size: 14px; font-weight: 600; z-index: 20; display: flex; align-items: center; gap: 8px;
+            background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 20px;
+            font-size: 13px; font-weight: 600; z-index: 20; display: flex; align-items: center; gap: 8px;
             border: 1px solid rgba(255,255,255,0.2);
         }
         .dot { width: 10px; height: 10px; border-radius: 50%; background: orange; }
         .dot.connected { background: var(--success); box-shadow: 0 0 10px var(--success); }
         .dot.failed { background: var(--danger); }
 
+        /* Üst Süre Göstergesi */
+        .top-info {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 20px;
+            display: flex; align-items: center; gap: 12px; z-index: 20;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .top-info .room-code { color: var(--primary); font-weight: 800; font-size: 14px; }
+        .top-info .timer { color: #9CA3AF; font-variant-numeric: tabular-nums; font-size: 14px; }
+
         /* Kontroller */
         .controls {
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 15px; background: rgba(30, 41, 59, 0.8);
-            padding: 15px 30px; border-radius: 50px; z-index: 20;
+            display: flex; gap: 12px; background: rgba(30, 41, 59, 0.9);
+            padding: 12px 20px; border-radius: 50px; z-index: 20; align-items: center;
+            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
         }
-        .control-btn { width: 56px; height: 56px; border-radius: 50%; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 24px; cursor: pointer; }
+        .control-btn { 
+            width: 52px; height: 52px; border-radius: 50%; border: none; 
+            background: rgba(255,255,255,0.1); color: white; font-size: 22px; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; flex-shrink: 0;
+        }
+        .control-btn:hover { background: rgba(255,255,255,0.2); }
+        .control-btn.active { background: var(--primary); }
         .control-btn.danger { background: var(--danger); }
+        .control-btn.danger:hover { background: #DC2626; }
+        .control-btn.test-btn { background: var(--success); color: white; width: auto; padding: 0 16px; border-radius: 26px; font-size: 14px; font-weight: 700; gap: 6px; }
+
+        /* Sohbet Paneli */
+        .sidebar {
+            position: absolute; top: 0; right: -400px; width: 380px; height: 100vh;
+            background: var(--surface); border-left: 1px solid rgba(255,255,255,0.1);
+            z-index: 30; transition: right 0.3s ease; display: flex; flex-direction: column;
+        }
+        .sidebar.open { right: 0; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-header h3 { font-size: 18px; }
+        .close-sidebar { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        .chat-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .message { background: rgba(255,255,255,0.08); padding: 10px 14px; border-radius: 12px; max-width: 85%; font-size: 14px; }
+        .message.mine { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
+        .message.theirs { align-self: flex-start; border-bottom-left-radius: 2px; }
+        .message-sender { font-size: 11px; opacity: 0.7; margin-bottom: 3px; font-weight: 600; }
+        .chat-input-area { padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; }
+        .chat-input-area input { flex: 1; padding: 12px 16px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white; outline: none; font-size: 14px; }
+        .btn-send { background: var(--primary); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* Modal (Test Gönderme) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center;
+            z-index: 100; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: var(--surface); padding: 30px; border-radius: 20px; width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 20px; }
+        .modal-close { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        .test-select-item { 
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 10px;
+            cursor: pointer; transition: 0.2s; border: 2px solid transparent;
+        }
+        .test-select-item:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); }
+        .test-select-item h4 { font-size: 15px; margin-bottom: 4px; }
+        .test-select-item p { font-size: 12px; color: #9CA3AF; }
+        .empty-tests { text-align: center; padding: 40px 20px; color: #9CA3AF; }
+
+        /* Görüşme Sonlandı Ekranı */
+        .ended-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95); display: none; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 1000; text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .ended-overlay.active { display: flex; }
+        .ended-icon { font-size: 80px; color: var(--danger); margin-bottom: 20px; }
+        .ended-overlay h2 { font-size: 32px; margin-bottom: 10px; }
+        .ended-overlay p { font-size: 16px; color: #9CA3AF; margin-bottom: 30px; }
+
+        @media (max-width: 768px) {
+            .local-video-container { width: 120px; height: 160px; bottom: 100px; right: 15px; }
+            .controls { padding: 10px 15px; gap: 8px; width: 95%; justify-content: center; }
+            .control-btn { width: 44px; height: 44px; font-size: 18px; }
+            .control-btn.test-btn { padding: 0 12px; font-size: 12px; }
+            .sidebar { width: 100%; right: -100%; }
+            .top-info { top: 10px; right: 10px; font-size: 12px; padding: 8px 12px; }
+            .ice-indicator { top: 60px; font-size: 11px; }
+            .ended-overlay h2 { font-size: 24px; }
+        }
     </style>
 </head>
 <body>
@@ -62,14 +140,56 @@
 
         <div class="ice-indicator">
             <div class="dot" id="iceDot"></div>
-            <span id="iceText">ICE Bağlantısı: Bekleniyor</span>
+            <span id="iceText">Bağlanılıyor...</span>
+        </div>
+
+        <div class="top-info">
+            <span class="room-code" id="odaKoduEkran">Oda</span>
+            <span class="timer" id="sure">00:00</span>
         </div>
 
         <div class="controls">
-            <button class="control-btn" id="micBtn" onclick="toggleMic()"><i class="ph ph-microphone"></i></button>
-            <button class="control-btn" id="camBtn" onclick="toggleCam()"><i class="ph ph-video-camera"></i></button>
-            <button class="control-btn danger" onclick="gorusmeyiBitir()"><i class="ph ph-phone-disconnect"></i></button>
+            <button class="control-btn" id="micBtn" onclick="toggleMic()" title="Mikrofon"><i class="ph ph-microphone"></i></button>
+            <button class="control-btn" id="camBtn" onclick="toggleCam()" title="Kamera"><i class="ph ph-video-camera"></i></button>
+            <button class="control-btn" onclick="kameraCevir()" title="Kamera Çevir"><i class="ph ph-arrows-clockwise"></i></button>
+            <button class="control-btn" id="screenBtn" onclick="ekranPaylas()" title="Ekran Paylaş"><i class="ph ph-monitor"></i></button>
+            <button class="control-btn test-btn" id="testBtn" onclick="testModalAc()" style="display:none;"><i class="ph ph-exam"></i> Test</button>
+            <button class="control-btn" onclick="toggleChat()" title="Sohbet"><i class="ph ph-chat-teardrop-text"></i></button>
+            <button class="control-btn danger" onclick="gorusmeyiBitir(true)" title="Bitir"><i class="ph ph-phone-disconnect"></i></button>
         </div>
+
+        <!-- Sohbet -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>Görüşme Sohbeti</h3>
+                <button class="close-sidebar" onclick="toggleChat()">&times;</button>
+            </div>
+            <div class="chat-area" id="chatArea"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Mesaj yazın..." onkeypress="if(event.key === 'Enter') mesajGonder()">
+                <button class="btn-send" onclick="mesajGonder()"><i class="ph ph-paper-plane-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Gönderme Modal -->
+    <div class="modal-overlay" id="testModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Test Gönder</h3>
+                <button class="modal-close" onclick="testModalKapat()">&times;</button>
+            </div>
+            <div id="testListesiModal">
+                <div class="empty-tests">Testler yükleniyor...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Görüşme Sonlandı Ekranı -->
+    <div class="ended-overlay" id="endedOverlay">
+        <i class="ph ph-phone-disconnect ended-icon"></i>
+        <h2 id="endedTitle">Görüşme Sonlandı</h2>
+        <p id="endedDesc">Panele yönlendiriliyorsunuz...</p>
     </div>
 
     <script>
@@ -99,6 +219,14 @@
         let localStream, peerConnection, odaKodu, isHost = false, currentUser = null;
         let remoteStream = new MediaStream();
         let pendingCandidates = [];
+        let screenStream = null;
+        let kullaniciAdi = "Kullanıcı";
+        let karsiTarafId = null;
+        let karsiTarafAdi = "Karşı Taraf";
+        let sureInterval = null;
+        let saniye = 0;
+        let gorusmeBitti = false;
+        let gorusmeId = null;
 
         const urlParams = new URLSearchParams(window.location.search);
         odaKodu = urlParams.get('oda');
@@ -108,6 +236,9 @@
             window.location.href = "index.html";
         }
 
+        document.getElementById('odaKoduEkran').innerText = "Oda: " + odaKodu;
+
+        // --- 1. BAŞLATMA ---
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 window.location.href = "danisan-giris.html";
@@ -115,70 +246,78 @@
             }
             currentUser = user;
             
+            // Kullanıcı rolünü ve adını belirle
             try {
                 const uzmanDoc = await db.collection('uzmanlar').doc(user.uid).get();
-                isHost = uzmanDoc.exists;
-            } catch(e) { console.log("Rol belirlenemedi"); }
+                if (uzmanDoc.exists) {
+                    isHost = true;
+                    kullaniciAdi = uzmanDoc.data().isim;
+                    document.getElementById('testBtn').style.display = 'flex';
+                } else {
+                    const danisanDoc = await db.collection('danisanlar').doc(user.uid).get();
+                    if (danisanDoc.exists) {
+                        kullaniciAdi = danisanDoc.data().isim + " " + danisanDoc.data().soyisim;
+                    }
+                }
+            } catch(e) { console.log(e); }
 
             await kamerayiBaslat();
             baglantiKur();
+            sohbetiDinle();
+            gorusmeDurumunuDinle();
         });
 
+        // --- 2. KAMERA ---
         async function kamerayiBaslat() {
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user' }, 
+                    audio: true 
+                });
                 document.getElementById('localVideo').srcObject = localStream;
             } catch (err) {
-                alert("Kamera açılamadı! Lütfen izin verin.");
+                alert("Kamera açılamadı!");
             }
         }
 
+        // --- 3. WEBRTC BAĞLANTISI ---
         function baglantiKur() {
             peerConnection = new RTCPeerConnection(iceServers);
 
-            // 1. Gelen video/ses akışını yakala
             peerConnection.ontrack = (event) => {
-                console.log("Video/Audio Track Geldi!");
-                event.streams[0].getTracks().forEach(track => {
-                    remoteStream.addTrack(track);
-                });
-                
+                event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
                 const remoteVideo = document.getElementById('remoteVideo');
                 remoteVideo.srcObject = remoteStream;
-                remoteVideo.play().catch(e => console.log("Oynatma hatası:", e));
+                remoteVideo.play().catch(e => console.log(e));
             };
 
-            // 2. ICE Adaylarını Firebase'e gönder
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
-                    db.collection('gorusmeler').doc(odaKodu).collection(isHost ? 'host' : 'guest').add(event.candidate.toJSON())
-                    .catch(e => console.log("Aday ekleme hatası (Firebase Kuralları?):", e));
+                    db.collection('gorusmeler').doc(odaKodu).collection(isHost ? 'host' : 'guest')
+                      .add(event.candidate.toJSON()).catch(e => console.log(e));
                 }
             };
 
-            // 3. ICE Bağlantı Durumunu Ekrana Yaz
             peerConnection.oniceconnectionstatechange = () => {
                 const state = peerConnection.iceConnectionState;
                 const dot = document.getElementById('iceDot');
                 const text = document.getElementById('iceText');
                 
-                text.innerText = "ICE Bağlantısı: " + state;
-                
                 if (state === 'connected' || state === 'completed') {
                     dot.className = 'dot connected';
+                    text.innerText = "Bağlandı";
+                    sureBaslat();
                 } else if (state === 'failed' || state === 'disconnected') {
                     dot.className = 'dot failed';
+                    text.innerText = "Bağlantı Sorunu";
                 }
             };
 
-            // 4. Medyayı Ekle
             if (localStream) {
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
             }
 
-            // 5. Sinyalleşme (Teklif ve Cevap)
             if (isHost) {
-                // UZMAN: Cevap Dinle
                 db.collection('gorusmeler').doc(odaKodu).onSnapshot(async snapshot => {
                     const data = snapshot.data();
                     if (data && data.answer && !peerConnection.currentRemoteDescription) {
@@ -188,20 +327,34 @@
                     }
                 });
 
-                // UZMAN: Teklif Gönder
                 setTimeout(async () => {
                     try {
                         const offer = await peerConnection.createOffer();
                         await peerConnection.setLocalDescription(offer);
                         await db.collection('gorusmeler').doc(odaKodu).set({
                             offer: { type: offer.type, sdp: offer.sdp },
-                            hostId: currentUser.uid
+                            hostId: currentUser.uid,
+                            hostIsim: kullaniciAdi,
+                            durum: "aktif",
+                            baslangicTarihi: firebase.firestore.FieldValue.serverTimestamp()
                         });
-                    } catch(e) { console.log("Offer hatası"); }
+                    } catch(e) { console.log(e); }
                 }, 1000);
 
             } else {
-                // DANIŞAN: Teklif Dinle ve Cevap Ver
+                // DANIŞAN: Odaya guestId ekle
+                db.collection('gorusmeler').doc(odaKodu).update({
+                    guestId: currentUser.uid,
+                    guestIsim: kullaniciAdi
+                }).catch(e => {
+                    // Doküman yoksa oluştur
+                    db.collection('gorusmeler').doc(odaKodu).set({
+                        guestId: currentUser.uid,
+                        guestIsim: kullaniciAdi,
+                        durum: "aktif"
+                    }, { merge: true });
+                });
+
                 db.collection('gorusmeler').doc(odaKodu).onSnapshot(async snapshot => {
                     const data = snapshot.data();
                     if (data && data.offer && !peerConnection.currentRemoteDescription) {
@@ -217,7 +370,6 @@
                 });
             }
 
-            // 6. Karşı Tarafın ICE Adaylarını Dinle
             const remoteCollection = isHost ? 'guest' : 'host';
             db.collection('gorusmeler').doc(odaKodu).collection(remoteCollection).onSnapshot(snapshot => {
                 snapshot.docChanges().forEach(change => {
@@ -233,16 +385,297 @@
             });
         }
 
-        function toggleMic() { const t = localStream.getAudioTracks()[0]; t.enabled = !t.enabled; }
-        function toggleCam() { const t = localStream.getVideoTracks()[0]; t.enabled = !t.enabled; }
+        // --- 4. SOHBET ---
+        function sohbetiDinle() {
+            db.collection('gorusmeler').doc(odaKodu).collection('mesajlar')
+              .orderBy('tarih', 'asc')
+              .onSnapshot(snapshot => {
+                const chatArea = document.getElementById('chatArea');
+                chatArea.innerHTML = "";
+                
+                if (snapshot.empty) {
+                    chatArea.innerHTML = '<div style="text-align:center; color:#9CA3AF; padding:20px; font-size:13px;">Henüz mesaj yok. Sohbete başlayın!</div>';
+                    return;
+                }
 
-        function gorusmeyiBitir() {
-            if(confirm("Görüşmeyi bitirmek istiyor musunuz?")) {
-                if(peerConnection) peerConnection.close();
-                if(localStream) localStream.getTracks().forEach(track => track.stop());
-                db.collection('gorusmeler').doc(odaKodu).delete().catch(e => {});
-                window.location.href = isHost ? "uzman-panel.html" : "danisan-panel.html";
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const msg = document.createElement('div');
+                    const isMine = data.gonderenId === currentUser.uid;
+                    msg.className = 'message ' + (isMine ? 'mine' : 'theirs');
+                    msg.innerHTML = `
+                        ${!isMine ? `<div class="message-sender">${data.gonderenIsim}</div>` : ''}
+                        <div>${data.metin}</div>
+                    `;
+                    chatArea.appendChild(msg);
+                });
+                
+                chatArea.scrollTop = chatArea.scrollHeight;
+            });
+        }
+
+        function toggleChat() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function mesajGonder() {
+            const input = document.getElementById('chatInput');
+            const metin = input.value.trim();
+            if (!metin) return;
+
+            db.collection('gorusmeler').doc(odaKodu).collection('mesajlar').add({
+                gonderenId: currentUser.uid,
+                gonderenIsim: kullaniciAdi,
+                metin: metin,
+                tarih: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                input.value = "";
+            }).catch(e => console.log("Mesaj hatası:", e));
+        }
+
+        // --- 5. KONTROLLER ---
+        function toggleMic() {
+            const btn = document.getElementById('micBtn');
+            const t = localStream.getAudioTracks()[0];
+            t.enabled = !t.enabled;
+            btn.classList.toggle('active', !t.enabled);
+            btn.innerHTML = t.enabled ? '<i class="ph ph-microphone"></i>' : '<i class="ph ph-microphone-slash"></i>';
+        }
+
+        function toggleCam() {
+            const btn = document.getElementById('camBtn');
+            const t = localStream.getVideoTracks()[0];
+            t.enabled = !t.enabled;
+            btn.classList.toggle('active', !t.enabled);
+            btn.innerHTML = t.enabled ? '<i class="ph ph-video-camera"></i>' : '<i class="ph ph-video-camera-slash"></i>';
+        }
+
+        // Kamera Çevir (Ön/Arka)
+        async function kameraCevir() {
+            if (screenStream) {
+                alert("Lütfen önce ekran paylaşımını durdurun.");
+                return;
             }
+            try {
+                const videoTrack = localStream.getVideoTracks()[0];
+                const currentFacing = videoTrack.getSettings().facingMode || 'user';
+                const newFacing = currentFacing === 'user' ? 'environment' : 'user';
+
+                const newStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: newFacing },
+                    audio: false
+                });
+                const newVideoTrack = newStream.getVideoTracks()[0];
+
+                const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+                if (sender) await sender.replaceTrack(newVideoTrack);
+
+                localStream.removeTrack(videoTrack);
+                localStream.addTrack(newVideoTrack);
+                videoTrack.stop();
+                
+                document.getElementById('localVideo').srcObject = localStream;
+                
+                // Ayna efektini arka kamerada kaldır
+                document.getElementById('localVideo').style.transform = newFacing === 'user' ? 'scaleX(-1)' : 'none';
+
+            } catch(e) {
+                console.log("Kamera çevirme hatası:", e);
+                alert("Cihazınızda ikinci kamera bulunamadı.");
+            }
+        }
+
+        // Ekran Paylaşımı
+        async function ekranPaylas() {
+            const btn = document.getElementById('screenBtn');
+            
+            // Eğer zaten paylaşıyorsa, durdur
+            if (screenStream) {
+                screenStream.getTracks().forEach(t => t.stop());
+                return;
+            }
+
+            try {
+                screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                const screenTrack = screenStream.getVideoTracks()[0];
+
+                const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+                if (sender) await sender.replaceTrack(screenTrack);
+
+                document.getElementById('localVideo').srcObject = screenStream;
+                document.getElementById('localVideo').style.transform = 'none';
+                btn.classList.add('active');
+
+                // Ekran paylaşımı bittiğinde kameraya dön
+                screenTrack.onended = () => {
+                    ekranPaylasimiDurdur();
+                };
+
+            } catch(e) {
+                console.log("Ekran paylaşımı iptal edildi:", e);
+            }
+        }
+
+        function ekranPaylasimiDurdur() {
+            const videoTrack = localStream.getVideoTracks()[0];
+            const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+            if (sender && videoTrack) sender.replaceTrack(videoTrack);
+            document.getElementById('localVideo').srcObject = localStream;
+            document.getElementById('localVideo').style.transform = 'scaleX(-1)';
+            document.getElementById('screenBtn').classList.remove('active');
+            
+            if (screenStream) {
+                screenStream.getTracks().forEach(t => t.stop());
+                screenStream = null;
+            }
+        }
+
+        // --- 6. TEST GÖNDERME (Sadece Uzman) ---
+        async function testModalAc() {
+            document.getElementById('testModal').classList.add('active');
+            const container = document.getElementById('testListesiModal');
+            container.innerHTML = '<div class="empty-tests">Testler yükleniyor...</div>';
+
+            try {
+                const snapshot = await db.collection('testler').where('uzmanId', '==', currentUser.uid).get();
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="empty-tests">Henüz test oluşturmadınız.<br>Testlerim sayfasından test ekleyebilirsiniz.</div>';
+                    return;
+                }
+
+                container.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const item = document.createElement('div');
+                    item.className = 'test-select-item';
+                    item.onclick = () => testGonder(doc.id, data.baslik);
+                    item.innerHTML = `
+                        <h4>${data.baslik}</h4>
+                        <p>${data.sorular ? data.sorular.length : 0} soru</p>
+                    `;
+                    container.appendChild(item);
+                });
+
+            } catch(e) {
+                console.log(e);
+                container.innerHTML = '<div class="empty-tests">Testler yüklenemedi.</div>';
+            }
+        }
+
+        function testModalKapat() {
+            document.getElementById('testModal').classList.remove('active');
+        }
+
+        async function testGonder(testId, testBaslik) {
+            // Karşı tarafın (danışanın) kim olduğunu bul
+            const gorusmeDoc = await db.collection('gorusmeler').doc(odaKodu).get();
+            const gorusmeData = gorusmeDoc.data();
+            const danisanId = gorusmeData.guestId;
+
+            if (!danisanId) {
+                alert("Danışan henüz odaya katılmadı.");
+                return;
+            }
+
+            try {
+                await db.collection('testGonderimleri').add({
+                    testId: testId,
+                    uzmanId: currentUser.uid,
+                    danisanId: danisanId,
+                    testBaslik: testBaslik,
+                    durum: "bekliyor",
+                    gonderimTarihi: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                await db.collection('bildirimler').add({
+                    aliciId: danisanId,
+                    gonderenId: currentUser.uid,
+                    baslik: "Yeni Testiniz Var",
+                    mesaj: "Uzmanınız size görüşme sırasında '" + testBaslik + "' testini gönderdi.",
+                    okundu: false,
+                    tarih: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert("Test danışana gönderildi!");
+                testModalKapat();
+            } catch(e) {
+                console.log("Test gönderme hatası:", e);
+                alert("Test gönderilemedi: " + e.message);
+            }
+        }
+
+        // --- 7. SÜRE SAYACI ---
+        function sureBaslat() {
+            if (sureInterval) return;
+            sureInterval = setInterval(() => {
+                saniye++;
+                const dk = Math.floor(saniye / 60).toString().padStart(2, '0');
+                const sn = (saniye % 60).toString().padStart(2, '0');
+                document.getElementById('sure').innerText = `${dk}:${sn}`;
+            }, 1000);
+        }
+
+        // --- 8. GÖRÜŞME DURUMUNU DİNLE (Karşı taraf bitirirse) ---
+        function gorusmeDurumunuDinle() {
+            db.collection('gorusmeler').doc(odaKodu).onSnapshot(snapshot => {
+                if (!snapshot.exists) {
+                    // Doküman silinmiş = Görüşme bitti
+                    if (!gorusmeBitti) {
+                        gorusmeBitti = true;
+                        gorusmeSonlandiGoster("Karşı taraf görüşmeyi sonlandırdı.");
+                    }
+                    return;
+                }
+                const data = snapshot.data();
+                if (data && data.durum === "bitti" && !gorusmeBitti) {
+                    gorusmeBitti = true;
+                    gorusmeSonlandiGoster("Karşı taraf görüşmeyi sonlandırdı.");
+                }
+            });
+        }
+
+        // --- 9. GÖRÜŞMEYİ BİTİR ---
+        async function gorusmeyiBitir(kullaniciTetikledi) {
+            if (gorusmeBitti) return;
+            if (kullaniciTetikledi && !confirm("Görüşmeyi bitirmek istediğinize emin misiniz?")) return;
+
+            gorusmeBitti = true;
+
+            // Süreyi hesapla
+            const dk = Math.floor(saniye / 60).toString().padStart(2, '0');
+            const sn = (saniye % 60).toString().padStart(2, '0');
+            const sureStr = `${dk}:${sn}`;
+
+            // Veritabanına kaydet
+            try {
+                await db.collection('gorusmeler').doc(odaKodu).update({
+                    durum: "bitti",
+                    sure: sureStr,
+                    bitisTarihi: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch(e) {
+                console.log("Kayıt hatası:", e);
+            }
+
+            // Temizlik
+            if (peerConnection) peerConnection.close();
+            if (localStream) localStream.getTracks().forEach(t => t.stop());
+            if (screenStream) screenStream.getTracks().forEach(t => t.stop());
+            if (sureInterval) clearInterval(sureInterval);
+
+            gorusmeSonlandiGoster("Görüşmeyi bitirdiniz. Süre: " + sureStr);
+        }
+
+        function gorusmeSonlandiGoster(mesaj) {
+            const overlay = document.getElementById('endedOverlay');
+            document.getElementById('endedTitle').innerText = "Görüşme Sonlandı";
+            document.getElementById('endedDesc').innerText = mesaj + "\nPanele yönlendiriliyorsunuz...";
+            overlay.classList.add('active');
+
+            setTimeout(() => {
+                window.location.href = isHost ? "uzman-panel.html" : "danisan-panel.html";
+            }, 3000);
         }
     </script>
 </body>
