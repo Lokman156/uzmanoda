@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Şikayet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        :root { --primary:#7B2CBF; --text-dark:#1F2937; --text-muted:#6B7280; --surface:#FFF; --border:#E5E7EB; --success:#10B981; --danger:#EF4444; --radius-lg:24px; --radius-md:12px; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+        body { background:linear-gradient(135deg,#FDF2F8 0%,#F3E8FF 100%); min-height:100vh; padding:20px; display:flex; align-items:center; justify-content:center; }
+        .container { background:var(--surface); width:100%; max-width:600px; border-radius:var(--radius-lg); box-shadow:0 20px 50px rgba(123,44,191,0.15); overflow:hidden; }
+        .header { background:linear-gradient(135deg,#EF4444,#DC2626); color:white; padding:30px; text-align:center; }
+        .header i { font-size:48px; margin-bottom:12px; display:block; }
+        .header h1 { font-size:24px; font-weight:800; margin-bottom:6px; }
+        .header p { font-size:14px; opacity:0.9; }
+        .content { padding:30px; }
+        .warning-box { background:#FEF3C7; color:#92400E; padding:14px 18px; border-radius:var(--radius-md); font-size:13px; margin-bottom:24px; display:flex; align-items:flex-start; gap:10px; }
+        .warning-box i { font-size:18px; flex-shrink:0; margin-top:2px; }
+        .target-info { background:#FAFAFA; padding:16px; border-radius:var(--radius-md); margin-bottom:24px; border:1px solid var(--border); }
+        .target-info h4 { font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:8px; }
+        .target-info p { font-size:16px; font-weight:700; color:var(--text-dark); }
+        .form-group { margin-bottom:20px; }
+        .form-group label { display:block; font-size:14px; font-weight:700; margin-bottom:8px; color:var(--text-dark); }
+        .form-group select, .form-group textarea { width:100%; padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-md); font-size:15px; outline:none; background:#FAFAFA; font-family:inherit; }
+        .form-group select:focus, .form-group textarea:focus { border-color:var(--primary); background:white; }
+        .form-group textarea { resize:none; min-height:120px; }
+        .form-group small { font-size:12px; color:var(--text-muted); margin-top:6px; display:block; }
+        .btn-submit { width:100%; padding:16px; background:linear-gradient(135deg,#EF4444,#DC2626); color:white; border:none; border-radius:var(--radius-md); font-weight:800; font-size:16px; cursor:pointer; transition:0.3s; }
+        .btn-submit:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 10px 20px rgba(239,68,68,0.3); }
+        .btn-submit:disabled { opacity:0.5; cursor:not-allowed; }
+        .btn-cancel { display:block; text-align:center; padding:14px; color:var(--text-muted); text-decoration:none; font-weight:700; font-size:14px; margin-top:10px; }
+        .success-screen { display:none; text-align:center; padding:60px 30px; }
+        .success-icon { width:80px; height:80px; background:#D1FAE5; color:var(--success); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px; margin:0 auto 20px; }
+        .success-screen h2 { font-size:24px; font-weight:800; margin-bottom:10px; }
+        .success-screen p { color:var(--text-muted); margin-bottom:24px; line-height:1.6; }
+        .btn-home { display:inline-block; padding:14px 30px; background:var(--primary); color:white; text-decoration:none; border-radius:var(--radius-md); font-weight:700; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <i class="ph ph-warning-circle"></i>
+            <h1>Şikayet Bildir</h1>
+            <p>Bu şikayet sadece yönetici tarafından görülecektir.</p>
+        </div>
+
+        <div class="content" id="mainContent">
+            <div class="warning-box">
+                <i class="ph ph-info"></i>
+                <span>Yanlış veya asılsız şikayetler hesabınızın askıya alınmasına neden olabilir. Lütfen gerçek ve ciddi durumlar için kullanın.</span>
+            </div>
+
+            <div class="target-info" id="targetInfo">
+                <h4>Şikayet Edilen</h4>
+                <p id="targetName">Yükleniyor...</p>
+            </div>
+
+            <div class="form-group">
+                <label>Şikayet Sebebi</label>
+                <select id="sebep">
+                    <option value="">Seçiniz...</option>
+                    <option value="uygunsuz_davranis">Uygunsuz Davranış</option>
+                    <option value="hakaret">Hakaret / Küfür</option>
+                    <option value="taciz">Taciz</option>
+                    <option value="santaj">Şantaj / Tehdit</option>
+                    <option value="kisisel_bilgi">Kişisel Bilgi İfşası</option>
+                    <option value="randevu_ihlali">Randevu İhlali</option>
+                    <option value="dolandiricilik">Dolandırıcılık</option>
+                    <option value="diger">Diğer</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Açıklama</label>
+                <textarea id="aciklama" placeholder="Yaşanan durumu detaylıca anlatın..." maxlength="1000"></textarea>
+                <small>En fazla 1000 karakter. Detaylı bilgi verirseniz daha hızlı çözüm sağlanır.</small>
+            </div>
+
+            <button class="btn-submit" id="submitBtn" onclick="sikayetGonder()">
+                <i class="ph ph-paper-plane-right"></i> Şikayeti Gönder
+            </button>
+            <a href="javascript:history.back()" class="btn-cancel">İptal</a>
+        </div>
+
+        <div class="success-screen" id="successScreen">
+            <div class="success-icon"><i class="ph ph-check"></i></div>
+            <h2>Şikayetiniz Alındı</h2>
+            <p>Şikayetiniz yönetici ekibimize iletildi.<br>En kısa sürede incelenecektir.</p>
+            <a href="javascript:history.back()" class="btn-home">Geri Dön</a>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
+            authDomain: "uzmanoda.firebaseapp.com",
+            projectId: "uzmanoda",
+            storageBucket: "uzmanoda.firebasestorage.app",
+            messagingSenderId: "71880478784",
+            appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let sikayetEdenId = null;
+        let sikayetEdenIsim = "";
+        let sikayetEdenRol = "";
+        let sikayetEdilenId = null;
+        let sikayetEdilenIsim = "";
+        let sikayetEdilenRol = "";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        sikayetEdilenId = urlParams.get('kullanici');
+        sikayetEdilenRol = urlParams.get('rol') || 'uzman';
+
+        if (!sikayetEdilenId) { alert("Geçersiz link!"); history.back(); }
+
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = "danisan-giris.html"; return; }
+            sikayetEdenId = user.uid;
+
+            // Şikayet edenin bilgisi
+            const uzmanDoc = await db.collection('uzmanlar').doc(user.uid).get();
+            if (uzmanDoc.exists) {
+                sikayetEdenIsim = uzmanDoc.data().isim || 'Uzman';
+                sikayetEdenRol = 'uzman';
+            } else {
+                const danisanDoc = await db.collection('danisanlar').doc(user.uid).get();
+                if (danisanDoc.exists) {
+                    const d = danisanDoc.data();
+                    sikayetEdenIsim = (d.isim || '') + ' ' + (d.soyisim || '');
+                    sikayetEdenRol = 'danisan';
+                }
+            }
+
+            // Şikayet edilenin bilgisi
+            const hedefColl = sikayetEdilenRol === 'uzman' ? 'uzmanlar' : 'danisanlar';
+            const hedefDoc = await db.collection(hedefColl).doc(sikayetEdilenId).get();
+            if (hedefDoc.exists) {
+                const h = hedefDoc.data();
+                sikayetEdilenIsim = sikayetEdilenRol === 'uzman' 
+                    ? (h.isim || 'Uzman') 
+                    : ((h.isim || '') + ' ' + (h.soyisim || ''));
+                document.getElementById('targetName').innerText = sikayetEdilenIsim + (sikayetEdilenRol === 'uzman' ? ' (Uzman)' : ' (Danışan)');
+            }
+        });
+
+        async function sikayetGonder() {
+            const sebep = document.getElementById('sebep').value;
+            const aciklama = document.getElementById('aciklama').value.trim();
+
+            if (!sebep) { alert("Şikayet sebebi seçin."); return; }
+            if (aciklama.length < 20) { alert("Açıklama en az 20 karakter olmalı."); return; }
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Gönderiliyor...';
+
+            try {
+                await db.collection('sikayetler').add({
+                    sikayetEdenId: sikayetEdenId,
+                    sikayetEdenIsim: sikayetEdenIsim,
+                    sikayetEdenRol: sikayetEdenRol,
+                    sikayetEdilenId: sikayetEdilenId,
+                    sikayetEdilenIsim: sikayetEdilenIsim,
+                    sikayetEdilenRol: sikayetEdilenRol,
+                    sebep: sebep,
+                    aciklama: aciklama,
+                    durum: 'bekliyor',
+                    tarih: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                document.getElementById('mainContent').style.display = 'none';
+                document.getElementById('successScreen').style.display = 'block';
+
+            } catch(e) {
+                alert("Hata: " + e.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-paper-plane-right"></i> Şikayeti Gönder';
+            }
+        }
+    </script>
+</body>
+</html>
