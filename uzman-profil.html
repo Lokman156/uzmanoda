@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Profilim</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        :root {
+            --primary: #7B2CBF; 
+            --pink-light: #FDF2F8;
+            --purple-light: #F3E8FF;
+            --text-dark: #1F2937;
+            --text-muted: #6B7280;
+            --surface: #FFFFFF;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --danger: #EF4444;
+            --radius-lg: 24px;
+            --radius-md: 12px;
+            --nav-height: 70px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); min-height: 100vh; }
+        .top-navbar { position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 24px; z-index: 1000; }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
+        .nav-logo img { height: 36px; border-radius: 8px; }
+        .nav-actions { display: flex; align-items: center; gap: 16px; }
+        .notif-btn { position: relative; background: transparent; border: none; font-size: 24px; color: var(--text-dark); cursor: pointer; padding: 8px; border-radius: 50%; transition: 0.2s; }
+        .notif-btn:hover { background: var(--purple-light); color: var(--primary); }
+        .notif-badge { position: absolute; top: 2px; right: 2px; background: var(--danger); color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 10px; min-width: 18px; text-align: center; display: none; }
+        .notif-badge.show { display: block; }
+        .user-info-nav { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 20px; }
+        .avatar-nav { width: 36px; height: 36px; background: var(--purple-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; overflow: hidden; }
+        .avatar-nav img { width: 100%; height: 100%; object-fit: cover; }
+        .user-name { font-size: 15px; font-weight: 700; color: var(--text-dark); }
+        .btn-logout { display: flex; align-items: center; gap: 6px; background: #FEE2E2; color: var(--danger); border: none; padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .btn-logout:hover { background: var(--danger); color: white; }
+        .app-body { display: flex; margin-top: var(--nav-height); min-height: calc(100vh - var(--nav-height)); }
+        .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; position: fixed; top: var(--nav-height); bottom: 0; left: 0; z-index: 100; overflow-y: auto; }
+        .nav-menu { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 13px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px; border-radius: var(--radius-md); transition: 0.2s; position: relative; }
+        .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--primary); }
+        .nav-link i { font-size: 20px; }
+        .nav-link .menu-badge { margin-left: auto; background: var(--danger); color: white; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 10px; }
+        .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); }
+        .panel-container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+        .page-header { margin-bottom: 10px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+        .page-header p { color: var(--text-muted); font-size: 15px; }
+        .section-card { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 30px; }
+        .section-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .section-title i { color: var(--primary); font-size: 22px; }
+        .profile-photo-section { display: flex; align-items: center; gap: 24px; margin-bottom: 30px; padding-bottom: 30px; border-bottom: 1px solid var(--border); }
+        .profile-photo { width: 100px; height: 100px; border-radius: 50%; background: var(--purple-light); display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800; color: var(--primary); overflow: hidden; flex-shrink: 0; border: 3px solid white; box-shadow: 0 10px 20px rgba(123, 44, 191, 0.15); }
+        .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-actions { display: flex; flex-direction: column; gap: 8px; }
+        .btn-upload { background: var(--purple-light); color: var(--primary); border: none; padding: 10px 18px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn-upload:hover { background: #E0AAFF; }
+        .photo-hint { font-size: 12px; color: var(--text-muted); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-group label { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--text-dark); }
+        .form-group input { padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 15px; outline: none; transition: 0.3s; background: #FAFAFA; font-family: inherit; }
+        .form-group input:focus { border-color: var(--primary); background: white; }
+        .form-group input:disabled { background: #F3F4F6; color: var(--text-muted); cursor: not-allowed; }
+        .btn-save { background: linear-gradient(135deg, #7B2CBF, #C77DFF); color: white; border: none; padding: 14px 30px; border-radius: var(--radius-md); font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; margin-top: 20px; }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3); }
+        .btn-save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .password-hint { background: #FEF3C7; color: #92400E; padding: 12px 16px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px; }
+        .password-hint i { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+        .toast { position: fixed; top: 90px; right: 20px; padding: 16px 24px; border-radius: var(--radius-md); color: white; font-weight: 700; z-index: 2000; opacity: 0; transform: translateX(100px); transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        @media (max-width: 768px) {
+            .top-navbar { padding: 0 12px; }
+            .user-name { display: none; }
+            .btn-logout { padding: 8px 10px; font-size: 12px; }
+            .nav-actions { gap: 8px; }
+            .app-body { flex-direction: column; }
+            .sidebar { width: 100%; height: 70px; position: fixed; bottom: 0; top: auto; flex-direction: row; justify-content: space-around; align-items: center; padding: 8px 5px; border-right: none; border-top: 1px solid var(--border); background: rgba(255,255,255,0.97); z-index: 1000; overflow-x: auto; overflow-y: hidden; }
+            .nav-menu { flex-direction: row; gap: 0; width: 100%; justify-content: space-around; }
+            .nav-link { flex-direction: column; padding: 6px 4px; font-size: 10px; gap: 2px; text-align: center; margin-bottom: 0; min-width: 0; }
+            .nav-link i { font-size: 22px; }
+            .nav-link .menu-badge { position: absolute; top: 2px; right: 8px; margin-left: 0; }
+            .main-wrapper { margin-left: 0; padding: 20px; padding-bottom: 90px; }
+            .section-card { padding: 20px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .profile-photo-section { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-navbar">
+        <a href="index.html" class="nav-logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda">
+            UzmanOda
+        </a>
+        <div class="nav-actions">
+            <button class="notif-btn" onclick="window.location.href='bildirimler.html'" title="Bildirimler">
+                <i class="ph ph-bell"></i>
+                <span class="notif-badge" id="notifBadge">0</span>
+            </button>
+            <div class="user-info-nav">
+                <div class="avatar-nav" id="navbarAvatar">D</div>
+                <span class="user-name" id="navbarIsim">Yükleniyor...</span>
+            </div>
+            <button onclick="cikisYap()" class="btn-logout"><i class="ph ph-sign-out"></i> Çıkış</button>
+        </div>
+    </header>
+
+    <div class="app-body">
+        <aside class="sidebar">
+            <div class="nav-menu">
+                <a href="danisan-panel.html" class="nav-link"><i class="ph ph-squares-four"></i> Panel</a>
+                <a href="danisan-gecmis.html" class="nav-link"><i class="ph ph-clock-counter-clockwise"></i> Geçmiş</a>
+                <a href="bildirimler.html" class="nav-link">
+                    <i class="ph ph-bell"></i> Bildirimler
+                    <span class="menu-badge" id="menuBadge" style="display:none;">0</span>
+                </a>
+                <a href="danisan-profil.html" class="nav-link active"><i class="ph ph-user-circle"></i> Profilim</a>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <div class="panel-container">
+                <div class="page-header">
+                    <h1>Profilim</h1>
+                    <p>Hesap bilgilerinizi ve şifrenizi buradan yönetin.</p>
+                </div>
+
+                <!-- Profil Bilgileri -->
+                <div class="section-card">
+                    <h2 class="section-title"><i class="ph ph-user"></i> Profil Bilgileri</h2>
+                    <div class="profile-photo-section">
+                        <div class="profile-photo" id="profilFoto">
+                            <span id="profilHarf">D</span>
+                        </div>
+                        <div class="photo-actions">
+                            <input type="file" id="fotoInput" accept="image/*" style="display:none;" onchange="fotoSecildi(event)">
+                            <button class="btn-upload" onclick="document.getElementById('fotoInput').click()">
+                                <i class="ph ph-camera"></i> Fotoğraf Yükle
+                            </button>
+                            <span class="photo-hint">Max 500 KB, JPG veya PNG</span>
+                            <button class="btn-upload" id="fotoSilBtn" onclick="fotoSil()" style="display:none; background:#FEE2E2; color:#EF4444;">
+                                <i class="ph ph-trash"></i> Fotoğrafı Sil
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="profilFormu" onsubmit="profilKaydet(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>İsim</label>
+                                <input type="text" id="inputIsim" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Soyisim</label>
+                                <input type="text" id="inputSoyisim" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Telefon Numarası</label>
+                                <input type="tel" id="inputTelefon" placeholder="05XX XXX XX XX">
+                            </div>
+                            <div class="form-group">
+                                <label>E-posta (Değiştirilemez)</label>
+                                <input type="email" id="inputEmail" disabled>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-save" id="profilKaydetBtn">
+                            <i class="ph ph-check"></i> Bilgileri Kaydet
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Şifre Değiştirme -->
+                <div class="section-card">
+                    <h2 class="section-title"><i class="ph ph-lock-key"></i> Şifre Değiştir</h2>
+                    <div class="password-hint">
+                        <i class="ph ph-info"></i>
+                        <span>Güvenliğiniz için şifrenizi değiştirmek için önce mevcut şifrenizi girmeniz gerekir. En az 6 karakter olmalıdır.</span>
+                    </div>
+                    <form id="sifreFormu" onsubmit="sifreDegistir(event)">
+                        <div class="form-grid">
+                            <div class="form-group full">
+                                <label>Mevcut Şifre</label>
+                                <input type="password" id="mevcutSifre" required autocomplete="current-password">
+                            </div>
+                            <div class="form-group">
+                                <label>Yeni Şifre</label>
+                                <input type="password" id="yeniSifre" required minlength="6" autocomplete="new-password">
+                            </div>
+                            <div class="form-group">
+                                <label>Yeni Şifre (Tekrar)</label>
+                                <input type="password" id="yeniSifreTekrar" required minlength="6" autocomplete="new-password">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-save" id="sifreDegistirBtn">
+                            <i class="ph ph-lock"></i> Şifreyi Değiştir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
+            authDomain: "uzmanoda.firebaseapp.com",
+            projectId: "uzmanoda",
+            storageBucket: "uzmanoda.firebasestorage.app",
+            messagingSenderId: "71880478784",
+            appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let aktifDanisanId = null;
+        let mevcutFotoBase64 = null;
+        let unsubBildirim = null;
+
+        function toast(mesaj, tip = 'success') {
+            const t = document.getElementById('toast');
+            t.innerText = mesaj;
+            t.className = 'toast show ' + tip;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = "danisan-giris.html";
+                return;
+            }
+            aktifDanisanId = user.uid;
+            try {
+                const doc = await db.collection('danisanlar').doc(user.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    verileriDoldur(data, user.email);
+                }
+            } catch(e) {
+                console.error(e);
+                toast("Veriler yüklenemedi", "error");
+            }
+            bildirimSayaciDinle();
+        });
+
+        function bildirimSayaciDinle() {
+            if (unsubBildirim) unsubBildirim();
+            unsubBildirim = db.collection('bildirimler')
+                .where('aliciId', '==', aktifDanisanId)
+                .where('okundu', '==', false)
+                .onSnapshot(snapshot => {
+                    const count = snapshot.size;
+                    const badge = document.getElementById('notifBadge');
+                    const menuBadge = document.getElementById('menuBadge');
+                    badge.innerText = count;
+                    badge.classList.toggle('show', count > 0);
+                    menuBadge.innerText = count;
+                    menuBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                });
+        }
+
+        function verileriDoldur(data, email) {
+            document.getElementById('inputIsim').value = data.isim || '';
+            document.getElementById('inputSoyisim').value = data.soyisim || '';
+            document.getElementById('inputTelefon').value = data.telefon || '';
+            document.getElementById('inputEmail').value = email || '';
+
+            const tamIsim = (data.isim || 'D') + (data.soyisim ? " " + data.soyisim : "");
+            document.getElementById('navbarIsim').innerText = tamIsim;
+            document.getElementById('navbarAvatar').innerText = (data.isim || 'D').charAt(0).toUpperCase();
+
+            if (data.fotoBase64) {
+                mevcutFotoBase64 = data.fotoBase64;
+                document.getElementById('profilFoto').innerHTML = `<img src="${data.fotoBase64}" alt="Profil">`;
+                document.getElementById('navbarAvatar').innerHTML = `<img src="${data.fotoBase64}" alt="Profil">`;
+                document.getElementById('fotoSilBtn').style.display = 'flex';
+            } else {
+                document.getElementById('profilHarf').innerText = (data.isim || 'D').charAt(0).toUpperCase();
+            }
+        }
+
+        function fotoSecildi(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 500 * 1024) {
+                toast("Fotoğraf 500 KB'dan küçük olmalı", "error");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                mevcutFotoBase64 = e.target.result;
+                document.getElementById('profilFoto').innerHTML = `<img src="${mevcutFotoBase64}" alt="Profil">`;
+                document.getElementById('navbarAvatar').innerHTML = `<img src="${mevcutFotoBase64}" alt="Profil">`;
+                document.getElementById('fotoSilBtn').style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function fotoSil() {
+            if (!confirm("Profil fotoğrafını silmek istediğinize emin misiniz?")) return;
+            mevcutFotoBase64 = null;
+            const harf = document.getElementById('inputIsim').value.charAt(0).toUpperCase() || 'D';
+            document.getElementById('profilFoto').innerHTML = `<span id="profilHarf">${harf}</span>`;
+            document.getElementById('navbarAvatar').innerText = harf;
+            document.getElementById('fotoSilBtn').style.display = 'none';
+            await db.collection('danisanlar').doc(aktifDanisanId).update({ fotoBase64: null });
+            toast("Fotoğraf silindi");
+        }
+
+        async function profilKaydet(e) {
+            e.preventDefault();
+            const btn = document.getElementById('profilKaydetBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Kaydediliyor...';
+
+            try {
+                const guncelVeri = {
+                    isim: document.getElementById('inputIsim').value.trim(),
+                    soyisim: document.getElementById('inputSoyisim').value.trim(),
+                    telefon: document.getElementById('inputTelefon').value.trim()
+                };
+                if (mevcutFotoBase64) {
+                    guncelVeri.fotoBase64 = mevcutFotoBase64;
+                } else {
+                    guncelVeri.fotoBase64 = null;
+                }
+                await db.collection('danisanlar').doc(aktifDanisanId).update(guncelVeri);
+                const tamIsim = guncelVeri.isim + " " + guncelVeri.soyisim;
+                document.getElementById('navbarIsim').innerText = tamIsim;
+                toast("Profil başarıyla güncellendi");
+            } catch(e) {
+                toast("Kaydetme hatası: " + e.message, "error");
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph ph-check"></i> Bilgileri Kaydet';
+        }
+
+        async function sifreDegistir(e) {
+            e.preventDefault();
+            const btn = document.getElementById('sifreDegistirBtn');
+            const mevcut = document.getElementById('mevcutSifre').value;
+            const yeni = document.getElementById('yeniSifre').value;
+            const yeniTekrar = document.getElementById('yeniSifreTekrar').value;
+
+            if (yeni !== yeniTekrar) {
+                toast("Yeni şifreler eşleşmiyor", "error");
+                return;
+            }
+            if (yeni.length < 6) {
+                toast("Şifre en az 6 karakter olmalı", "error");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Değiştiriliyor...';
+
+            try {
+                const user = auth.currentUser;
+                const credential = firebase.auth.EmailAuthProvider.credential(user.email, mevcut);
+                await user.reauthenticateWithCredential(credential);
+                await user.updatePassword(yeni);
+                toast("Şifre başarıyla değiştirildi");
+                document.getElementById('sifreFormu').reset();
+            } catch(e) {
+                let mesaj = "Şifre değiştirilemedi";
+                if (e.code === 'auth/wrong-password') mesaj = "Mevcut şifre yanlış";
+                else if (e.code === 'auth/weak-password') mesaj = "Yeni şifre çok zayıf";
+                else if (e.code === 'auth/too-many-requests') mesaj = "Çok fazla deneme. Lütfen bekleyin.";
+                toast(mesaj, "error");
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph ph-lock"></i> Şifreyi Değiştir';
+        }
+
+        function cikisYap() {
+            auth.signOut().then(() => window.location.href = "index.html");
+        }
+    </script>
+</body>
+</html>
