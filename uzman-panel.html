@@ -4,166 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UzmanOda | Uzman Paneli</title>
-    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
     <style>
         :root {
-            --primary: #7B2CBF; --pink-light: #FDF2F8; --purple-light: #F3E8FF;
-            --text-dark: #1F2937; --text-muted: #6B7280; --surface: #FFFFFF;
-            --border: #E5E7EB; --success: #10B981; --danger: #EF4444;
-            --radius-lg: 24px; --radius-md: 12px; --nav-height: 70px;
+            --primary:#7B2CBF; --pink-light:#FDF2F8; --purple-light:#F3E8FF;
+            --text-dark:#1F2937; --text-muted:#6B7280; --surface:#FFF;
+            --border:#E5E7EB; --success:#10B981; --danger:#EF4444;
+            --radius-lg:24px; --radius-md:12px; --nav-height:70px;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); min-height: 100vh; }
-
-        .top-navbar {
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
-            background: var(--surface); border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 24px; z-index: 1000;
-        }
-        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
-        .nav-logo img { height: 36px; border-radius: 8px; }
-        .nav-actions { display: flex; align-items: center; gap: 20px; }
-        .user-info-nav { display: flex; align-items: center; gap: 10px; }
-        .avatar-nav { width: 36px; height: 36px; background: var(--purple-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
-        .user-name { font-size: 15px; font-weight: 700; color: var(--text-dark); }
-        .btn-logout { display: flex; align-items: center; gap: 6px; background: #FEE2E2; color: var(--danger); border: none; padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; }
-        .btn-logout:hover { background: var(--danger); color: white; }
-
-        .app-body { display: flex; margin-top: var(--nav-height); min-height: calc(100vh - var(--nav-height)); }
-
-        .sidebar {
-            width: 260px; background: var(--surface); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; padding: 24px;
-            position: fixed; top: var(--nav-height); bottom: 0; left: 0; z-index: 100;
-        }
-        .nav-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .nav-link { display: flex; align-items: center; gap: 12px; padding: 14px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px; border-radius: var(--radius-md); transition: 0.2s; }
-        .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--primary); }
-        .nav-link i { font-size: 20px; }
-
-        .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); }
-        .panel-container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
-
-        .welcome-card {
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 1); border-radius: var(--radius-lg);
-            padding: 30px; box-shadow: 0 20px 40px -10px rgba(123, 44, 191, 0.15);
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
-        }
-        .welcome-card h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
-        .welcome-card p { color: var(--text-muted); font-size: 15px; }
-
-        .status-toggle {
-            display: flex; align-items: center; gap: 10px; background: white; border: 1px solid var(--border);
-            padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 14px; cursor: pointer;
-            transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        }
-        .status-toggle.active { border-color: var(--success); color: var(--success); background: #F0FDF4; }
-        .status-dot { width: 10px; height: 10px; background: #9CA3AF; border-radius: 50%; transition: 0.3s; }
-        .status-toggle.active .status-dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
-
-        .room-card {
-            background: var(--surface); padding: 24px; border-radius: var(--radius-lg);
-            border: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-        }
-        .room-info { flex: 1; }
-        .room-info h2 { font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
-        .room-info p { font-size: 14px; color: var(--text-muted); }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #7B2CBF, #C77DFF); color: white; border: none;
-            padding: 14px 24px; border-radius: var(--radius-md); font-weight: 700; font-size: 15px;
-            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
-        }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3); }
-
-        .link-result { display: none; background: #FAFAFA; border: 1px dashed var(--primary); padding: 16px; border-radius: var(--radius-md); margin-top: 10px; width: 100%; }
-        .link-result.active { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-        .link-input { flex: 1; min-width: 200px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-dark); background: white; outline: none; }
-        .btn-copy { background: var(--success); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column; }
-        .stat-header { display: flex; justify-content: space-between; align-items: center; color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; }
-        .stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-        .stat-value { font-size: 28px; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
-        .stat-desc { font-size: 13px; color: var(--text-muted); }
-
-        .activity-container { background: var(--surface); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); }
-        .activity-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .activity-header h3 { font-size: 18px; font-weight: 800; }
-        .activity-header a { font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 600; }
-        
-        .list-item { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding: 16px 0; }
-        .list-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .user-info-list { display: flex; align-items: center; gap: 16px; }
-        .avatar-list { width: 40px; height: 40px; background: var(--purple-light); color: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
-        .user-details h4 { font-size: 15px; color: var(--text-dark); }
-        .user-details p { font-size: 13px; color: var(--text-muted); }
-        .status-badge { background: #D1FAE5; color: var(--success); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-        
-        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
-        .empty-state i { font-size: 40px; opacity: 0.3; margin-bottom: 10px; display: block; }
-
-        /* Danışan Seçme Modalı */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-            display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-content {
-            background: var(--surface); padding: 30px; border-radius: var(--radius-lg);
-            width: 100%; max-width: 450px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            max-height: 80vh; display: flex; flex-direction: column;
-        }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h3 { font-size: 20px; font-weight: 800; }
-        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
-        
-        .danisan-select-list { overflow-y: auto; flex: 1; }
-        .danisan-select-item {
-            display: flex; align-items: center; gap: 12px; padding: 14px; 
-            border: 1px solid var(--border); border-radius: var(--radius-md);
-            margin-bottom: 10px; cursor: pointer; transition: 0.2s;
-        }
-        .danisan-select-item:hover { border-color: var(--primary); background: var(--purple-light); }
-        .danisan-select-item .avatar-list { width: 40px; height: 40px; }
-        .danisan-select-item .info h4 { font-size: 15px; margin-bottom: 2px; }
-        .danisan-select-item .info p { font-size: 12px; color: var(--text-muted); }
-
-        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) {
-            .top-navbar { padding: 0 15px; }
-            .user-name { display: none; }
-            .btn-logout { padding: 8px 12px; font-size: 13px; }
-            .app-body { flex-direction: column; }
-            .sidebar { 
-                width: 100%; height: 70px; position: fixed; bottom: 0; top: auto; 
-                flex-direction: row; justify-content: space-around; align-items: center; 
-                padding: 10px; border-right: none; border-top: 1px solid var(--border); 
-                background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
-                z-index: 1000;
-            }
-            .nav-menu { flex-direction: row; gap: 0; width: 100%; justify-content: space-around; }
-            .nav-link { flex-direction: column; padding: 8px; font-size: 11px; gap: 4px; text-align: center; margin-bottom: 0; }
-            .nav-link i { font-size: 24px; }
-            .main-wrapper { margin-left: 0; padding: 20px; padding-bottom: 90px; }
-            .welcome-card { flex-direction: column; text-align: center; }
-            .status-toggle { margin: 10px auto 0 auto; }
-            .room-card { flex-direction: column; align-items: stretch; text-align: center; }
-            .btn-primary { justify-content: center; }
-            .link-result.active { flex-direction: column; }
-            .btn-copy { justify-content: center; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .list-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+        html, body { overflow-x:hidden; background:#FAFAFA; color:var(--text-dark); min-height:100vh; }
+        .top-navbar { position:fixed; top:0; left:0; width:100%; height:var(--nav-height); background:var(--surface); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; padding:0 24px; z-index:1000; }
+        .nav-logo { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--primary); font-size:22px; font-weight:800; }
+        .nav-logo img { height:36px; border-radius:8px; }
+        .nav-actions { display:flex; align-items:center; gap:16px; }
+        .notif-btn { position:relative; background:transparent; border:none; font-size:24px; color:var(--text-dark); cursor:pointer; padding:8px; border-radius:50%; transition:0.2s; }
+        .notif-btn:hover { background:var(--purple-light); color:var(--primary); }
+        .notif-badge { position:absolute; top:2px; right:2px; background:var(--danger); color:white; font-size:10px; font-weight:800; padding:2px 6px; border-radius:10px; min-width:18px; text-align:center; display:none; }
+        .notif-badge.show { display:block; }
+        .user-info-nav { display:flex; align-items:center; gap:10px; cursor:pointer; padding:6px 10px; border-radius:20px; transition:0.2s; }
+        .user-info-nav:hover { background:var(--purple-light); }
+        .avatar-nav { width:36px; height:36px; background:var(--purple-light); color:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; overflow:hidden; }
+        .avatar-nav img { width:100%; height:100%; object-fit:cover; }
+        .user-name { font-size:15px; font-weight:700; }
+        .btn-logout { background:#FEE2E2; color:var(--danger); border:none; padding:8px 16px; border-radius:var(--radius-md); font-weight:700; font-size:14px; cursor:pointer; }
+        .app-body { display:flex; margin-top:var(--nav-height); min-height:calc(100vh - var(--nav-height)); }
+        .sidebar { width:260px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:24px; position:fixed; top:var(--nav-height); bottom:0; left:0; z-index:100; overflow-y:auto; }
+        .nav-menu { display:flex; flex-direction:column; gap:6px; flex:1; }
+        .nav-link { display:flex; align-items:center; gap:12px; padding:13px 16px; color:var(--text-muted); text-decoration:none; font-weight:600; font-size:15px; border-radius:var(--radius-md); transition:0.2s; position:relative; }
+        .nav-link:hover, .nav-link.active { background:var(--purple-light); color:var(--primary); }
+        .nav-link i { font-size:20px; }
+        .nav-link .menu-badge { margin-left:auto; background:var(--danger); color:white; font-size:11px; font-weight:800; padding:2px 7px; border-radius:10px; }
+        .main-wrapper { flex:1; margin-left:260px; padding:40px; background:linear-gradient(135deg,#FDF2F8 0%,#F3E8FF 100%); }
+        .panel-container { max-width:1000px; margin:0 auto; display:flex; flex-direction:column; gap:24px; }
+        .welcome-card { background:rgba(255,255,255,0.85); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,1); border-radius:var(--radius-lg); padding:30px; box-shadow:0 20px 40px -10px rgba(123,44,191,0.15); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px; }
+        .welcome-card h1 { font-size:26px; font-weight:800; margin-bottom:8px; }
+        .welcome-card p { color:var(--text-muted); font-size:15px; }
+        .status-toggle { display:flex; align-items:center; gap:10px; background:white; border:1px solid var(--border); padding:12px 24px; border-radius:50px; font-weight:600; font-size:14px; cursor:pointer; transition:0.3s; }
+        .status-toggle.active { border-color:var(--success); color:var(--success); background:#F0FDF4; }
+        .status-dot { width:10px; height:10px; background:#9CA3AF; border-radius:50%; transition:0.3s; }
+        .status-toggle.active .status-dot { background:var(--success); box-shadow:0 0 8px var(--success); }
+        .room-card { background:var(--surface); padding:24px; border-radius:var(--radius-lg); border:1px solid var(--border); display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+        .room-info { flex:1; }
+        .room-info h2 { font-size:20px; font-weight:800; color:var(--primary); margin-bottom:4px; }
+        .room-info p { font-size:14px; color:var(--text-muted); }
+        .btn-primary { background:linear-gradient(135deg,#7B2CBF,#C77DFF); color:white; border:none; padding:14px 24px; border-radius:var(--radius-md); font-weight:700; font-size:15px; cursor:pointer; transition:0.3s; display:flex; align-items:center; gap:8px; }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 10px 20px rgba(123,44,191,0.3); }
+        .link-result { display:none; background:#FAFAFA; border:1px dashed var(--primary); padding:16px; border-radius:var(--radius-md); margin-top:10px; width:100%; }
+        .link-result.active { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+        .link-input { flex:1; min-width:200px; padding:12px 16px; border:1px solid var(--border); border-radius:8px; font-size:14px; font-weight:600; color:var(--text-dark); background:white; outline:none; }
+        .btn-copy { background:var(--success); color:white; border:none; padding:12px 20px; border-radius:8px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; }
+        .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+        .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:24px; display:flex; flex-direction:column; }
+        .stat-header { display:flex; justify-content:space-between; align-items:center; color:var(--text-muted); font-size:12px; font-weight:700; text-transform:uppercase; margin-bottom:12px; }
+        .stat-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+        .stat-value { font-size:28px; font-weight:800; margin-bottom:4px; }
+        .stat-desc { font-size:13px; color:var(--text-muted); }
+        .activity-container { background:var(--surface); padding:24px; border-radius:var(--radius-lg); border:1px solid var(--border); }
+        .activity-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .activity-header h3 { font-size:18px; font-weight:800; }
+        .activity-header a { font-size:14px; color:var(--primary); text-decoration:none; font-weight:600; }
+        .list-item { display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); padding:16px 0; }
+        .list-item:last-child { border-bottom:none; padding-bottom:0; }
+        .user-info-list { display:flex; align-items:center; gap:16px; }
+        .avatar-list { width:40px; height:40px; background:var(--purple-light); color:var(--primary); border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; }
+        .user-details h4 { font-size:15px; color:var(--text-dark); }
+        .user-details p { font-size:13px; color:var(--text-muted); }
+        .status-badge { background:#D1FAE5; color:var(--success); padding:6px 12px; border-radius:20px; font-size:12px; font-weight:700; }
+        .empty-state { text-align:center; padding:40px 20px; color:var(--text-muted); }
+        .empty-state i { font-size:40px; opacity:0.3; margin-bottom:10px; display:block; }
+        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:2000; padding:20px; }
+        .modal-overlay.active { display:flex; }
+        .modal-content { background:var(--surface); padding:30px; border-radius:var(--radius-lg); width:100%; max-width:450px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); max-height:80vh; display:flex; flex-direction:column; }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .modal-header h3 { font-size:20px; font-weight:800; }
+        .modal-close { background:none; border:none; font-size:24px; cursor:pointer; color:var(--text-muted); }
+        .danisan-select-list { overflow-y:auto; flex:1; }
+        .danisan-select-item { display:flex; align-items:center; gap:12px; padding:14px; border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:10px; cursor:pointer; transition:0.2s; }
+        .danisan-select-item:hover { border-color:var(--primary); background:var(--purple-light); }
+        .danisan-select-item .avatar-list { width:40px; height:40px; }
+        .danisan-select-item .info h4 { font-size:15px; margin-bottom:2px; }
+        .danisan-select-item .info p { font-size:12px; color:var(--text-muted); }
+        @media (max-width:1024px) { .stats-grid { grid-template-columns:repeat(2,1fr); } }
+        @media (max-width:768px) {
+            .top-navbar { padding:0 12px; }
+            .user-name { display:none; }
+            .btn-logout { padding:8px 10px; font-size:12px; }
+            .nav-actions { gap:8px; }
+            .app-body { flex-direction:column; }
+            .sidebar { width:100%; height:70px; position:fixed; bottom:0; top:auto; flex-direction:row; justify-content:space-around; align-items:center; padding:8px 5px; border-right:none; border-top:1px solid var(--border); background:rgba(255,255,255,0.97); z-index:1000; overflow-x:auto; overflow-y:hidden; }
+            .nav-menu { flex-direction:row; gap:0; width:100%; justify-content:space-around; }
+            .nav-link { flex-direction:column; padding:6px 4px; font-size:10px; gap:2px; text-align:center; margin-bottom:0; min-width:0; }
+            .nav-link i { font-size:22px; }
+            .nav-link .menu-badge { position:absolute; top:2px; right:8px; margin-left:0; }
+            .main-wrapper { margin-left:0; padding:20px; padding-bottom:90px; }
+            .welcome-card { flex-direction:column; text-align:center; }
+            .status-toggle { margin:10px auto 0 auto; }
+            .room-card { flex-direction:column; align-items:stretch; text-align:center; }
+            .btn-primary { justify-content:center; }
+            .link-result.active { flex-direction:column; }
+            .btn-copy { justify-content:center; }
+            .stats-grid { grid-template-columns:1fr; }
+            .list-item { flex-direction:column; align-items:flex-start; gap:10px; }
         }
     </style>
 </head>
@@ -171,16 +117,20 @@
 
     <header class="top-navbar">
         <a href="index.html" class="nav-logo">
-            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda">
             UzmanOda
         </a>
         <div class="nav-actions">
-            <div class="user-info-nav">
+            <button class="notif-btn" onclick="window.location.href='bildirimler.html'" title="Bildirimler">
+                <i class="ph ph-bell"></i>
+                <span class="notif-badge" id="notifBadge">0</span>
+            </button>
+            <div class="user-info-nav" onclick="window.location.href='uzman-profil.html'">
                 <div class="avatar-nav" id="profilAvatar">U</div>
                 <span class="user-name" id="profilIsim">Yükleniyor...</span>
             </div>
             <button onclick="cikisYap()" class="btn-logout">
-                <i class="ph ph-sign-out"></i> Çıkış Yap
+                <i class="ph ph-sign-out"></i> Çıkış
             </button>
         </div>
     </header>
@@ -189,9 +139,16 @@
         <aside class="sidebar">
             <div class="nav-menu">
                 <a href="uzman-panel.html" class="nav-link active"><i class="ph ph-squares-four"></i> Panel</a>
-                <a href="danisanlarim.html" class="nav-link"><i class="ph ph-users"></i> Danışanlarım</a>
-                <a href="testlerim.html" class="nav-link"><i class="ph ph-exam"></i> Testlerim</a>
+                <a href="danisanlarim.html" class="nav-link"><i class="ph ph-users"></i> Danışanlar</a>
+                <a href="testlerim.html" class="nav-link"><i class="ph ph-exam"></i> Testler</a>
+                <a href="randevular.html" class="nav-link"><i class="ph ph-calendar"></i> Randevular</a>
+                <a href="raporlar.html" class="nav-link"><i class="ph ph-chart-line-up"></i> Raporlar</a>
                 <a href="gecmis.html" class="nav-link"><i class="ph ph-clock-counter-clockwise"></i> Geçmiş</a>
+                <a href="bildirimler.html" class="nav-link">
+                    <i class="ph ph-bell"></i> Bildirimler
+                    <span class="menu-badge" id="menuBadge" style="display:none;">0</span>
+                </a>
+                <a href="uzman-profil.html" class="nav-link"><i class="ph ph-user-circle"></i> Profilim</a>
             </div>
         </aside>
 
@@ -217,7 +174,6 @@
                     <button class="btn-primary" onclick="danisanSecModalAc()">
                         <i class="ph ph-plus-circle"></i> Yeni Oda Aç
                     </button>
-
                     <div class="link-result" id="linkAlani">
                         <input type="text" id="odaLink" class="link-input" value="" readonly>
                         <button class="btn-copy" onclick="linkiKopyala()">
@@ -266,14 +222,13 @@
         </main>
     </div>
 
-    <!-- Danışan Seçme Modalı -->
     <div class="modal-overlay" id="danisanSecModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Danışan Seçin</h3>
                 <button class="modal-close" onclick="danisanSecModalKapat()">&times;</button>
             </div>
-            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px;">Görüşme odası açmak istediğiniz danışanı seçin.</p>
+            <p style="font-size:14px; color:var(--text-muted); margin-bottom:15px;">Görüşme odası açmak istediğiniz danışanı seçin.</p>
             <div class="danisan-select-list" id="danisanSecListesi">
                 <div class="empty-state"><p>Danışanlar yükleniyor...</p></div>
             </div>
@@ -289,13 +244,13 @@
             messagingSenderId: "71880478784",
             appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
         };
-
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
         let aktifUzmanId = null;
         let musaitDurum = false;
+        let unsubBildirim = null;
 
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -304,8 +259,13 @@
                     if (doc.exists) {
                         const data = doc.data();
                         document.getElementById('profilIsim').innerText = data.isim;
-                        document.getElementById('profilAvatar').innerText = data.isim.charAt(0).toUpperCase();
+                        if (data.fotoBase64) {
+                            document.getElementById('profilAvatar').innerHTML = `<img src="${data.fotoBase64}">`;
+                        } else {
+                            document.getElementById('profilAvatar').innerText = data.isim.charAt(0).toUpperCase();
+                        }
                         document.getElementById('hosgeldinMesaji').innerText = "Hoş Geldiniz, " + data.isim;
+                        
                         if(data.musait) {
                             musaitDurum = true;
                             document.getElementById('musaitlikBtn').classList.add('active');
@@ -315,10 +275,32 @@
                 });
                 istatistikleriYukle();
                 sonDanisanlariYukle();
+                bildirimleriDinle();
             } else {
                 window.location.href = "uzman-giris.html";
             }
         });
+
+        // BİLDİRİM SAYACI
+        function bildirimleriDinle() {
+            if (unsubBildirim) unsubBildirim();
+            unsubBildirim = db.collection('bildirimler')
+                .where('aliciId', '==', aktifUzmanId)
+                .where('okundu', '==', false)
+                .onSnapshot(snapshot => {
+                    const count = snapshot.size;
+                    const badge = document.getElementById('notifBadge');
+                    const menuBadge = document.getElementById('menuBadge');
+                    
+                    badge.innerText = count;
+                    badge.classList.toggle('show', count > 0);
+                    
+                    menuBadge.innerText = count;
+                    menuBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                    
+                    document.getElementById('statBildirim').innerText = count;
+                });
+        }
 
         async function istatistikleriYukle() {
             try {
@@ -328,8 +310,6 @@
                 document.getElementById('statGorusme').innerText = gorusmeSnap.size;
                 const testSnap = await db.collection('testGonderimleri').where('uzmanId', '==', aktifUzmanId).get();
                 document.getElementById('statTest').innerText = testSnap.size;
-                const bildirimSnap = await db.collection('bildirimler').where('aliciId', '==', aktifUzmanId).where('okundu', '==', false).get();
-                document.getElementById('statBildirim').innerText = bildirimSnap.size;
             } catch (error) { console.log(error); }
         }
 
@@ -361,97 +341,62 @@
             } catch (error) { container.innerHTML = `<div class="empty-state"><p>Veriler yüklenemedi.</p></div>`; }
         }
 
-        // --- YENİ: Danışan Seçme Modalı ---
         async function danisanSecModalAc() {
             document.getElementById('danisanSecModal').classList.add('active');
             const container = document.getElementById('danisanSecListesi');
             container.innerHTML = '<div class="empty-state"><p>Danışanlar yükleniyor...</p></div>';
-
             try {
                 const snapshot = await db.collection('uzmanDanisanlari').where('uzmanId', '==', aktifUzmanId).get();
-                
                 if (snapshot.empty) {
-                    container.innerHTML = `<div class="empty-state">
-                        <i class="ph ph-users" style="font-size:40px; opacity:0.3; margin-bottom:10px; display:block;"></i>
-                        <p>Henüz danışanınız yok. Önce "Danışanlarım" sayfasından danışan ekleyin.</p>
-                    </div>`;
+                    container.innerHTML = `<div class="empty-state"><i class="ph ph-users" style="font-size:40px; opacity:0.3; margin-bottom:10px; display:block;"></i><p>Henüz danışanınız yok.</p></div>`;
                     return;
                 }
-
                 container.innerHTML = "";
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const isim = data.danisanIsim || "Bilinmeyen";
                     const email = data.danisanEmail || "-";
                     const harf = isim.charAt(0).toUpperCase();
-
                     const item = document.createElement('div');
                     item.className = 'danisan-select-item';
                     item.onclick = () => odaOlusturVeBildirimGonder(data.danisanId, isim);
                     item.innerHTML = `
                         <div class="avatar-list">${harf}</div>
-                        <div class="info">
-                            <h4>${isim}</h4>
-                            <p>${email}</p>
-                        </div>
+                        <div class="info"><h4>${isim}</h4><p>${email}</p></div>
                     `;
                     container.appendChild(item);
                 });
-            } catch(e) {
-                container.innerHTML = `<div class="empty-state"><p>Danışanlar yüklenemedi.</p></div>`;
-            }
+            } catch(e) { container.innerHTML = `<div class="empty-state"><p>Danışanlar yüklenemedi.</p></div>`; }
         }
 
         function danisanSecModalKapat() {
             document.getElementById('danisanSecModal').classList.remove('active');
         }
 
-        // --- ODA OLUŞTUR VE BİLDİRİM GÖNDER ---
         async function odaOlusturVeBildirimGonder(danisanId, danisanIsim) {
             danisanSecModalKapat();
-
             const harfler = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             let kod = "";
             for (let i = 0; i < 6; i++) { kod += harfler.charAt(Math.floor(Math.random() * harfler.length)); }
-
             const link = window.location.href.replace("uzman-panel.html", "gorusme-odasi.html?oda=" + kod);
-
-            // Link alanını göster
             document.getElementById("odaLink").value = link;
             document.getElementById("linkAlani").classList.add("active");
-
-            // Panoya kopyala
             navigator.clipboard.writeText(link).catch(e => console.log(e));
-
             try {
-                // 1. Bildirim gönder
                 await db.collection('bildirimler').add({
-                    aliciId: danisanId,
-                    gonderenId: aktifUzmanId,
+                    aliciId: danisanId, gonderenId: aktifUzmanId,
                     baslik: "Uzmanınız Sizi Bekliyor",
-                    mesaj: "Uzmanınız sizinle görüşmek için bir oda açtı. Katılmak için panele gidin veya aşağıdaki linke tıklayın.",
-                    link: link,
-                    odaKodu: kod,
-                    okundu: false,
+                    mesaj: "Uzmanınız sizinle görüşmek için bir oda açtı. Katılmak için aşağıdaki linke tıklayın.",
+                    link: link, odaKodu: kod, okundu: false,
                     tarih: firebase.firestore.FieldValue.serverTimestamp()
                 });
-
-                // 2. Aktif oda kaydı
                 await db.collection('aktifOdalar').doc(kod).set({
-                    uzmanId: aktifUzmanId,
-                    danisanId: danisanId,
+                    uzmanId: aktifUzmanId, danisanId: danisanId,
                     olusturmaTarihi: firebase.firestore.FieldValue.serverTimestamp()
                 });
-
-                alert(danisanIsim + " isimli danışana 'Sizi bekliyor' bildirimi gönderildi ve oda linki kopyalandı!\n\nŞimdi siz de odaya gireceksiniz.");
-                
-                // 3. Uzmanı odaya yönlendir
+                alert(danisanIsim + " isimli danışana bildirim gönderildi ve oda linki kopyalandı!");
                 window.open(link, '_blank');
-
-            } catch(e) {
-                console.error(e);
-                alert("Bir hata oluştu: " + e.message);
-            }
+            } catch(e) { alert("Bir hata oluştu: " + e.message); }
         }
 
         function linkiKopyala() {
