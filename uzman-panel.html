@@ -7,32 +7,20 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-    <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <style>
         :root {
-            --primary: #7B2CBF; 
-            --pink-light: #FDF2F8;
-            --purple-light: #F3E8FF;
-            --text-dark: #1F2937;
-            --text-muted: #6B7280;
-            --surface: #FFFFFF;
-            --border: #E5E7EB;
-            --success: #10B981;
-            --danger: #EF4444;
-            --radius-lg: 24px;
-            --radius-md: 12px;
-            --nav-height: 70px;
+            --primary: #7B2CBF; --pink-light: #FDF2F8; --purple-light: #F3E8FF;
+            --text-dark: #1F2937; --text-muted: #6B7280; --surface: #FFFFFF;
+            --border: #E5E7EB; --success: #10B981; --danger: #EF4444;
+            --radius-lg: 24px; --radius-md: 12px; --nav-height: 70px;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); min-height: 100vh; }
 
-        /* --- ÜST NAVBAR --- */
         .top-navbar {
             position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
             background: var(--surface); border-bottom: 1px solid var(--border);
@@ -41,45 +29,28 @@
         }
         .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
         .nav-logo img { height: 36px; border-radius: 8px; }
-        
         .nav-actions { display: flex; align-items: center; gap: 20px; }
-        
         .user-info-nav { display: flex; align-items: center; gap: 10px; }
         .avatar-nav { width: 36px; height: 36px; background: var(--purple-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
         .user-name { font-size: 15px; font-weight: 700; color: var(--text-dark); }
-
-        .btn-logout {
-            display: flex; align-items: center; gap: 6px;
-            background: #FEE2E2; color: var(--danger); border: none;
-            padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px;
-            cursor: pointer; transition: 0.2s;
-        }
+        .btn-logout { display: flex; align-items: center; gap: 6px; background: #FEE2E2; color: var(--danger); border: none; padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; }
         .btn-logout:hover { background: var(--danger); color: white; }
 
-        /* --- UYGULAMA GÖVDESİ (SOL MENÜ + İÇERİK) --- */
         .app-body { display: flex; margin-top: var(--nav-height); min-height: calc(100vh - var(--nav-height)); }
 
-        /* --- SOL MENÜ (SIDEBAR) --- */
         .sidebar {
             width: 260px; background: var(--surface); border-right: 1px solid var(--border);
             display: flex; flex-direction: column; padding: 24px;
             position: fixed; top: var(--nav-height); bottom: 0; left: 0; z-index: 100;
         }
-        
         .nav-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .nav-link {
-            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-            color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px;
-            border-radius: var(--radius-md); transition: 0.2s;
-        }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 14px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px; border-radius: var(--radius-md); transition: 0.2s; }
         .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--primary); }
         .nav-link i { font-size: 20px; }
 
-        /* --- ANA İÇERİK --- */
         .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); }
         .panel-container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
 
-        /* --- HOŞ GELDİN VE DURUM KARTI --- */
         .welcome-card {
             background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 1); border-radius: var(--radius-lg);
@@ -98,7 +69,6 @@
         .status-dot { width: 10px; height: 10px; background: #9CA3AF; border-radius: 50%; transition: 0.3s; }
         .status-toggle.active .status-dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
 
-        /* --- ODA AÇMA ALANI --- */
         .room-card {
             background: var(--surface); padding: 24px; border-radius: var(--radius-lg);
             border: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
@@ -118,9 +88,7 @@
         .link-result.active { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
         .link-input { flex: 1; min-width: 200px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-dark); background: white; outline: none; }
         .btn-copy { background: var(--success); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
-        .btn-copy:hover { background: #059669; }
 
-        /* --- İSTATİSTİKLER --- */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column; }
         .stat-header { display: flex; justify-content: space-between; align-items: center; color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; }
@@ -128,7 +96,6 @@
         .stat-value { font-size: 28px; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
         .stat-desc { font-size: 13px; color: var(--text-muted); }
 
-        /* --- SON DANIŞANLAR --- */
         .activity-container { background: var(--surface); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); }
         .activity-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .activity-header h3 { font-size: 18px; font-weight: 800; }
@@ -145,18 +112,38 @@
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
         .empty-state i { font-size: 40px; opacity: 0.3; margin-bottom: 10px; display: block; }
 
-        /* =========================================
-           MOBİL UYUMLULUK
-           ========================================= */
-        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        /* Danışan Seçme Modalı */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: var(--surface); padding: 30px; border-radius: var(--radius-lg);
+            width: 100%; max-width: 450px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            max-height: 80vh; display: flex; flex-direction: column;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 20px; font-weight: 800; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
         
+        .danisan-select-list { overflow-y: auto; flex: 1; }
+        .danisan-select-item {
+            display: flex; align-items: center; gap: 12px; padding: 14px; 
+            border: 1px solid var(--border); border-radius: var(--radius-md);
+            margin-bottom: 10px; cursor: pointer; transition: 0.2s;
+        }
+        .danisan-select-item:hover { border-color: var(--primary); background: var(--purple-light); }
+        .danisan-select-item .avatar-list { width: 40px; height: 40px; }
+        .danisan-select-item .info h4 { font-size: 15px; margin-bottom: 2px; }
+        .danisan-select-item .info p { font-size: 12px; color: var(--text-muted); }
+
+        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 768px) {
-            /* Navbar mobilde küçülür */
             .top-navbar { padding: 0 15px; }
-            .user-name { display: none; } /* Mobilde ismi gizle, avatar kalsın */
+            .user-name { display: none; }
             .btn-logout { padding: 8px 12px; font-size: 13px; }
-            
-            /* Sol menü alta iner */
             .app-body { flex-direction: column; }
             .sidebar { 
                 width: 100%; height: 70px; position: fixed; bottom: 0; top: auto; 
@@ -168,10 +155,7 @@
             .nav-menu { flex-direction: row; gap: 0; width: 100%; justify-content: space-around; }
             .nav-link { flex-direction: column; padding: 8px; font-size: 11px; gap: 4px; text-align: center; margin-bottom: 0; }
             .nav-link i { font-size: 24px; }
-            
-            /* İçerik mobilde tam genişlik, alttan boşluk bırak */
             .main-wrapper { margin-left: 0; padding: 20px; padding-bottom: 90px; }
-            
             .welcome-card { flex-direction: column; text-align: center; }
             .status-toggle { margin: 10px auto 0 auto; }
             .room-card { flex-direction: column; align-items: stretch; text-align: center; }
@@ -185,7 +169,6 @@
 </head>
 <body>
 
-    <!-- ÜST NAVBAR (En Üstte Sabit) -->
     <header class="top-navbar">
         <a href="index.html" class="nav-logo">
             <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
@@ -202,32 +185,19 @@
         </div>
     </header>
 
-    <!-- UYGULAMA GÖVDESİ -->
     <div class="app-body">
-        
-        <!-- SOL MENÜ -->
         <aside class="sidebar">
             <div class="nav-menu">
-                <a href="uzman-panel.html" class="nav-link active">
-                    <i class="ph ph-squares-four"></i> Panel
-                </a>
-                <a href="danisanlarim.html" class="nav-link">
-                    <i class="ph ph-users"></i> Danışanlarım
-                </a>
-                <a href="testlerim.html" class="nav-link">
-                    <i class="ph ph-exam"></i> Testlerim
-                </a>
-                <a href="gecmis.html" class="nav-link">
-                    <i class="ph ph-clock-counter-clockwise"></i> Geçmiş
-                </a>
+                <a href="uzman-panel.html" class="nav-link active"><i class="ph ph-squares-four"></i> Panel</a>
+                <a href="danisanlarim.html" class="nav-link"><i class="ph ph-users"></i> Danışanlarım</a>
+                <a href="testlerim.html" class="nav-link"><i class="ph ph-exam"></i> Testlerim</a>
+                <a href="gecmis.html" class="nav-link"><i class="ph ph-clock-counter-clockwise"></i> Geçmiş</a>
             </div>
         </aside>
 
-        <!-- ANA İÇERİK -->
         <main class="main-wrapper">
             <div class="panel-container">
                 
-                <!-- HOŞ GELDİN VE MÜSAİTLİK -->
                 <div class="welcome-card">
                     <div>
                         <h1 id="hosgeldinMesaji">Hoş Geldiniz</h1>
@@ -239,13 +209,12 @@
                     </div>
                 </div>
 
-                <!-- ODA AÇMA ALANI -->
                 <div class="room-card">
                     <div class="room-info">
                         <h2>Görüşme Odanız Hazır</h2>
-                        <p>Tek tıkla oda oluşturun ve linki danışanınıza gönderin.</p>
+                        <p>Danışan seçin, odayı açın ve bildirim gönderin.</p>
                     </div>
-                    <button class="btn-primary" onclick="odaAc()">
+                    <button class="btn-primary" onclick="danisanSecModalAc()">
                         <i class="ph ph-plus-circle"></i> Yeni Oda Aç
                     </button>
 
@@ -257,7 +226,6 @@
                     </div>
                 </div>
 
-                <!-- İSTATİSTİKLER -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-header">TOPLAM DANIŞAN <div class="stat-icon" style="background:#F3E8FF; color:#7B2CBF;"><i class="ph ph-users"></i></div></div>
@@ -281,13 +249,11 @@
                     </div>
                 </div>
 
-                <!-- SON DANIŞANLAR -->
                 <div class="activity-container">
                     <div class="activity-header">
                         <h3>Son Eklenen Danışanlar</h3>
                         <a href="danisanlarim.html">Tümünü Gör <i class="ph ph-arrow-right"></i></a>
                     </div>
-                    
                     <div id="sonDanisanlarListesi">
                         <div class="empty-state">
                             <i class="ph ph-spinner ph-spin"></i>
@@ -300,7 +266,20 @@
         </main>
     </div>
 
-    <!-- MOTOR (FIREBASE) -->
+    <!-- Danışan Seçme Modalı -->
+    <div class="modal-overlay" id="danisanSecModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Danışan Seçin</h3>
+                <button class="modal-close" onclick="danisanSecModalKapat()">&times;</button>
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px;">Görüşme odası açmak istediğiniz danışanı seçin.</p>
+            <div class="danisan-select-list" id="danisanSecListesi">
+                <div class="empty-state"><p>Danışanlar yükleniyor...</p></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
@@ -318,18 +297,15 @@
         let aktifUzmanId = null;
         let musaitDurum = false;
 
-        // 1. GÜVENLİK DUVARI VE VERİ ÇEKME
         auth.onAuthStateChanged((user) => {
             if (user) {
                 aktifUzmanId = user.uid;
-                
                 db.collection('uzmanlar').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const data = doc.data();
                         document.getElementById('profilIsim').innerText = data.isim;
                         document.getElementById('profilAvatar').innerText = data.isim.charAt(0).toUpperCase();
                         document.getElementById('hosgeldinMesaji').innerText = "Hoş Geldiniz, " + data.isim;
-                        
                         if(data.musait) {
                             musaitDurum = true;
                             document.getElementById('musaitlikBtn').classList.add('active');
@@ -337,49 +313,67 @@
                         }
                     }
                 });
-
                 istatistikleriYukle();
                 sonDanisanlariYukle();
-
             } else {
                 window.location.href = "uzman-giris.html";
             }
         });
 
-        // 2. İSTATİSTİKLER
         async function istatistikleriYukle() {
             try {
                 const danisanSnap = await db.collection('uzmanDanisanlari').where('uzmanId', '==', aktifUzmanId).get();
                 document.getElementById('statDanisan').innerText = danisanSnap.size;
-
                 const gorusmeSnap = await db.collection('gorusmeler').where('uzmanId', '==', aktifUzmanId).get();
                 document.getElementById('statGorusme').innerText = gorusmeSnap.size;
-
                 const testSnap = await db.collection('testGonderimleri').where('uzmanId', '==', aktifUzmanId).get();
                 document.getElementById('statTest').innerText = testSnap.size;
-
                 const bildirimSnap = await db.collection('bildirimler').where('aliciId', '==', aktifUzmanId).where('okundu', '==', false).get();
                 document.getElementById('statBildirim').innerText = bildirimSnap.size;
-
-            } catch (error) {
-                console.log("İstatistik hatası:", error);
-            }
+            } catch (error) { console.log(error); }
         }
 
-        // 3. SON DANIŞANLAR
         async function sonDanisanlariYukle() {
             const container = document.getElementById('sonDanisanlarListesi');
             try {
                 const snapshot = await db.collection('uzmanDanisanlari')
                     .where('uzmanId', '==', aktifUzmanId)
-                    .orderBy('eklenmeTarihi', 'desc')
-                    .limit(3)
-                    .get();
+                    .orderBy('eklenmeTarihi', 'desc').limit(3).get();
+                if (snapshot.empty) {
+                    container.innerHTML = `<div class="empty-state"><i class="ph ph-users"></i><p>Henüz danışan eklemediniz.</p></div>`;
+                    return;
+                }
+                container.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const isim = data.danisanIsim || "Bilinmeyen";
+                    const email = data.danisanEmail || "-";
+                    const harf = isim.charAt(0).toUpperCase();
+                    container.innerHTML += `
+                        <div class="list-item">
+                            <div class="user-info-list">
+                                <div class="avatar-list">${harf}</div>
+                                <div class="user-details"><h4>${isim}</h4><p>${email}</p></div>
+                            </div>
+                            <div class="status-badge">Aktif</div>
+                        </div>`;
+                });
+            } catch (error) { container.innerHTML = `<div class="empty-state"><p>Veriler yüklenemedi.</p></div>`; }
+        }
 
+        // --- YENİ: Danışan Seçme Modalı ---
+        async function danisanSecModalAc() {
+            document.getElementById('danisanSecModal').classList.add('active');
+            const container = document.getElementById('danisanSecListesi');
+            container.innerHTML = '<div class="empty-state"><p>Danışanlar yükleniyor...</p></div>';
+
+            try {
+                const snapshot = await db.collection('uzmanDanisanlari').where('uzmanId', '==', aktifUzmanId).get();
+                
                 if (snapshot.empty) {
                     container.innerHTML = `<div class="empty-state">
-                        <i class="ph ph-users"></i>
-                        <p>Henüz danışan eklemediniz.</p>
+                        <i class="ph ph-users" style="font-size:40px; opacity:0.3; margin-bottom:10px; display:block;"></i>
+                        <p>Henüz danışanınız yok. Önce "Danışanlarım" sayfasından danışan ekleyin.</p>
                     </div>`;
                     return;
                 }
@@ -391,78 +385,91 @@
                     const email = data.danisanEmail || "-";
                     const harf = isim.charAt(0).toUpperCase();
 
-                    container.innerHTML += `
-                        <div class="list-item">
-                            <div class="user-info-list">
-                                <div class="avatar-list">${harf}</div>
-                                <div class="user-details">
-                                    <h4>${isim}</h4>
-                                    <p>${email}</p>
-                                </div>
-                            </div>
-                            <div class="status-badge">Aktif</div>
+                    const item = document.createElement('div');
+                    item.className = 'danisan-select-item';
+                    item.onclick = () => odaOlusturVeBildirimGonder(data.danisanId, isim);
+                    item.innerHTML = `
+                        <div class="avatar-list">${harf}</div>
+                        <div class="info">
+                            <h4>${isim}</h4>
+                            <p>${email}</p>
                         </div>
                     `;
+                    container.appendChild(item);
                 });
-
-            } catch (error) {
-                console.log("Danışan hatası:", error);
-                container.innerHTML = `<div class="empty-state"><p>Veriler yüklenemedi.</p></div>`;
+            } catch(e) {
+                container.innerHTML = `<div class="empty-state"><p>Danışanlar yüklenemedi.</p></div>`;
             }
         }
 
-        // 4. ODA AÇMA
-        // 4. ODA AÇMA (Link üret + Odaya otomatik gir)
-function odaAc() {
-    const harfler = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let kod = "";
-    for (let i = 0; i < 6; i++) { kod += harfler.charAt(Math.floor(Math.random() * harfler.length)); }
-    
-    const link = window.location.href.replace("uzman-panel.html", "gorusme-odasi.html?oda=" + kod);
-    
-    // Linki ekranda göster
-    document.getElementById("odaLink").value = link;
-    document.getElementById("linkAlani").classList.add("active");
+        function danisanSecModalKapat() {
+            document.getElementById('danisanSecModal').classList.remove('active');
+        }
 
-    // Firebase'e oda kaydı
-    db.collection('aktifOdalar').doc(kod).set({
-        uzmanId: aktifUzmanId,
-        olusturmaTarihi: firebase.firestore.FieldValue.serverTimestamp()
-    });
+        // --- ODA OLUŞTUR VE BİLDİRİM GÖNDER ---
+        async function odaOlusturVeBildirimGonder(danisanId, danisanIsim) {
+            danisanSecModalKapat();
 
-    // Linki otomatik panoya kopyala
-    navigator.clipboard.writeText(link);
+            const harfler = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            let kod = "";
+            for (let i = 0; i < 6; i++) { kod += harfler.charAt(Math.floor(Math.random() * harfler.length)); }
 
-    // Uzmanı bilgilendir ve odaya sok
-    alert("Oda başarıyla oluşturuldu! Link panoya kopyalandı, danışanınıza gönderebilirsiniz.\n\nŞimdi siz de görüşme odasına yönlendiriliyorsunuz...");
-    
-    // Uzmanı aynı sekmede veya yeni sekmede odaya sok
-    window.open(link, '_blank'); 
-}
-        // 5. LİNK KOPYALAMA
+            const link = window.location.href.replace("uzman-panel.html", "gorusme-odasi.html?oda=" + kod);
+
+            // Link alanını göster
+            document.getElementById("odaLink").value = link;
+            document.getElementById("linkAlani").classList.add("active");
+
+            // Panoya kopyala
+            navigator.clipboard.writeText(link).catch(e => console.log(e));
+
+            try {
+                // 1. Bildirim gönder
+                await db.collection('bildirimler').add({
+                    aliciId: danisanId,
+                    gonderenId: aktifUzmanId,
+                    baslik: "Uzmanınız Sizi Bekliyor",
+                    mesaj: "Uzmanınız sizinle görüşmek için bir oda açtı. Katılmak için panele gidin veya aşağıdaki linke tıklayın.",
+                    link: link,
+                    odaKodu: kod,
+                    okundu: false,
+                    tarih: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 2. Aktif oda kaydı
+                await db.collection('aktifOdalar').doc(kod).set({
+                    uzmanId: aktifUzmanId,
+                    danisanId: danisanId,
+                    olusturmaTarihi: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert(danisanIsim + " isimli danışana 'Sizi bekliyor' bildirimi gönderildi ve oda linki kopyalandı!\n\nŞimdi siz de odaya gireceksiniz.");
+                
+                // 3. Uzmanı odaya yönlendir
+                window.open(link, '_blank');
+
+            } catch(e) {
+                console.error(e);
+                alert("Bir hata oluştu: " + e.message);
+            }
+        }
+
         function linkiKopyala() {
             const linkInput = document.getElementById("odaLink");
             linkInput.select();
             linkInput.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(linkInput.value);
-            
             const btn = event.target.closest('.btn-copy');
             const originalHTML = btn.innerHTML;
             btn.innerHTML = '<i class="ph ph-check"></i> Kopyalandı!';
             btn.style.background = '#059669';
-            
-            setTimeout(() => {
-                btn.innerHTML = originalHTML;
-                btn.style.background = 'var(--success)';
-            }, 2000);
+            setTimeout(() => { btn.innerHTML = originalHTML; btn.style.background = 'var(--success)'; }, 2000);
         }
 
-        // 6. MÜSAİTLİK DURUMU
         function durumDegistir() {
             musaitDurum = !musaitDurum;
             const btn = document.getElementById('musaitlikBtn');
             const yazi = document.getElementById('musaitlikYazi');
-
             if (musaitDurum) {
                 btn.classList.add('active');
                 yazi.innerText = "Şu An Müsaitim";
@@ -474,11 +481,8 @@ function odaAc() {
             }
         }
 
-        // 7. ÇIKIŞ YAP
         function cikisYap() {
-            auth.signOut().then(() => {
-                window.location.href = "index.html";
-            });
+            auth.signOut().then(() => { window.location.href = "index.html"; });
         }
     </script>
 </body>
