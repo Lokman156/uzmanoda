@@ -14,40 +14,32 @@
 
     <style>
         :root {
-            --primary: #7B2CBF; --purple-light: #F3E8FF; --text-light: #F9FAFB;
-            --danger: #EF4444; --success: #10B981; --bg-dark: #0F172A; 
-            --surface-dark: #1E293B; --radius-lg: 24px; --radius-md: 12px;
+            --primary: #7B2CBF; --danger: #EF4444; --success: #10B981; 
+            --bg-dark: #0F172A; --surface-dark: #1E293B;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        html, body { overflow: hidden; height: 100vh; background-color: var(--bg-dark); color: var(--text-light); }
+        html, body { overflow: hidden; height: 100vh; background-color: var(--bg-dark); color: white; }
 
         .video-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
-        
-        /* Karşı tarafın videosu */
         #remoteVideo { width: 100%; height: 100%; object-fit: cover; background: #000; }
 
-        /* Kendi videomuz */
         .local-video-container {
             position: absolute; bottom: 100px; right: 30px; width: 180px; height: 120px;
-            border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            border: 2px solid rgba(255,255,255,0.2); background: #000; z-index: 10; transition: 0.3s;
+            border-radius: 12px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.2); background: #000; z-index: 10;
         }
         #localVideo { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
-        .top-bar {
-            position: absolute; top: 20px; left: 20px; right: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 10; pointer-events: none; 
+        /* DEBUG KUTUSU */
+        .debug-box {
+            position: absolute; top: 20px; left: 20px; 
+            background: rgba(0, 0, 0, 0.85); border: 1px solid var(--primary);
+            padding: 15px; border-radius: 8px; font-size: 12px; font-family: monospace;
+            z-index: 9999; max-width: 300px; max-height: 300px; overflow-y: auto;
         }
-        .room-info {
-            background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(10px);
-            padding: 10px 20px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1);
-            display: flex; align-items: center; gap: 12px; pointer-events: auto;
-        }
-        .room-code { font-weight: 800; letter-spacing: 1px; color: var(--primary); }
-        .timer { font-size: 14px; color: #9CA3AF; font-variant-numeric: tabular-nums; }
+        .debug-box h4 { color: var(--primary); margin-bottom: 5px; }
+        .debug-box p { margin-bottom: 3px; color: #ccc; }
 
-        /* Bağlantı durumu göstergesi */
         .conn-status {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.6); color: white; padding: 8px 16px; border-radius: 20px;
@@ -59,85 +51,39 @@
 
         .controls {
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 15px; background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(20px);
-            padding: 15px 30px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); z-index: 10;
+            display: flex; gap: 15px; background: rgba(30, 41, 59, 0.8);
+            padding: 15px 30px; border-radius: 50px; z-index: 10;
         }
-        .control-btn {
-            width: 56px; height: 56px; border-radius: 50%; border: none;
-            background: rgba(255,255,255,0.1); color: white; font-size: 24px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
-        }
-        .control-btn:hover { background: rgba(255,255,255,0.2); }
-        .control-btn.active { background: var(--primary); }
+        .control-btn { width: 56px; height: 56px; border-radius: 50%; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 24px; cursor: pointer; }
         .control-btn.danger { background: var(--danger); }
-        
-        .sidebar {
-            position: absolute; top: 0; right: -400px; width: 380px; height: 100vh;
-            background: var(--surface-dark); border-left: 1px solid rgba(255,255,255,0.1);
-            z-index: 20; transition: right 0.3s ease; display: flex; flex-direction: column;
-        }
-        .sidebar.open { right: 0; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .close-sidebar { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
-        .chat-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .message { background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 12px; max-width: 85%; }
-        .message.mine { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
-        .chat-input-area { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; }
-        .chat-input-area input { flex: 1; padding: 12px 16px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white; outline: none; }
-        .btn-send { background: var(--primary); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-        @media (max-width: 768px) {
-            .local-video-container { width: 120px; height: 160px; bottom: 90px; right: 15px; }
-            .controls { padding: 10px 20px; gap: 10px; width: 95%; justify-content: center; }
-            .control-btn { width: 48px; height: 48px; font-size: 20px; }
-            .sidebar { width: 100%; right: -100%; }
-        }
     </style>
 </head>
 <body>
 
     <div class="video-wrapper">
-        <!-- Karşı Taraf -->
         <video id="remoteVideo" autoplay playsinline></video>
-
-        <!-- Kendi Videomuz -->
         <div class="local-video-container">
             <video id="localVideo" autoplay playsinline muted></video>
         </div>
 
-        <!-- Durum Göstergesi -->
+        <div class="debug-box">
+            <h4>Sistem Durumu</h4>
+            <p id="log1">Başlatılıyor...</p>
+            <p id="log2"></p>
+            <p id="log3"></p>
+            <p id="log4"></p>
+            <p id="log5"></p>
+        </div>
+
         <div class="conn-status">
             <div class="dot" id="connDot"></div>
             <span id="connText">Bağlanılıyor...</span>
         </div>
 
-        <div class="top-bar">
-            <div class="room-info">
-                <i class="ph ph-video-camera" style="color: var(--primary); font-size: 20px;"></i>
-                <span class="room-code" id="odaKoduEkran">Oda Yükleniyor...</span>
-                <span class="timer" id="sure">00:00</span>
-            </div>
-        </div>
-
         <div class="controls">
             <button class="control-btn" id="micBtn" onclick="toggleMic()"><i class="ph ph-microphone"></i></button>
             <button class="control-btn" id="camBtn" onclick="toggleCam()"><i class="ph ph-video-camera"></i></button>
-            <button class="control-btn" id="chatBtn" onclick="toggleChat()"><i class="ph ph-chat-teardrop-text"></i></button>
             <button class="control-btn danger" onclick="gorusmeyiBitir()"><i class="ph ph-phone-disconnect"></i></button>
-        </div>
-
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h3>Görüşme Sohbeti</h3>
-                <button class="close-sidebar" onclick="toggleChat()">&times;</button>
-            </div>
-            <div class="chat-area" id="chatArea">
-                <div class="message theirs">Merhaba, görüşmeye bağlandınız.</div>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="chatInput" placeholder="Mesaj yazın..." onkeypress="if(event.key === 'Enter') mesajGonder()">
-                <button class="btn-send" onclick="mesajGonder()"><i class="ph ph-paper-plane-right"></i></button>
-            </div>
         </div>
     </div>
 
@@ -151,14 +97,11 @@
             appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
         };
 
-        // TURN SUNUCULARI
         const iceServers = {
             iceServers: [
                 { urls: "stun:stun.relay.metered.ca:80" },
                 { urls: "turn:global.relay.metered.ca:80", username: "f987b1568451597d97387c26", credential: "mq65sbWBbmx/e70b" },
-                { urls: "turn:global.relay.metered.ca:80?transport=tcp", username: "f987b1568451597d97387c26", credential: "mq65sbWBbmx/e70b" },
-                { urls: "turn:global.relay.metered.ca:443", username: "f987b1568451597d97387c26", credential: "mq65sbWBbmx/e70b" },
-                { urls: "turns:global.relay.metered.ca:443?transport=tcp", username: "f987b1568451597d97387c26", credential: "mq65sbWBbmx/e70b" }
+                { urls: "turn:global.relay.metered.ca:443", username: "f987b1568451597d97387c26", credential: "mq65sbWBbmx/e70b" }
             ]
         };
 
@@ -166,31 +109,19 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        let localStream;
-        let peerConnection;
-        let odaKodu;
-        let isHost = false; // Uzman mı?
-        let currentUser = null;
-        let sureInterval;
-        let saniye = 0;
-        
-        // Dinleyicileri kapatmak için
-        let unsubOffer = null, unsubAnswer = null, unsubCandidates = null;
-        
-        // Sinyalizasyon Havuzları (Kritik Nokta)
+        let localStream, peerConnection, odaKodu, isHost = false, currentUser = null;
         let pendingCandidates = [];
+        let logCounter = 1;
 
-        const urlParams = new URLSearchParams(window.location.search);
-        odaKodu = urlParams.get('oda');
-
-        if (!odaKodu) {
-            alert("Oda kodu bulunamadı!");
-            window.location.href = "index.html";
+        function ekranaYaz(mesaj) {
+            console.log(mesaj);
+            if (logCounter <= 5) {
+                const p = document.getElementById('log' + logCounter);
+                if(p) p.innerText = "> " + mesaj;
+                logCounter++;
+            }
         }
 
-        document.getElementById('odaKoduEkran').innerText = "Oda: " + odaKodu;
-
-        // Durum güncelleme fonksiyonu
         function updateStatus(text, state) {
             document.getElementById('connText').innerText = text;
             const dot = document.getElementById('connDot');
@@ -199,7 +130,14 @@
             if (state === 'failed') dot.classList.add('failed');
         }
 
-        // --- 1. BAŞLATMA ---
+        const urlParams = new URLSearchParams(window.location.search);
+        odaKodu = urlParams.get('oda');
+
+        if (!odaKodu) {
+            alert("Oda kodu yok!");
+            window.location.href = "index.html";
+        }
+
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 window.location.href = "danisan-giris.html";
@@ -210,107 +148,92 @@
             try {
                 const uzmanDoc = await db.collection('uzmanlar').doc(user.uid).get();
                 isHost = uzmanDoc.exists;
-            } catch(e) { console.log(e); }
+                ekranaYaz(isHost ? "Rol: UZMAN" : "Rol: DANIŞAN");
+            } catch(e) { ekranaYaz("Rol belirlenemedi"); }
 
             await kamerayiBaslat();
             baglantiKur();
         });
 
-        // --- 2. MEDYA (KAMERA) ---
         async function kamerayiBaslat() {
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('localVideo').srcObject = localStream;
+                ekranaYaz("Kamera açıldı");
             } catch (err) {
-                alert("Kamera açılamadı! Lütfen tarayıcıdan izin verin.");
-                console.error(err);
+                ekranaYaz("HATA: Kamera açılamadı!");
             }
         }
 
-        // --- 3. WEBRTC VE SİNYALLEŞME ---
         function baglantiKur() {
             peerConnection = new RTCPeerConnection(iceServers);
 
-            // A. Karşı tarafın videosu geldiğinde
             peerConnection.ontrack = (event) => {
-                console.log("Karşı tarafın videosu geldi!");
-                const remoteVideo = document.getElementById('remoteVideo');
-                remoteVideo.srcObject = event.streams[0];
-                // Tarayıcı sesi engelliyorsa, kullanıcı ekrana tıklayınca açılır
+                ekranaYaz("Karşı taraf videosu GELDİ!");
+                document.getElementById('remoteVideo').srcObject = event.streams[0];
+                // Tarayıcı sesi engelliyorsa otomatik oynatmayı zorla
+                document.getElementById('remoteVideo').play().catch(e => console.log(e));
             };
 
-            // B. Ağ adaylarımızı (ICE) Firebase'e gönder
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
                     db.collection('gorusmeler').doc(odaKodu).collection('adaylar').add({
                         candidate: event.candidate,
                         gonderen: isHost ? 'host' : 'guest'
-                    });
+                    }).catch(e => ekranaYaz("Firebase Aday Hatası!"));
                 }
             };
 
-            // C. Bağlantı durumu değiştiğinde
             peerConnection.onconnectionstatechange = () => {
-                console.log("Bağlantı Durumu:", peerConnection.connectionState);
                 if (peerConnection.connectionState === 'connected') {
                     updateStatus("Bağlandı", "connected");
+                    ekranaYaz("Bağlantı Başarılı!");
                 } else if (peerConnection.connectionState === 'failed') {
                     updateStatus("Bağlantı Koptu", "failed");
-                } else {
-                    updateStatus("Bağlanılıyor...", "connecting");
+                    ekranaYaz("Bağlantı Başarısız!");
                 }
             };
 
-            // D. Kendi medyamızı (Kamera/Ses) bağlantıya ekle
             if (localStream) {
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
             }
 
-            // --- SİNYALLEŞME MANTIĞI ---
             if (isHost) {
-                // UZMAN (Host) -> Teklif (Offer) Oluşturur
-                
-                // 1. Danışandan gelecek Cevabı (Answer) dinle
-                unsubAnswer = db.collection('gorusmeler').doc(odaKodu).onSnapshot(snapshot => {
+                // UZMAN: Cevap bekle
+                db.collection('gorusmeler').doc(odaKodu).onSnapshot(snapshot => {
                     const data = snapshot.data();
                     if (data && data.answer && !peerConnection.currentRemoteDescription) {
-                        console.log("Cevap (Answer) geldi, bağlantı kuruluyor...");
+                        ekranaYaz("Danışandan cevap alındı");
                         peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer))
                         .then(() => {
-                            // Cevap kurulduktan sonra bekleyen ICE adaylarını ekle
-                            pendingCandidates.forEach(c => {
-                                peerConnection.addIceCandidate(c).catch(e => console.log("Aday hatası:", e));
-                            });
-                            pendingCandidates = []; // Havuzu temizle
-                        });
+                            pendingCandidates.forEach(c => peerConnection.addIceCandidate(c).catch(e => {}));
+                            pendingCandidates = [];
+                        })
+                        .catch(e => ekranaYaz("HATA: Cevap eklenemedi"));
                     }
                 });
 
-                // 2. Teklifi (Offer) oluştur ve Firebase'e kaydet
+                // UZMAN: Teklif gönder
                 setTimeout(async () => {
                     try {
                         const offer = await peerConnection.createOffer();
                         await peerConnection.setLocalDescription(offer);
-                        console.log("Teklif (Offer) gönderiliyor...");
                         
+                        ekranaYaz("Teklif Firebase'e yazılıyor...");
                         await db.collection('gorusmeler').doc(odaKodu).set({
                             offer: { type: offer.type, sdp: offer.sdp },
-                            hostId: currentUser.uid,
-                            odaKodu: odaKodu,
-                            olusturmaTarihi: firebase.firestore.FieldValue.serverTimestamp()
+                            hostId: currentUser.uid
                         });
-                    } catch(e) { console.error("Teklif hatası:", e); }
-                }, 1000);
+                        ekranaYaz("Teklif Gönderildi");
+                    } catch(e) { ekranaYaz("HATA: Teklif oluşturulamadı"); }
+                }, 1500);
 
             } else {
-                // DANIŞAN (Guest) -> Cevap (Answer) Oluşturur
-
-                // 1. Uzmandan gelecek Teklifi (Offer) dinle
-                unsubOffer = db.collection('gorusmeler').doc(odaKodu).onSnapshot(async snapshot => {
+                // DANIŞAN: Teklif bekle
+                db.collection('gorusmeler').doc(odaKodu).onSnapshot(async snapshot => {
                     const data = snapshot.data();
                     if (data && data.offer && !peerConnection.currentRemoteDescription) {
-                        console.log("Teklif (Offer) geldi, cevap hazırlanıyor...");
-                        
+                        ekranaYaz("Uzmandan teklif alındı");
                         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
                         
                         const answer = await peerConnection.createAnswer();
@@ -319,27 +242,23 @@
                         await db.collection('gorusmeler').doc(odaKodu).update({
                             answer: { type: answer.type, sdp: answer.sdp }
                         });
+                        ekranaYaz("Cevap Gönderildi");
                         
-                        // Cevap oluşturulduktan sonra bekleyen ICE adaylarını ekle
-                        pendingCandidates.forEach(c => {
-                            peerConnection.addIceCandidate(c).catch(e => console.log("Aday hatası:", e));
-                        });
-                        pendingCandidates = []; // Havuzu temizle
+                        pendingCandidates.forEach(c => peerConnection.addIceCandidate(c).catch(e => {}));
+                        pendingCandidates = [];
                     }
                 });
             }
 
-            // 2. Karşı tarafın ICE adaylarını dinle (Havuzlama Mantığı)
-            unsubCandidates = db.collection('gorusmeler').doc(odaKodu).collection('adaylar').onSnapshot(snapshot => {
+            // ICE Adaylarını dinle
+            db.collection('gorusmeler').doc(odaKodu).collection('adaylar').onSnapshot(snapshot => {
                 snapshot.docChanges().forEach(change => {
                     if (change.type === 'added') {
                         const data = change.doc.data();
                         if (data.gonderen !== (isHost ? 'host' : 'guest')) {
                             const candidate = new RTCIceCandidate(data.candidate);
-                            
-                            // EĞER KARŞI TARAF HENÜZ SET EDİLMEDİYSE HAVUZA AT
                             if (peerConnection.remoteDescription) {
-                                peerConnection.addIceCandidate(candidate).catch(e => console.log("Aday hatası:", e));
+                                peerConnection.addIceCandidate(candidate).catch(e => {});
                             } else {
                                 pendingCandidates.push(candidate);
                             }
@@ -347,56 +266,17 @@
                     }
                 });
             });
-
-            // 3. Süre
-            sureInterval = setInterval(() => {
-                saniye++;
-                let dk = Math.floor(saniye / 60).toString().padStart(2, '0');
-                let sn = (saniye % 60).toString().padStart(2, '0');
-                document.getElementById('sure').innerText = `${dk}:${sn}`;
-            }, 1000);
         }
 
-        // --- KONTROLLER ---
-        function toggleMic() {
-            const btn = document.getElementById('micBtn');
-            const audioTrack = localStream.getAudioTracks()[0];
-            audioTrack.enabled = !audioTrack.enabled;
-            btn.classList.toggle('active', !audioTrack.enabled);
-            btn.innerHTML = audioTrack.enabled ? '<i class="ph ph-microphone"></i>' : '<i class="ph ph-microphone-slash"></i>';
-        }
-        function toggleCam() {
-            const btn = document.getElementById('camBtn');
-            const videoTrack = localStream.getVideoTracks()[0];
-            videoTrack.enabled = !videoTrack.enabled;
-            btn.classList.toggle('active', !videoTrack.enabled);
-            btn.innerHTML = videoTrack.enabled ? '<i class="ph ph-video-camera"></i>' : '<i class="ph ph-video-camera-slash"></i>';
-        }
-        function toggleChat() { document.getElementById('sidebar').classList.toggle('open'); }
-        function mesajGonder() {
-            const input = document.getElementById('chatInput');
-            if(input.value.trim() === "") return;
-            const chatArea = document.getElementById('chatArea');
-            const msg = document.createElement('div');
-            msg.className = 'message mine';
-            msg.innerText = input.value;
-            chatArea.appendChild(msg);
-            input.value = "";
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
+        function toggleMic() { const t = localStream.getAudioTracks()[0]; t.enabled = !t.enabled; }
+        function toggleCam() { const t = localStream.getVideoTracks()[0]; t.enabled = !t.enabled; }
 
         function gorusmeyiBitir() {
-            if(confirm("Görüşmeyi bitirmek istediğinize emin misiniz?")) {
+            if(confirm("Görüşmeyi bitirmek istiyor musunuz?")) {
                 if(peerConnection) peerConnection.close();
                 if(localStream) localStream.getTracks().forEach(track => track.stop());
-                clearInterval(sureInterval);
-                if(unsubOffer) unsubOffer();
-                if(unsubAnswer) unsubAnswer();
-                if(unsubCandidates) unsubCandidates();
-                db.collection('gorusmeler').doc(odaKodu).delete().catch(e => console.log(e));
-                
-                if(isHost) window.location.href = "uzman-panel.html";
-                else window.location.href = "danisan-panel.html";
+                db.collection('gorusmeler').doc(odaKodu).delete().catch(e => {});
+                window.location.href = isHost ? "uzman-panel.html" : "danisan-panel.html";
             }
         }
     </script>
