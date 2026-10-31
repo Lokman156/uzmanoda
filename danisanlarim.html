@@ -4,240 +4,194 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UzmanOda | Danışanlarım</title>
-    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-    <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
     <style>
-        :root {
-            --primary: #7B2CBF; 
-            --pink-light: #FDF2F8;
-            --purple-light: #F3E8FF;
-            --text-dark: #1F2937;
-            --text-muted: #6B7280;
-            --surface: #FFFFFF;
-            --border: #E5E7EB;
-            --success: #10B981;
-            --danger: #EF4444;
-            --radius-lg: 24px;
-            --radius-md: 12px;
-            --nav-height: 70px;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); min-height: 100vh; }
-
-        /* --- ÜST NAVBAR --- */
-        .top-navbar {
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
-            background: var(--surface); border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 24px; z-index: 1000;
-        }
-        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
-        .nav-logo img { height: 36px; border-radius: 8px; }
-        
-        .nav-actions { display: flex; align-items: center; gap: 20px; }
-        
-        .user-info-nav { display: flex; align-items: center; gap: 10px; }
-        .avatar-nav { width: 36px; height: 36px; background: var(--purple-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
-        .user-name { font-size: 15px; font-weight: 700; color: var(--text-dark); }
-
-        .btn-logout {
-            display: flex; align-items: center; gap: 6px;
-            background: #FEE2E2; color: var(--danger); border: none;
-            padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px;
-            cursor: pointer; transition: 0.2s;
-        }
-        .btn-logout:hover { background: var(--danger); color: white; }
-
-        /* --- UYGULAMA GÖVDESİ --- */
-        .app-body { display: flex; margin-top: var(--nav-height); min-height: calc(100vh - var(--nav-height)); }
-
-        /* --- SOL MENÜ (SIDEBAR) --- */
-        .sidebar {
-            width: 260px; background: var(--surface); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; padding: 24px;
-            position: fixed; top: var(--nav-height); bottom: 0; left: 0; z-index: 100;
-        }
-        .nav-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .nav-link {
-            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-            color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px;
-            border-radius: var(--radius-md); transition: 0.2s;
-        }
-        .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--primary); }
-        .nav-link i { font-size: 20px; }
-
-        /* --- ANA İÇERİK --- */
-        .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); }
-        .panel-container { max-width: 1000px; margin: 0 auto; }
-        
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
-        .page-title h1 { font-size: 28px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; }
-        .page-title p { color: var(--text-muted); font-size: 15px; }
-
-        .btn-add {
-            background: linear-gradient(135deg, #7B2CBF, #C77DFF); color: white; border: none;
-            padding: 14px 24px; border-radius: var(--radius-md); font-weight: 700; font-size: 15px;
-            cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s;
-            box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3);
-        }
-        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(123, 44, 191, 0.4); }
-
-        /* --- ARAMA ÇUBUĞU --- */
-        .search-wrapper {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-md); display: flex; align-items: center;
-            padding: 12px 20px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-        }
-        .search-wrapper i { color: var(--text-muted); font-size: 20px; margin-right: 12px; }
-        .search-wrapper input { border: none; background: transparent; width: 100%; outline: none; font-size: 16px; color: var(--text-dark); }
-
-        /* --- DANIŞAN LİSTESİ --- */
-        .list-container { display: flex; flex-direction: column; gap: 12px; }
-        
-        .list-item {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-md); padding: 16px 20px;
-            display: flex; align-items: center; justify-content: space-between;
-            transition: 0.2s;
-        }
-        .list-item:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(123, 44, 191, 0.05); }
-        
-        .user-info { display: flex; align-items: center; gap: 16px; }
-        .avatar-list { width: 48px; height: 48px; background: var(--purple-light); color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; }
-        .user-details h4 { font-size: 16px; color: var(--text-dark); font-weight: 700; margin-bottom: 4px; }
-        .user-details p { font-size: 13px; color: var(--text-muted); }
-        
-        .list-actions { display: flex; align-items: center; gap: 12px; }
-        
-        .btn-notify {
-            background: #DBEAFE; color: #3B82F6; border: none; padding: 10px 16px;
-            border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;
-            display: flex; align-items: center; gap: 6px; transition: 0.2s;
-        }
-        .btn-notify:hover { background: #BFDBFE; }
-        
-        .btn-delete { background: transparent; border: 1px solid var(--border); width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--danger); transition: 0.2s; }
-        .btn-delete:hover { background: #FEE2E2; border-color: var(--danger); }
-
-        .empty-state { text-align: center; padding: 40px; color: var(--text-muted); background: var(--surface); border-radius: var(--radius-md); border: 1px dashed var(--border); }
-
-        /* --- MODAL (YENİ DANIŞAN EKLEME) --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-            display: none; align-items: center; justify-content: center; z-index: 2000;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-content {
-            background: var(--surface); padding: 30px; border-radius: var(--radius-lg);
-            width: 90%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-        }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h3 { font-size: 20px; font-weight: 800; }
-        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
-        
-        .modal-input { width: 100%; padding: 12px 16px; margin-bottom: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); outline: none; }
-        .modal-input:focus { border-color: var(--primary); }
-        .btn-save { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); font-weight: 700; cursor: pointer; }
-
-        /* --- MOBİL UYUMLULUK --- */
-        @media (max-width: 768px) {
-            .top-navbar { padding: 0 15px; }
-            .user-name { display: none; }
-            .btn-logout { padding: 8px 12px; font-size: 13px; }
-            
-            .app-body { flex-direction: column; }
-            .sidebar { 
-                width: 100%; height: 70px; position: fixed; bottom: 0; top: auto; 
-                flex-direction: row; justify-content: space-around; align-items: center; 
-                padding: 10px; border-right: none; border-top: 1px solid var(--border); 
-                z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
-            }
-            .nav-menu { flex-direction: row; gap: 0; width: 100%; justify-content: space-around; }
-            .nav-link { flex-direction: column; padding: 8px; font-size: 11px; gap: 4px; text-align: center; margin-bottom: 0; }
-            .nav-link i { font-size: 24px; }
-            
-            .main-wrapper { margin-left: 0; padding: 20px; padding-bottom: 90px; }
-            .page-header { flex-direction: column; align-items: flex-start; }
-            .btn-add { width: 100%; justify-content: center; }
-            .list-item { flex-direction: column; align-items: flex-start; gap: 16px; }
-            .list-actions { width: 100%; justify-content: space-between; }
-            .btn-notify { flex: 1; justify-content: center; }
+        :root { --primary:#7B2CBF; --purple-light:#F3E8FF; --text-dark:#1F2937; --text-muted:#6B7280; --surface:#FFF; --border:#E5E7EB; --success:#10B981; --danger:#EF4444; --warning:#F59E0B; --radius-lg:24px; --radius-md:12px; --nav-height:70px; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+        html, body { overflow-x:hidden; background:#FAFAFA; color:var(--text-dark); min-height:100vh; }
+        .top-navbar { position:fixed; top:0; left:0; width:100%; height:var(--nav-height); background:var(--surface); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; padding:0 24px; z-index:1000; }
+        .nav-logo { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--primary); font-size:22px; font-weight:800; }
+        .nav-logo img { height:36px; border-radius:8px; }
+        .nav-actions { display:flex; align-items:center; gap:16px; }
+        .notif-btn { position:relative; background:transparent; border:none; font-size:24px; color:var(--text-dark); cursor:pointer; padding:8px; border-radius:50%; transition:0.2s; }
+        .notif-btn:hover { background:var(--purple-light); color:var(--primary); }
+        .notif-badge { position:absolute; top:2px; right:2px; background:var(--danger); color:white; font-size:10px; font-weight:800; padding:2px 6px; border-radius:10px; min-width:18px; text-align:center; display:none; }
+        .notif-badge.show { display:block; }
+        .user-info-nav { display:flex; align-items:center; gap:10px; cursor:pointer; padding:6px 10px; border-radius:20px; transition:0.2s; }
+        .user-info-nav:hover { background:var(--purple-light); }
+        .avatar-nav { width:36px; height:36px; background:var(--purple-light); color:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; overflow:hidden; }
+        .avatar-nav img { width:100%; height:100%; object-fit:cover; }
+        .user-name { font-size:15px; font-weight:700; }
+        .btn-logout { background:#FEE2E2; color:var(--danger); border:none; padding:8px 16px; border-radius:var(--radius-md); font-weight:700; font-size:14px; cursor:pointer; }
+        .app-body { display:flex; margin-top:var(--nav-height); min-height:calc(100vh - var(--nav-height)); }
+        .sidebar { width:260px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:24px; position:fixed; top:var(--nav-height); bottom:0; left:0; z-index:100; overflow-y:auto; }
+        .nav-menu { display:flex; flex-direction:column; gap:6px; flex:1; }
+        .nav-link { display:flex; align-items:center; gap:12px; padding:13px 16px; color:var(--text-muted); text-decoration:none; font-weight:600; font-size:15px; border-radius:var(--radius-md); transition:0.2s; position:relative; }
+        .nav-link:hover, .nav-link.active { background:var(--purple-light); color:var(--primary); }
+        .nav-link i { font-size:20px; }
+        .nav-link .menu-badge { margin-left:auto; background:var(--danger); color:white; font-size:11px; font-weight:800; padding:2px 7px; border-radius:10px; }
+        .main-wrapper { flex:1; margin-left:260px; padding:40px; background:linear-gradient(135deg,#FDF2F8 0%,#F3E8FF 100%); }
+        .panel-container { max-width:1100px; margin:0 auto; }
+        .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; flex-wrap:wrap; gap:15px; }
+        .page-title h1 { font-size:28px; font-weight:800; margin-bottom:6px; }
+        .page-title p { color:var(--text-muted); font-size:15px; }
+        .header-actions { display:flex; gap:10px; flex-wrap:wrap; }
+        .btn-add { background:linear-gradient(135deg,#7B2CBF,#C77DFF); color:white; border:none; padding:14px 24px; border-radius:var(--radius-md); font-weight:700; font-size:15px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:0.3s; box-shadow:0 10px 20px rgba(123,44,191,0.3); }
+        .btn-add:hover { transform:translateY(-2px); }
+        .btn-bulk { background:var(--warning); color:white; border:none; padding:14px 24px; border-radius:var(--radius-md); font-weight:700; font-size:15px; cursor:pointer; display:flex; align-items:center; gap:8px; }
+        .btn-bulk:hover { background:#d97706; }
+        .search-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); display:flex; align-items:center; padding:12px 20px; margin-bottom:16px; position:relative; }
+        .search-wrapper i { color:var(--text-muted); font-size:20px; margin-right:12px; }
+        .search-wrapper input { border:none; background:transparent; width:100%; outline:none; font-size:16px; color:var(--text-dark); }
+        .search-history { position:absolute; top:100%; left:0; right:0; background:white; border:1px solid var(--border); border-radius:var(--radius-md); margin-top:4px; box-shadow:0 10px 30px rgba(0,0,0,0.1); z-index:50; display:none; max-height:300px; overflow-y:auto; }
+        .search-history.show { display:block; }
+        .search-history-item { padding:12px 20px; cursor:pointer; display:flex; align-items:center; gap:10px; font-size:14px; color:var(--text-dark); border-bottom:1px solid #F3F4F6; }
+        .search-history-item:hover { background:var(--purple-light); }
+        .search-history-item:last-child { border-bottom:none; }
+        .search-history-header { padding:10px 20px; font-size:12px; color:var(--text-muted); font-weight:700; text-transform:uppercase; background:#FAFAFA; }
+        .bulk-bar { background:var(--warning); color:white; padding:12px 20px; border-radius:var(--radius-md); margin-bottom:16px; display:none; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+        .bulk-bar.active { display:flex; }
+        .bulk-bar-info { font-weight:700; font-size:14px; display:flex; align-items:center; gap:10px; }
+        .bulk-bar-actions { display:flex; gap:10px; }
+        .btn-bulk-action { background:white; color:var(--warning); border:none; padding:10px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; }
+        .btn-bulk-cancel { background:rgba(255,255,255,0.2); color:white; border:1px solid white; padding:10px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; }
+        .list-container { display:flex; flex-direction:column; gap:12px; }
+        .list-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; transition:0.2s; }
+        .list-item:hover { border-color:var(--primary); box-shadow:0 4px 12px rgba(123,44,191,0.05); }
+        .list-item.selected { border-color:var(--warning); background:#FFFBEB; }
+        .select-checkbox { width:22px; height:22px; cursor:pointer; accent-color:var(--warning); flex-shrink:0; }
+        .user-info { display:flex; align-items:center; gap:14px; flex:1; min-width:0; }
+        .avatar-list { width:48px; height:48px; background:var(--purple-light); color:var(--primary); border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; overflow:hidden; flex-shrink:0; }
+        .avatar-list img { width:100%; height:100%; object-fit:cover; }
+        .user-details { min-width:0; }
+        .user-details h4 { font-size:16px; font-weight:700; margin-bottom:4px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .user-details p { font-size:13px; color:var(--text-muted); }
+        .tags-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
+        .tag { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px; }
+        .tag-acil { background:#FEE2E2; color:var(--danger); }
+        .tag-takip { background:#DBEAFE; color:#3B82F6; }
+        .tag-yeni { background:#D1FAE5; color:var(--success); }
+        .tag-ozel { background:var(--purple-light); color:var(--primary); }
+        .list-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+        .btn-notify { background:#DBEAFE; color:#3B82F6; border:none; padding:10px 16px; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:0.2s; }
+        .btn-notify:hover { background:#BFDBFE; }
+        .btn-tag { background:var(--purple-light); color:var(--primary); border:none; padding:10px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .btn-tag:hover { background:#E0AAFF; }
+        .btn-delete { background:transparent; border:1px solid var(--border); width:38px; height:38px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--danger); transition:0.2s; }
+        .btn-delete:hover { background:#FEE2E2; border-color:var(--danger); }
+        .empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); background:var(--surface); border-radius:var(--radius-md); border:1px dashed var(--border); }
+        .empty-state i { font-size:50px; opacity:0.3; margin-bottom:15px; display:block; }
+        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:2000; padding:20px; }
+        .modal-overlay.active { display:flex; }
+        .modal-content { background:var(--surface); padding:30px; border-radius:var(--radius-lg); width:100%; max-width:450px; box-shadow:0 25px 50px rgba(0,0,0,0.25); }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .modal-header h3 { font-size:20px; font-weight:800; }
+        .modal-close { background:none; border:none; font-size:24px; cursor:pointer; color:var(--text-muted); }
+        .modal-input { width:100%; padding:12px 16px; margin-bottom:16px; border:1px solid var(--border); border-radius:var(--radius-md); outline:none; font-family:inherit; font-size:15px; }
+        .modal-input:focus { border-color:var(--primary); }
+        .modal-textarea { width:100%; padding:12px 16px; margin-bottom:16px; border:1px solid var(--border); border-radius:var(--radius-md); outline:none; font-family:inherit; resize:none; min-height:100px; font-size:15px; }
+        .modal-textarea:focus { border-color:var(--primary); }
+        .btn-save { width:100%; padding:14px; background:var(--primary); color:white; border:none; border-radius:var(--radius-md); font-weight:700; cursor:pointer; }
+        .btn-save:hover { background:#5a189a; }
+        .tag-options { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+        .tag-option { padding:10px 18px; border-radius:20px; font-size:14px; font-weight:700; cursor:pointer; border:2px solid transparent; transition:0.2s; }
+        .tag-option.selected { border-color:var(--primary); }
+        @media (max-width:768px) {
+            .top-navbar { padding:0 12px; }
+            .user-name { display:none; }
+            .btn-logout { padding:8px 10px; font-size:12px; }
+            .nav-actions { gap:8px; }
+            .app-body { flex-direction:column; }
+            .sidebar { width:100%; height:70px; position:fixed; bottom:0; top:auto; flex-direction:row; justify-content:space-around; align-items:center; padding:8px 5px; border-right:none; border-top:1px solid var(--border); background:rgba(255,255,255,0.97); z-index:1000; overflow-x:auto; overflow-y:hidden; }
+            .nav-menu { flex-direction:row; gap:0; width:100%; justify-content:space-around; }
+            .nav-link { flex-direction:column; padding:6px 4px; font-size:10px; gap:2px; text-align:center; margin-bottom:0; min-width:0; }
+            .nav-link i { font-size:22px; }
+            .nav-link .menu-badge { position:absolute; top:2px; right:8px; margin-left:0; }
+            .main-wrapper { margin-left:0; padding:20px; padding-bottom:90px; }
+            .page-header { flex-direction:column; align-items:flex-start; }
+            .header-actions { width:100%; }
+            .btn-add, .btn-bulk { flex:1; justify-content:center; padding:12px 16px; font-size:14px; }
+            .list-item { flex-direction:column; align-items:flex-start; gap:14px; }
+            .list-actions { width:100%; justify-content:space-between; }
+            .btn-notify { flex:1; justify-content:center; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ÜST NAVBAR -->
     <header class="top-navbar">
         <a href="index.html" class="nav-logo">
-            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda">
             UzmanOda
         </a>
         <div class="nav-actions">
-            <div class="user-info-nav">
-                <div class="avatar-nav" id="profilAvatar">U</div>
-                <span class="user-name" id="profilIsim">Yükleniyor...</span>
-            </div>
-            <button onclick="cikisYap()" class="btn-logout">
-                <i class="ph ph-sign-out"></i> Çıkış Yap
+            <button class="notif-btn" onclick="window.location.href='bildirimler.html'" title="Bildirimler">
+                <i class="ph ph-bell"></i>
+                <span class="notif-badge" id="notifBadge">0</span>
             </button>
+            <div class="user-info-nav" onclick="window.location.href='uzman-profil.html'">
+                <div class="avatar-nav" id="navbarAvatar">U</div>
+                <span class="user-name" id="navbarIsim">Yükleniyor...</span>
+            </div>
+            <button onclick="cikisYap()" class="btn-logout"><i class="ph ph-sign-out"></i> Çıkış</button>
         </div>
     </header>
 
-    <!-- UYGULAMA GÖVDESİ -->
     <div class="app-body">
-        
-        <!-- SOL MENÜ -->
         <aside class="sidebar">
             <div class="nav-menu">
-                <a href="uzman-panel.html" class="nav-link">
-                    <i class="ph ph-squares-four"></i> Panel
+                <a href="uzman-panel.html" class="nav-link"><i class="ph ph-squares-four"></i> Panel</a>
+                <a href="danisanlarim.html" class="nav-link active"><i class="ph ph-users"></i> Danışanlar</a>
+                <a href="testlerim.html" class="nav-link"><i class="ph ph-exam"></i> Testler</a>
+                <a href="randevular.html" class="nav-link"><i class="ph ph-calendar"></i> Randevular</a>
+                <a href="raporlar.html" class="nav-link"><i class="ph ph-chart-line-up"></i> Raporlar</a>
+                <a href="gecmis.html" class="nav-link"><i class="ph ph-clock-counter-clockwise"></i> Geçmiş</a>
+                <a href="bildirimler.html" class="nav-link">
+                    <i class="ph ph-bell"></i> Bildirimler
+                    <span class="menu-badge" id="menuBadge" style="display:none;">0</span>
                 </a>
-                <a href="danisanlarim.html" class="nav-link active">
-                    <i class="ph ph-users"></i> Danışanlarım
-                </a>
-                <a href="testlerim.html" class="nav-link">
-                    <i class="ph ph-exam"></i> Testlerim
-                </a>
-                <a href="gecmis.html" class="nav-link">
-                    <i class="ph ph-clock-counter-clockwise"></i> Geçmiş
-                </a>
+                <a href="uzman-profil.html" class="nav-link"><i class="ph ph-user-circle"></i> Profilim</a>
             </div>
         </aside>
 
-        <!-- ANA İÇERİK -->
         <main class="main-wrapper">
             <div class="panel-container">
                 
                 <div class="page-header">
                     <div class="page-title">
                         <h1>Danışanlarım</h1>
-                        <p>Danışanlarınızı yönetin ve onlara bildirim gönderin.</p>
+                        <p>Danışanlarınızı yönetin, etiketleyin ve toplu bildirim gönderin.</p>
                     </div>
-                    <button class="btn-add" onclick="modalAc()">
-                        <i class="ph ph-plus"></i> Yeni Danışan Ekle
-                    </button>
+                    <div class="header-actions">
+                        <button class="btn-bulk" onclick="topluModAc()" id="bulkModeBtn"><i class="ph ph-check-square"></i> Toplu Seçim</button>
+                        <button class="btn-add" onclick="modalAc()"><i class="ph ph-plus"></i> Yeni Danışan</button>
+                    </div>
                 </div>
 
-                <!-- ARAMA ÇUBUĞU -->
+                <div class="bulk-bar" id="bulkBar">
+                    <div class="bulk-bar-info">
+                        <i class="ph ph-check-square"></i>
+                        <span id="selectedCount">0</span> danışan seçili
+                    </div>
+                    <div class="bulk-bar-actions">
+                        <button class="btn-bulk-action" onclick="topluBildirimModalAc()"><i class="ph ph-paper-plane-right"></i> Bildirim Gönder</button>
+                        <button class="btn-bulk-cancel" onclick="topluModKapat()">İptal</button>
+                    </div>
+                </div>
+
                 <div class="search-wrapper">
                     <i class="ph ph-magnifying-glass"></i>
-                    <input type="text" id="aramaGirdisi" placeholder="İsim veya e-posta ile arayın..." onkeyup="listeyiFiltrele()">
+                    <input type="text" id="aramaGirdisi" placeholder="İsim veya e-posta ile arayın..." onkeyup="listeyiFiltrele()" onfocus="gecmisGoster()" onblur="setTimeout(() => gecmisGizle(), 200)">
+                    <div class="search-history" id="searchHistory"></div>
                 </div>
 
-                <!-- DANIŞAN LİSTESİ -->
                 <div class="list-container" id="danisanListesi">
                     <div class="empty-state">
-                        <i class="ph ph-spinner ph-spin" style="font-size: 32px; margin-bottom: 10px;"></i>
+                        <i class="ph ph-spinner ph-spin"></i>
                         <p>Danışanlar yükleniyor...</p>
                     </div>
                 </div>
@@ -246,20 +200,48 @@
         </main>
     </div>
 
-    <!-- YENİ DANIŞAN EKLEME MODALI -->
     <div class="modal-overlay" id="eklemeModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Danışan Ekle</h3>
                 <button class="modal-close" onclick="modalKapat()">&times;</button>
             </div>
-            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Danışanın sisteme kayıtlı e-posta adresini girin.</p>
+            <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">Danışanın sisteme kayıtlı e-posta adresini girin.</p>
             <input type="email" id="yeniDanisanEmail" class="modal-input" placeholder="ornek@mail.com">
             <button class="btn-save" onclick="danisanEkle()">Danışanı Ekle</button>
         </div>
     </div>
 
-    <!-- MOTOR (GERÇEK FIREBASE ENTEGRASYONU) -->
+    <div class="modal-overlay" id="etiketModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Etiket Ekle</h3>
+                <button class="modal-close" onclick="etiketModalKapat()">&times;</button>
+            </div>
+            <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px;" id="etiketDanisanIsim">Danışan</p>
+            <div class="tag-options">
+                <div class="tag-option tag-acil" data-tag="acil" onclick="etiketSec(this)">🔴 Acil</div>
+                <div class="tag-option tag-takip" data-tag="takip" onclick="etiketSec(this)">🔵 Takip</div>
+                <div class="tag-option tag-yeni" data-tag="yeni" onclick="etiketSec(this)">🟢 Yeni</div>
+                <div class="tag-option tag-ozel" data-tag="ozel" onclick="etiketSec(this)">🟣 Özel</div>
+            </div>
+            <button class="btn-save" onclick="etiketKaydet()">Etiketleri Kaydet</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="topluBildirimModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Toplu Bildirim Gönder</h3>
+                <button class="modal-close" onclick="topluBildirimModalKapat()">&times;</button>
+            </div>
+            <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px;"><span id="topluCount">0</span> danışana bildirim gönderilecek.</p>
+            <input type="text" id="topluBaslik" class="modal-input" placeholder="Başlık (örn: Duyuru)">
+            <textarea id="topluMesaj" class="modal-textarea" placeholder="Mesajınızı yazın..."></textarea>
+            <button class="btn-save" onclick="topluBildirimGonder()">Bildirimi Gönder</button>
+        </div>
+    </div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
@@ -269,88 +251,112 @@
             messagingSenderId: "71880478784",
             appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
         };
-
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
         let aktifUzmanId = null;
-        let tumDanisanlar = []; 
-        let unsubDanisanlar = null; 
+        let tumDanisanlar = [];
+        let unsubDanisanlar = null;
+        let unsubBildirim = null;
+        let topluMod = false;
+        let secilenler = new Set();
+        let aramaGecmisi = [];
+        let etiketlenecekDanisan = null;
+        let etiketSecimleri = new Set();
 
-        // 1. GÜVENLİK DUVARI
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                aktifUzmanId = user.uid;
-                
-                db.collection('uzmanlar').doc(user.uid).get().then((doc) => {
-                    if (doc.exists) {
-                        const data = doc.data();
-                        document.getElementById('profilIsim').innerText = data.isim;
-                        document.getElementById('profilAvatar').innerText = data.isim.charAt(0).toUpperCase();
-                    }
-                });
+        try { aramaGecmisi = JSON.parse(localStorage.getItem('aramaGecmisi') || '[]'); } catch(e) {}
 
-                danisanlariDinle();
-
-            } else {
-                window.location.href = "uzman-giris.html";
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = "uzman-giris.html"; return; }
+            aktifUzmanId = user.uid;
+            
+            const doc = await db.collection('uzmanlar').doc(user.uid).get();
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById('navbarIsim').innerText = data.isim || 'Uzman';
+                if (data.fotoBase64) {
+                    document.getElementById('navbarAvatar').innerHTML = `<img src="${data.fotoBase64}">`;
+                } else {
+                    document.getElementById('navbarAvatar').innerText = (data.isim || 'U').charAt(0).toUpperCase();
+                }
             }
+            danisanlariDinle();
+            bildirimSayaciDinle();
         });
 
-        // 2. DANIŞANLARI CANLI DİNLE
-        function danisanlariDinle() {
-            if(unsubDanisanlar) unsubDanisanlar(); 
-
-            unsubDanisanlar = db.collection('uzmanDanisanlari')
-                .where('uzmanId', '==', aktifUzmanId)
-                .onSnapshot((snapshot) => {
-                    tumDanisanlar = [];
-                    snapshot.forEach((doc) => {
-                        tumDanisanlar.push({
-                            id: doc.id, 
-                            ...doc.data()
-                        });
-                    });
-                    listeyiCiz(tumDanisanlar);
-                }, (error) => {
-                    console.error("Dinleme hatası:", error);
+        // BİLDİRİM SAYACI
+        function bildirimSayaciDinle() {
+            if (unsubBildirim) unsubBildirim();
+            unsubBildirim = db.collection('bildirimler')
+                .where('aliciId', '==', aktifUzmanId)
+                .where('okundu', '==', false)
+                .onSnapshot(snapshot => {
+                    const count = snapshot.size;
+                    const badge = document.getElementById('notifBadge');
+                    const menuBadge = document.getElementById('menuBadge');
+                    badge.innerText = count;
+                    badge.classList.toggle('show', count > 0);
+                    menuBadge.innerText = count;
+                    menuBadge.style.display = count > 0 ? 'inline-block' : 'none';
                 });
         }
 
-        // 3. LİSTEYİ EKRANA ÇİZME
+        function danisanlariDinle() {
+            if (unsubDanisanlar) unsubDanisanlar();
+            unsubDanisanlar = db.collection('uzmanDanisanlari')
+                .where('uzmanId', '==', aktifUzmanId)
+                .onSnapshot(snapshot => {
+                    tumDanisanlar = [];
+                    snapshot.forEach(doc => tumDanisanlar.push({ id: doc.id, ...doc.data() }));
+                    listeyiCiz(tumDanisanlar);
+                });
+        }
+
         function listeyiCiz(liste) {
             const container = document.getElementById('danisanListesi');
-            container.innerHTML = "";
-
+            container.innerHTML = '';
             if (liste.length === 0) {
-                container.innerHTML = `<div class="empty-state">
-                    <i class="ph ph-users" style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;"></i>
-                    <p>Henüz danışan bulunmuyor. Sağ üstten yeni danışan ekleyin.</p>
-                </div>`;
+                container.innerHTML = `<div class="empty-state"><i class="ph ph-users"></i><p>Henüz danışan bulunmuyor.</p></div>`;
                 return;
             }
+            liste.forEach(d => {
+                const isim = d.danisanIsim || 'İsimsiz';
+                const email = d.danisanEmail || '-';
+                const harf = isim.charAt(0).toUpperCase();
+                const tags = d.etiketler || [];
+                
+                let tagsHTML = '';
+                if (tags.length > 0) {
+                    tagsHTML = '<div class="tags-row">';
+                    tags.forEach(t => {
+                        const tagText = { acil:'Acil', takip:'Takip', yeni:'Yeni', ozel:'Özel' }[t] || t;
+                        tagsHTML += `<span class="tag tag-${t}">${tagText}</span>`;
+                    });
+                    tagsHTML += '</div>';
+                }
 
-            liste.forEach(danisan => {
-                const isim = danisan.danisanIsim || "İsimsiz";
-                const email = danisan.danisanEmail || "E-posta yok";
-                const basHarf = isim.charAt(0).toUpperCase();
-
+                const secili = secilenler.has(d.id);
                 const item = document.createElement('div');
-                item.className = 'list-item';
+                item.className = 'list-item' + (secili ? ' selected' : '');
                 item.innerHTML = `
+                    ${topluMod ? `<input type="checkbox" class="select-checkbox" ${secili ? 'checked' : ''} onchange="secimDegistir('${d.id}', this)">` : ''}
                     <div class="user-info">
-                        <div class="avatar-list">${basHarf}</div>
+                        <div class="avatar-list">${harf}</div>
                         <div class="user-details">
                             <h4>${isim}</h4>
                             <p>${email}</p>
+                            ${tagsHTML}
                         </div>
                     </div>
                     <div class="list-actions">
-                        <button class="btn-notify" onclick="bildirimGonder('${danisan.danisanId}', '${isim}')">
-                            <i class="ph ph-paper-plane-right"></i> Bildirim Gönder
+                        <button class="btn-notify" onclick="tekBildirimGonder('${d.danisanId}', '${isim}')">
+                            <i class="ph ph-paper-plane-right"></i> Bildirim
                         </button>
-                        <button class="btn-delete" onclick="danisanSil('${danisan.id}', '${isim}')">
+                        <button class="btn-tag" onclick="etiketModalAc('${d.id}', '${d.danisanId}', '${isim}', ${JSON.stringify(tags).replace(/"/g,'&quot;')})" title="Etiketle">
+                            <i class="ph ph-tag"></i>
+                        </button>
+                        <button class="btn-delete" onclick="danisanSil('${d.id}', '${isim}')">
                             <i class="ph ph-trash"></i>
                         </button>
                     </div>
@@ -359,67 +365,197 @@
             });
         }
 
-        // 4. ARAMA FONKSİYONU
         function listeyiFiltrele() {
-            const arama = document.getElementById('aramaGirdisi').value.toLowerCase();
-            const filtrelenmis = tumDanisanlar.filter(d => {
-                const isim = (d.danisanIsim || "").toLowerCase();
-                const email = (d.danisanEmail || "").toLowerCase();
+            const arama = document.getElementById('aramaGirdisi').value.toLowerCase().trim();
+            if (arama === '') { listeyiCiz(tumDanisanlar); return; }
+            const filtre = tumDanisanlar.filter(d => {
+                const isim = (d.danisanIsim || '').toLowerCase();
+                const email = (d.danisanEmail || '').toLowerCase();
                 return isim.includes(arama) || email.includes(arama);
             });
-            listeyiCiz(filtrelenmis);
+            listeyiCiz(filtre);
+            if (arama.length > 2) { aramaGecmisiKaydet(arama); }
         }
 
-        // 5. DANIŞAN SİLME
-        function danisanSil(docId, isim) {
-            if (confirm(isim + " isimli danışanı listenizden silmek istediğinize emin misiniz?\n\n(Danışanın sistemdeki hesabı silinmez, sadece sizin listenizden kaldırılır.)")) {
-                db.collection('uzmanDanisanlari').doc(docId).delete()
-                .then(() => {
-                    // onSnapshot sayesinde liste anında güncellenecek
-                })
-                .catch((error) => {
-                    console.error("Silme hatası:", error);
-                    alert("Danışan silinirken bir hata oluştu: " + error.message);
+        function aramaGecmisiKaydet(arama) {
+            aramaGecmisi = aramaGecmisi.filter(a => a !== arama);
+            aramaGecmisi.unshift(arama);
+            if (aramaGecmisi.length > 5) aramaGecmisi = aramaGecmisi.slice(0, 5);
+            localStorage.setItem('aramaGecmisi', JSON.stringify(aramaGecmisi));
+        }
+
+        function gecmisGoster() {
+            if (aramaGecmisi.length === 0) return;
+            const el = document.getElementById('searchHistory');
+            el.innerHTML = '<div class="search-history-header">Son Aramalar</div>';
+            aramaGecmisi.forEach(a => {
+                const item = document.createElement('div');
+                item.className = 'search-history-item';
+                item.innerHTML = `<i class="ph ph-clock-counter-clockwise"></i> ${a}`;
+                item.onmousedown = () => {
+                    document.getElementById('aramaGirdisi').value = a;
+                    listeyiFiltrele();
+                };
+                el.appendChild(item);
+            });
+            el.classList.add('show');
+        }
+
+        function gecmisGizle() {
+            document.getElementById('searchHistory').classList.remove('show');
+        }
+
+        function topluModAc() {
+            topluMod = true;
+            secilenler.clear();
+            document.getElementById('bulkModeBtn').style.display = 'none';
+            document.getElementById('bulkBar').classList.add('active');
+            guncelleTopluBar();
+            listeyiCiz(tumDanisanlar);
+        }
+
+        function topluModKapat() {
+            topluMod = false;
+            secilenler.clear();
+            document.getElementById('bulkModeBtn').style.display = 'flex';
+            document.getElementById('bulkBar').classList.remove('active');
+            listeyiCiz(tumDanisanlar);
+        }
+
+        function secimDegistir(id, checkbox) {
+            if (checkbox.checked) secilenler.add(id);
+            else secilenler.delete(id);
+            guncelleTopluBar();
+            listeyiCiz(tumDanisanlar);
+        }
+
+        function guncelleTopluBar() {
+            document.getElementById('selectedCount').innerText = secilenler.size;
+        }
+
+        function topluBildirimModalAc() {
+            if (secilenler.size === 0) { alert("Lütfen en az bir danışan seçin."); return; }
+            document.getElementById('topluCount').innerText = secilenler.size;
+            document.getElementById('topluBildirimModal').classList.add('active');
+        }
+
+        function topluBildirimModalKapat() {
+            document.getElementById('topluBildirimModal').classList.remove('active');
+            document.getElementById('topluBaslik').value = '';
+            document.getElementById('topluMesaj').value = '';
+        }
+
+        async function topluBildirimGonder() {
+            const baslik = document.getElementById('topluBaslik').value.trim();
+            const mesaj = document.getElementById('topluMesaj').value.trim();
+            if (!baslik || !mesaj) { alert("Başlık ve mesaj gerekli."); return; }
+
+            const secilenList = tumDanisanlar.filter(d => secilenler.has(d.id));
+            let basarili = 0;
+
+            for (const d of secilenList) {
+                try {
+                    await db.collection('bildirimler').add({
+                        aliciId: d.danisanId,
+                        gonderenId: aktifUzmanId,
+                        baslik: baslik,
+                        mesaj: mesaj,
+                        okundu: false,
+                        tarih: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    basarili++;
+                } catch(e) { console.error(e); }
+            }
+
+            alert(basarili + " danışana bildirim gönderildi!");
+            topluBildirimModalKapat();
+            topluModKapat();
+        }
+
+        async function tekBildirimGonder(danisanId, isim) {
+            const mesaj = prompt(isim + " isimli danışana göndermek istediğiniz mesajı yazın:");
+            if (mesaj && mesaj.trim()) {
+                await db.collection('bildirimler').add({
+                    aliciId: danisanId,
+                    gonderenId: aktifUzmanId,
+                    baslik: "Uzmanınızdan Mesaj Var",
+                    mesaj: mesaj,
+                    okundu: false,
+                    tarih: firebase.firestore.FieldValue.serverTimestamp()
                 });
+                alert("Bildirim gönderildi!");
             }
         }
 
-        // 6. YENİ DANIŞAN EKLEME
+        function etiketModalAc(docId, danisanId, isim, mevcutEtiketler) {
+            etiketlenecekDanisan = { docId, danisanId, isim };
+            etiketSecimleri = new Set(mevcutEtiketler);
+            document.getElementById('etiketDanisanIsim').innerText = isim;
+            
+            document.querySelectorAll('.tag-option').forEach(opt => {
+                const tag = opt.getAttribute('data-tag');
+                if (etiketSecimleri.has(tag)) opt.classList.add('selected');
+                else opt.classList.remove('selected');
+            });
+            
+            document.getElementById('etiketModal').classList.add('active');
+        }
+
+        function etiketModalKapat() {
+            document.getElementById('etiketModal').classList.remove('active');
+        }
+
+        function etiketSec(opt) {
+            const tag = opt.getAttribute('data-tag');
+            if (etiketSecimleri.has(tag)) {
+                etiketSecimleri.delete(tag);
+                opt.classList.remove('selected');
+            } else {
+                etiketSecimleri.add(tag);
+                opt.classList.add('selected');
+            }
+        }
+
+        async function etiketKaydet() {
+            if (!etiketlenecekDanisan) return;
+            try {
+                await db.collection('uzmanDanisanlari').doc(etiketlenecekDanisan.docId).update({
+                    etiketler: Array.from(etiketSecimleri)
+                });
+                etiketModalKapat();
+            } catch(e) { alert("Hata: " + e.message); }
+        }
+
+        function danisanSil(docId, isim) {
+            if (confirm(isim + " isimli danışanı listenizden silmek istediğinize emin misiniz?")) {
+                db.collection('uzmanDanisanlari').doc(docId).delete()
+                .catch(e => alert("Hata: " + e.message));
+            }
+        }
+
+        function modalAc() { document.getElementById('eklemeModal').classList.add('active'); }
+        function modalKapat() { document.getElementById('eklemeModal').classList.remove('active'); }
+
         async function danisanEkle() {
             const email = document.getElementById('yeniDanisanEmail').value.trim().toLowerCase();
-            
-            if (!email) {
-                alert("Lütfen bir e-posta adresi girin.");
-                return;
-            }
-
-            const btn = document.querySelector('.btn-save');
-            btn.innerText = "Aranıyor...";
-            btn.disabled = true;
+            if (!email) { alert("E-posta girin."); return; }
+            const btn = document.querySelector('#eklemeModal .btn-save');
+            btn.innerText = "Aranıyor..."; btn.disabled = true;
 
             try {
-                const danisanSorgu = await db.collection('danisanlar').where('email', '==', email).get();
-
-                if (danisanSorgu.empty) {
-                    alert("Bu e-posta adresine sahip bir danışan bulunamadı. Danışanın önce sisteme kayıt olması gerekir.");
-                    btn.innerText = "Danışanı Ekle";
-                    btn.disabled = false;
-                    return;
+                const sorgu = await db.collection('danisanlar').where('email', '==', email).get();
+                if (sorgu.empty) {
+                    alert("Bu e-posta ile kayıtlı danışan bulunamadı.");
+                    btn.innerText = "Danışanı Ekle"; btn.disabled = false; return;
                 }
+                const danisanData = sorgu.docs[0].data();
+                const danisanId = sorgu.docs[0].id;
 
-                const danisanData = danisanSorgu.docs[0].data();
-                const danisanId = danisanSorgu.docs[0].id;
-
-                const zatenEkli = await db.collection('uzmanDanisanlari')
-                    .where('uzmanId', '==', aktifUzmanId)
-                    .where('danisanId', '==', danisanId)
-                    .get();
-
-                if (!zatenEkli.empty) {
-                    alert("Bu danışan zaten listenizde kayıtlı.");
-                    btn.innerText = "Danışanı Ekle";
-                    btn.disabled = false;
-                    return;
+                const zaten = await db.collection('uzmanDanisanlari')
+                    .where('uzmanId', '==', aktifUzmanId).where('danisanId', '==', danisanId).get();
+                if (!zaten.empty) {
+                    alert("Bu danışan zaten listenizde.");
+                    btn.innerText = "Danışanı Ekle"; btn.disabled = false; return;
                 }
 
                 await db.collection('uzmanDanisanlari').add({
@@ -427,53 +563,20 @@
                     danisanId: danisanId,
                     danisanIsim: danisanData.isim + " " + danisanData.soyisim,
                     danisanEmail: danisanData.email,
+                    etiketler: [],
                     eklenmeTarihi: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                alert("Danışan başarıyla listenize eklendi.");
+                alert("Danışan eklendi!");
                 modalKapat();
-                document.getElementById('yeniDanisanEmail').value = "";
-
-            } catch (error) {
-                console.error("Ekleme hatası:", error);
-                alert("Bir hata oluştu: " + error.message);
-            } finally {
-                btn.innerText = "Danışanı Ekle";
-                btn.disabled = false;
-            }
-        }
-
-        // 7. BİLDİRİM GÖNDERME
-        async function bildirimGonder(danisanId, isim) {
-            const mesaj = prompt(isim + " isimli danışana göndermek istediğiniz mesajı yazın:");
+                document.getElementById('yeniDanisanEmail').value = '';
+            } catch(e) { alert("Hata: " + e.message); }
             
-            if (mesaj && mesaj.trim() !== "") {
-                try {
-                    await db.collection('bildirimler').add({
-                        aliciId: danisanId,
-                        gonderenId: aktifUzmanId,
-                        baslik: "Uzmanınızdan Mesaj Var",
-                        mesaj: mesaj,
-                        okundu: false,
-                        tarih: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    alert("Bildirim başarıyla gönderildi!");
-                } catch (error) {
-                    console.error("Bildirim hatası:", error);
-                    alert("Bildirim gönderilirken hata oluştu.");
-                }
-            }
+            btn.innerText = "Danışanı Ekle"; btn.disabled = false;
         }
 
-        // 8. MODAL AÇ / KAPAT
-        function modalAc() { document.getElementById('eklemeModal').classList.add('active'); }
-        function modalKapat() { document.getElementById('eklemeModal').classList.remove('active'); }
-
-        // 9. ÇIKIŞ YAP
         function cikisYap() {
-            auth.signOut().then(() => {
-                window.location.href = "index.html";
-            });
+            auth.signOut().then(() => window.location.href = "index.html");
         }
     </script>
 </body>
