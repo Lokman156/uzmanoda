@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzmanOda | Bildirimler</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        :root { --primary:#7B2CBF; --purple-light:#F3E8FF; --text-dark:#1F2937; --text-muted:#6B7280; --surface:#FFF; --border:#E5E7EB; --success:#10B981; --danger:#EF4444; --radius-lg:24px; --radius-md:12px; --nav-height:70px; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+        html, body { overflow-x:hidden; background:#FAFAFA; color:var(--text-dark); min-height:100vh; }
+        .top-navbar { position:fixed; top:0; left:0; width:100%; height:var(--nav-height); background:var(--surface); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; padding:0 24px; z-index:1000; }
+        .nav-logo { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--primary); font-size:22px; font-weight:800; }
+        .nav-logo img { height:36px; border-radius:8px; }
+        .nav-actions { display:flex; align-items:center; gap:16px; }
+        .notif-btn { position:relative; background:transparent; border:none; font-size:24px; color:var(--text-dark); cursor:pointer; padding:8px; border-radius:50%; transition:0.2s; }
+        .notif-btn:hover { background:var(--purple-light); color:var(--primary); }
+        .notif-badge { position:absolute; top:2px; right:2px; background:var(--danger); color:white; font-size:10px; font-weight:800; padding:2px 6px; border-radius:10px; min-width:18px; text-align:center; display:none; }
+        .notif-badge.show { display:block; }
+        .user-info-nav { display:flex; align-items:center; gap:10px; cursor:pointer; padding:6px 10px; border-radius:20px; transition:0.2s; }
+        .user-info-nav:hover { background:var(--purple-light); }
+        .avatar-nav { width:36px; height:36px; background:var(--purple-light); color:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; overflow:hidden; }
+        .avatar-nav img { width:100%; height:100%; object-fit:cover; }
+        .user-name { font-size:15px; font-weight:700; }
+        .btn-logout { background:#FEE2E2; color:var(--danger); border:none; padding:8px 16px; border-radius:var(--radius-md); font-weight:700; font-size:14px; cursor:pointer; }
+        .app-body { display:flex; margin-top:var(--nav-height); min-height:calc(100vh - var(--nav-height)); }
+        .sidebar { width:260px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:24px; position:fixed; top:var(--nav-height); bottom:0; left:0; z-index:100; overflow-y:auto; }
+        .nav-menu { display:flex; flex-direction:column; gap:6px; flex:1; }
+        .nav-link { display:flex; align-items:center; gap:12px; padding:13px 16px; color:var(--text-muted); text-decoration:none; font-weight:600; font-size:15px; border-radius:var(--radius-md); transition:0.2s; position:relative; }
+        .nav-link:hover, .nav-link.active { background:var(--purple-light); color:var(--primary); }
+        .nav-link i { font-size:20px; }
+        .nav-link .menu-badge { margin-left:auto; background:var(--danger); color:white; font-size:11px; font-weight:800; padding:2px 7px; border-radius:10px; }
+        .main-wrapper { flex:1; margin-left:260px; padding:40px; background:linear-gradient(135deg,#FDF2F8 0%,#F3E8FF 100%); }
+        .panel-container { max-width:900px; margin:0 auto; }
+        .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:15px; }
+        .page-header h1 { font-size:28px; font-weight:800; margin-bottom:6px; }
+        .page-header p { color:var(--text-muted); font-size:15px; }
+        .btn-mark-all { background:var(--purple-light); color:var(--primary); border:none; padding:10px 20px; border-radius:var(--radius-md); font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:6px; }
+        
+        .filter-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+        .filter-tab { background:white; border:1px solid var(--border); padding:10px 20px; border-radius:50px; font-weight:700; font-size:14px; cursor:pointer; color:var(--text-muted); }
+        .filter-tab.active { background:var(--primary); color:white; border-color:var(--primary); }
+        
+        .notif-list { display:flex; flex-direction:column; gap:12px; }
+        .notif-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:18px 20px; display:flex; align-items:flex-start; gap:14px; cursor:pointer; transition:0.2s; position:relative; }
+        .notif-item:hover { border-color:var(--primary); }
+        .notif-item.unread { background:#FEF3C7; border-color:#FCD34D; }
+        .notif-item.unread::before { content:''; position:absolute; left:8px; top:50%; transform:translateY(-50%); width:8px; height:8px; background:var(--primary); border-radius:50%; }
+        .notif-icon { width:44px; height:44px; background:var(--purple-light); color:var(--primary); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+        .notif-content { flex:1; min-width:0; }
+        .notif-content h4 { font-size:15px; font-weight:700; margin-bottom:4px; }
+        .notif-content p { font-size:14px; color:var(--text-muted); line-height:1.5; word-wrap:break-word; }
+        .notif-time { font-size:12px; color:var(--primary); font-weight:600; margin-top:6px; display:block; }
+        .btn-delete-notif { background:none; border:none; color:var(--text-muted); cursor:pointer; padding:6px; border-radius:6px; flex-shrink:0; }
+        .btn-delete-notif:hover { background:#FEE2E2; color:var(--danger); }
+        
+        .empty-state { text-align:center; padding:80px 20px; color:var(--text-muted); }
+        .empty-state i { font-size:60px; opacity:0.3; margin-bottom:15px; display:block; }
+        .empty-state h3 { font-size:18px; margin-bottom:8px; }
+        
+        @media (max-width:768px) {
+            .top-navbar { padding:0 12px; }
+            .user-name { display:none; }
+            .btn-logout { padding:8px 10px; font-size:12px; }
+            .nav-actions { gap:8px; }
+            .app-body { flex-direction:column; }
+            .sidebar { width:100%; height:70px; position:fixed; bottom:0; top:auto; flex-direction:row; justify-content:space-around; align-items:center; padding:8px 5px; border-right:none; border-top:1px solid var(--border); background:rgba(255,255,255,0.97); z-index:1000; overflow-x:auto; overflow-y:hidden; }
+            .nav-menu { flex-direction:row; gap:0; width:100%; justify-content:space-around; }
+            .nav-link { flex-direction:column; padding:6px 4px; font-size:10px; gap:2px; text-align:center; margin-bottom:0; min-width:0; }
+            .nav-link i { font-size:22px; }
+            .nav-link .menu-badge { position:absolute; top:2px; right:8px; margin-left:0; }
+            .main-wrapper { margin-left:0; padding:20px; padding-bottom:90px; }
+            .page-header { flex-direction:column; align-items:flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-navbar">
+        <a href="index.html" class="nav-logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda">
+            UzmanOda
+        </a>
+        <div class="nav-actions">
+            <button class="notif-btn" onclick="window.location.href='bildirimler.html'" title="Bildirimler">
+                <i class="ph ph-bell"></i>
+                <span class="notif-badge" id="notifBadge">0</span>
+            </button>
+            <div class="user-info-nav" id="userInfoNav" onclick="profilGit()">
+                <div class="avatar-nav" id="navbarAvatar">U</div>
+                <span class="user-name" id="navbarIsim">Yükleniyor...</span>
+            </div>
+            <button onclick="cikisYap()" class="btn-logout"><i class="ph ph-sign-out"></i> Çıkış</button>
+        </div>
+    </header>
+
+    <div class="app-body">
+        <aside class="sidebar">
+            <div class="nav-menu" id="navMenu">
+                <!-- JS ile doldurulacak -->
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <div class="panel-container">
+                <div class="page-header">
+                    <div>
+                        <h1>Bildirimler</h1>
+                        <p>Tüm bildirimlerinizi buradan görebilirsiniz.</p>
+                    </div>
+                    <button class="btn-mark-all" onclick="tumunuOkundu()">
+                        <i class="ph ph-checks"></i> Tümünü Okundu İşaretle
+                    </button>
+                </div>
+
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="filtreDegistir('tumu', this)">Tümü</button>
+                    <button class="filter-tab" onclick="filtreDegistir('okunmamis', this)">Okunmamış</button>
+                    <button class="filter-tab" onclick="filtreDegistir('okunmus', this)">Okunmuş</button>
+                </div>
+
+                <div class="notif-list" id="notifList">
+                    <div class="empty-state"><i class="ph ph-spinner ph-spin"></i><p>Yükleniyor...</p></div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
+            authDomain: "uzmanoda.firebaseapp.com",
+            projectId: "uzmanoda",
+            storageBucket: "uzmanoda.firebasestorage.app",
+            messagingSenderId: "71880478784",
+            appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let aktifKullaniciId = null;
+        let rol = 'danisan';
+        let tumBildirimler = [];
+        let aktifFiltre = 'tumu';
+        let unsub = null;
+        let unsubBadge = null;
+
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = "danisan-giris.html"; return; }
+            aktifKullaniciId = user.uid;
+
+            // Rolü belirle
+            const uzmanDoc = await db.collection('uzmanlar').doc(user.uid).get();
+            if (uzmanDoc.exists) {
+                rol = 'uzman';
+                const d = uzmanDoc.data();
+                document.getElementById('navbarIsim').innerText = d.isim || 'Uzman';
+                if (d.fotoBase64) {
+                    document.getElementById('navbarAvatar').innerHTML = `<img src="${d.fotoBase64}">`;
+                } else {
+                    document.getElementById('navbarAvatar').innerText = (d.isim || 'U').charAt(0).toUpperCase();
+                }
+                navMenuOlustur('uzman');
+            } else {
+                const danisanDoc = await db.collection('danisanlar').doc(user.uid).get();
+                if (danisanDoc.exists) {
+                    const d = danisanDoc.data();
+                    document.getElementById('navbarIsim').innerText = (d.isim || '') + ' ' + (d.soyisim || '');
+                    if (d.fotoBase64) {
+                        document.getElementById('navbarAvatar').innerHTML = `<img src="${d.fotoBase64}">`;
+                    } else {
+                        document.getElementById('navbarAvatar').innerText = (d.isim || 'D').charAt(0).toUpperCase();
+                    }
+                }
+                navMenuOlustur('danisan');
+            }
+
+            bildirimleriDinle();
+            badgeDinle();
+        });
+
+        // PROFİL YÖNLENDİRME (Role göre)
+        function profilGit() {
+            if (rol === 'uzman') {
+                window.location.href = "uzman-profil.html";
+            } else {
+                window.location.href = "danisan-profil.html";
+            }
+        }
+
+        function navMenuOlustur(rol) {
+            const menu = document.getElementById('navMenu');
+            if (rol === 'uzman') {
+                menu.innerHTML = `
+                    <a href="uzman-panel.html" class="nav-link"><i class="ph ph-squares-four"></i> Panel</a>
+                    <a href="danisanlarim.html" class="nav-link"><i class="ph ph-users"></i> Danışanlar</a>
+                    <a href="testlerim.html" class="nav-link"><i class="ph ph-exam"></i> Testler</a>
+                    <a href="randevular.html" class="nav-link"><i class="ph ph-calendar"></i> Randevular</a>
+                    <a href="raporlar.html" class="nav-link"><i class="ph ph-chart-line-up"></i> Raporlar</a>
+                    <a href="gecmis.html" class="nav-link"><i class="ph ph-clock-counter-clockwise"></i> Geçmiş</a>
+                    <a href="bildirimler.html" class="nav-link active">
+                        <i class="ph ph-bell"></i> Bildirimler
+                        <span class="menu-badge" id="menuBadge" style="display:none;">0</span>
+                    </a>
+                    <a href="uzman-profil.html" class="nav-link"><i class="ph ph-user-circle"></i> Profilim</a>
+                `;
+            } else {
+                menu.innerHTML = `
+                    <a href="danisan-panel.html" class="nav-link"><i class="ph ph-squares-four"></i> Panel</a>
+                    <a href="danisan-gecmis.html" class="nav-link"><i class="ph ph-clock-counter-clockwise"></i> Geçmiş</a>
+                    <a href="bildirimler.html" class="nav-link active">
+                        <i class="ph ph-bell"></i> Bildirimler
+                        <span class="menu-badge" id="menuBadge" style="display:none;">0</span>
+                    </a>
+                    <a href="danisan-profil.html" class="nav-link"><i class="ph ph-user-circle"></i> Profilim</a>
+                `;
+            }
+        }
+
+        // TOP NAVBAR BADGE (canlı sayaç)
+        function badgeDinle() {
+            if (unsubBadge) unsubBadge();
+            unsubBadge = db.collection('bildirimler')
+                .where('aliciId', '==', aktifKullaniciId)
+                .where('okundu', '==', false)
+                .onSnapshot(snapshot => {
+                    const count = snapshot.size;
+                    const badge = document.getElementById('notifBadge');
+                    badge.innerText = count;
+                    badge.classList.toggle('show', count > 0);
+                    
+                    const menuBadge = document.getElementById('menuBadge');
+                    if (menuBadge) {
+                        menuBadge.innerText = count;
+                        menuBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                    }
+                });
+        }
+
+        function bildirimleriDinle() {
+            if (unsub) unsub();
+            unsub = db.collection('bildirimler')
+                .where('aliciId', '==', aktifKullaniciId)
+                .onSnapshot(snapshot => {
+                    tumBildirimler = [];
+                    snapshot.forEach(doc => tumBildirimler.push({ id: doc.id, ...doc.data() }));
+                    tumBildirimler.sort((a, b) => {
+                        const tA = a.tarih ? a.tarih.toMillis() : 0;
+                        const tB = b.tarih ? b.tarih.toMillis() : 0;
+                        return tB - tA;
+                    });
+                    renderListe();
+                });
+        }
+
+        function filtreDegistir(filtre, btn) {
+            aktifFiltre = filtre;
+            document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderListe();
+        }
+
+        function renderListe() {
+            const container = document.getElementById('notifList');
+            
+            let filtreli = tumBildirimler;
+            if (aktifFiltre === 'okunmamis') filtreli = tumBildirimler.filter(n => !n.okundu);
+            if (aktifFiltre === 'okunmus') filtreli = tumBildirimler.filter(n => n.okundu);
+            
+            if (filtreli.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i class="ph ph-bell-slash"></i><h3>Bildirim yok</h3><p>Bu kategoride henüz bildirim bulunmuyor.</p></div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            filtreli.forEach(n => {
+                const timeStr = n.tarih ? zamanFormatla(n.tarih.toDate()) : '';
+                const item = document.createElement('div');
+                item.className = 'notif-item' + (n.okundu ? '' : ' unread');
+                item.onclick = () => okunduIsaretle(n.id);
+                item.innerHTML = `
+                    <div class="notif-icon"><i class="ph ph-bell"></i></div>
+                    <div class="notif-content">
+                        <h4>${n.baslik || 'Bildirim'}</h4>
+                        <p>${n.mesaj || ''}</p>
+                        <span class="notif-time">${timeStr}</span>
+                    </div>
+                    <button class="btn-delete-notif" onclick="event.stopPropagation(); bildirimSil('${n.id}')" title="Sil">
+                        <i class="ph ph-x"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function zamanFormatla(d) {
+            const now = new Date();
+            const fark = now - d;
+            const dk = Math.floor(fark / 60000);
+            const saat = Math.floor(fark / 3600000);
+            const gun = Math.floor(fark / 86400000);
+            
+            if (dk < 1) return 'Az önce';
+            if (dk < 60) return dk + ' dakika önce';
+            if (saat < 24) return saat + ' saat önce';
+            if (gun < 7) return gun + ' gün önce';
+            return d.toLocaleDateString('tr-TR');
+        }
+
+        async function okunduIsaretle(id) {
+            try {
+                await db.collection('bildirimler').doc(id).update({ okundu: true });
+            } catch(e) { console.error(e); }
+        }
+
+        async function bildirimSil(id) {
+            if (!confirm("Bu bildirimi silmek istediğinize emin misiniz?")) return;
+            try {
+                await db.collection('bildirimler').doc(id).delete();
+            } catch(e) { alert("Hata: " + e.message); }
+        }
+
+        async function tumunuOkundu() {
+            const okunmamis = tumBildirimler.filter(n => !n.okundu);
+            if (okunmamis.length === 0) { alert("Zaten tümü okunmuş."); return; }
+            
+            for (const n of okunmamis) {
+                await db.collection('bildirimler').doc(n.id).update({ okundu: true });
+            }
+            alert(okunmamis.length + " bildirim okundu olarak işaretlendi.");
+        }
+
+        function cikisYap() {
+            auth.signOut().then(() => window.location.href = "index.html");
+        }
+    </script>
+</body>
+</html>
