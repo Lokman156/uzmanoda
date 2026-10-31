@@ -30,14 +30,16 @@
         }
         #localVideo { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
-        /* Bağlantı Durumu */
-        .conn-status {
+        /* ICE Bağlantı Göstergesi (Teşhis için) */
+        .ice-indicator {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 20px;
-            font-size: 13px; font-weight: 600; z-index: 20; display: flex; align-items: center; gap: 8px;
+            background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px;
+            font-size: 14px; font-weight: 600; z-index: 20; display: flex; align-items: center; gap: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
         }
         .dot { width: 10px; height: 10px; border-radius: 50%; background: orange; }
         .dot.connected { background: var(--success); box-shadow: 0 0 10px var(--success); }
+        .dot.failed { background: var(--danger); }
 
         /* Kontroller */
         .controls {
@@ -58,9 +60,9 @@
             <video id="localVideo" autoplay playsinline muted></video>
         </div>
 
-        <div class="conn-status">
-            <div class="dot" id="connDot"></div>
-            <span id="connText">Bağlanılıyor...</span>
+        <div class="ice-indicator">
+            <div class="dot" id="iceDot"></div>
+            <span id="iceText">ICE Bağlantısı: Bekleniyor</span>
         </div>
 
         <div class="controls">
@@ -127,44 +129,56 @@
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('localVideo').srcObject = localStream;
             } catch (err) {
-                alert("Kamera açılamadı!");
+                alert("Kamera açılamadı! Lütfen izin verin.");
             }
         }
 
         function baglantiKur() {
             peerConnection = new RTCPeerConnection(iceServers);
 
-            // GOOGLE'IN YÖNTEMİ: Gelen track'i manuel akışa ekle
+            // 1. Gelen video/ses akışını yakala
             peerConnection.ontrack = (event) => {
-                console.log("Track geldi:", event.track.kind);
-                remoteStream.addTrack(event.track);
+                console.log("Video/Audio Track Geldi!");
+                event.streams[0].getTracks().forEach(track => {
+                    remoteStream.addTrack(track);
+                });
                 
                 const remoteVideo = document.getElementById('remoteVideo');
                 remoteVideo.srcObject = remoteStream;
-                
-                // Tarayıcı sesi engelliyorsa kullanıcıya bildir
-                remoteVideo.play().catch(e => console.log("Oynatma engeli:", e));
+                remoteVideo.play().catch(e => console.log("Oynatma hatası:", e));
             };
 
-            // ICE Adaylarını gönder (kendi tarafımız)
+            // 2. ICE Adaylarını Firebase'e gönder
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
-                    db.collection('gorusmeler').doc(odaKodu).collection(isHost ? 'host' : 'guest').add(event.candidate.toJSON());
+                    db.collection('gorusmeler').doc(odaKodu).collection(isHost ? 'host' : 'guest').add(event.candidate.toJSON())
+                    .catch(e => console.log("Aday ekleme hatası (Firebase Kuralları?):", e));
                 }
             };
 
+            // 3. ICE Bağlantı Durumunu Ekrana Yaz
             peerConnection.oniceconnectionstatechange = () => {
-                if (peerConnection.iceConnectionState === 'connected') {
-                    document.getElementById('connDot').classList.add('connected');
-                    document.getElementById('connText').innerText = "Bağlandı";
+                const state = peerConnection.iceConnectionState;
+                const dot = document.getElementById('iceDot');
+                const text = document.getElementById('iceText');
+                
+                text.innerText = "ICE Bağlantısı: " + state;
+                
+                if (state === 'connected' || state === 'completed') {
+                    dot.className = 'dot connected';
+                } else if (state === 'failed' || state === 'disconnected') {
+                    dot.className = 'dot failed';
                 }
             };
 
+            // 4. Medyayı Ekle
             if (localStream) {
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
             }
 
+            // 5. Sinyalleşme (Teklif ve Cevap)
             if (isHost) {
+                // UZMAN: Cevap Dinle
                 db.collection('gorusmeler').doc(odaKodu).onSnapshot(async snapshot => {
                     const data = snapshot.data();
                     if (data && data.answer && !peerConnection.currentRemoteDescription) {
@@ -174,6 +188,7 @@
                     }
                 });
 
+                // UZMAN: Teklif Gönder
                 setTimeout(async () => {
                     try {
                         const offer = await peerConnection.createOffer();
@@ -186,6 +201,7 @@
                 }, 1000);
 
             } else {
+                // DANIŞAN: Teklif Dinle ve Cevap Ver
                 db.collection('gorusmeler').doc(odaKodu).onSnapshot(async snapshot => {
                     const data = snapshot.data();
                     if (data && data.offer && !peerConnection.currentRemoteDescription) {
@@ -201,9 +217,9 @@
                 });
             }
 
-            // GOOGLE'IN YÖNTEMİ: Karşı tarafın adaylarını kendi koleksiyonundan dinle
-            const remoteCollectionName = isHost ? 'guest' : 'host';
-            db.collection('gorusmeler').doc(odaKodu).collection(remoteCollectionName).onSnapshot(snapshot => {
+            // 6. Karşı Tarafın ICE Adaylarını Dinle
+            const remoteCollection = isHost ? 'guest' : 'host';
+            db.collection('gorusmeler').doc(odaKodu).collection(remoteCollection).onSnapshot(snapshot => {
                 snapshot.docChanges().forEach(change => {
                     if (change.type === 'added') {
                         const candidate = new RTCIceCandidate(change.doc.data());
