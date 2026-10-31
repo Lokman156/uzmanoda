@@ -4,15 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UzmanOda | Testlerim</title>
-    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-    <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
     <style>
         :root {
             --primary: #7B2CBF; 
@@ -28,158 +24,80 @@
             --radius-md: 12px;
             --nav-height: 70px;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         html, body { overflow-x: hidden; background-color: #FAFAFA; color: var(--text-dark); min-height: 100vh; }
-
-        /* --- ÜST NAVBAR --- */
-        .top-navbar {
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
-            background: var(--surface); border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 24px; z-index: 1000;
-        }
+        .top-navbar { position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 24px; z-index: 1000; }
         .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary); font-size: 22px; font-weight: 800; }
         .nav-logo img { height: 36px; border-radius: 8px; }
-        
-        .nav-actions { display: flex; align-items: center; gap: 20px; }
-        
-        .user-info-nav { display: flex; align-items: center; gap: 10px; }
-        .avatar-nav { width: 36px; height: 36px; background: var(--purple-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
+        .nav-actions { display: flex; align-items: center; gap: 16px; }
+        .notif-btn { position: relative; background: transparent; border: none; font-size: 24px; color: var(--text-dark); cursor: pointer; padding: 8px; border-radius: 50%; transition: 0.2s; }
+        .notif-btn:hover { background: var(--purple-light); color: var(--primary); }
+        .notif-badge { position: absolute; top: 2px; right: 2px; background: var(--danger); color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 10px; min-width: 18px; text-align: center; display: none; }
+        .notif-badge.show { display: block; }
+        .user-info-nav { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 10px; border-radius: 20px; transition: 0.2s; }
+        .user-info-nav:hover { background: var(--purple-light); }
+        .avatar-nav { width: 36px; height: 36px; background: var(--purple-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; overflow: hidden; }
+        .avatar-nav img { width: 100%; height: 100%; object-fit: cover; }
         .user-name { font-size: 15px; font-weight: 700; color: var(--text-dark); }
-
-        .btn-logout {
-            display: flex; align-items: center; gap: 6px;
-            background: #FEE2E2; color: var(--danger); border: none;
-            padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px;
-            cursor: pointer; transition: 0.2s;
-        }
+        .btn-logout { display: flex; align-items: center; gap: 6px; background: #FEE2E2; color: var(--danger); border: none; padding: 8px 16px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; }
         .btn-logout:hover { background: var(--danger); color: white; }
-
-        /* --- UYGULAMA GÖVDESİ --- */
         .app-body { display: flex; margin-top: var(--nav-height); min-height: calc(100vh - var(--nav-height)); }
-
-        /* --- SOL MENÜ (SIDEBAR) --- */
-        .sidebar {
-            width: 260px; background: var(--surface); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; padding: 24px;
-            position: fixed; top: var(--nav-height); bottom: 0; left: 0; z-index: 100;
-        }
-        .nav-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .nav-link {
-            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-            color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px;
-            border-radius: var(--radius-md); transition: 0.2s;
-        }
+        .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; position: fixed; top: var(--nav-height); bottom: 0; left: 0; z-index: 100; overflow-y: auto; }
+        .nav-menu { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 13px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 15px; border-radius: var(--radius-md); transition: 0.2s; position: relative; }
         .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--primary); }
         .nav-link i { font-size: 20px; }
-
-        /* --- ANA İÇERİK --- */
+        .nav-link .menu-badge { margin-left: auto; background: var(--danger); color: white; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 10px; }
         .main-wrapper { flex: 1; margin-left: 260px; padding: 40px; background: linear-gradient(135deg, #FDF2F8 0%, #F3E8FF 100%); min-height: calc(100vh - var(--nav-height)); }
         .panel-container { max-width: 1100px; margin: 0 auto; }
-        
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
-        .page-title h1 { font-size: 28px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; }
+        .page-title h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
         .page-title p { color: var(--text-muted); font-size: 15px; }
-
-        .btn-add {
-            background: linear-gradient(135deg, #7B2CBF, #C77DFF); color: white; border: none;
-            padding: 14px 24px; border-radius: var(--radius-md); font-weight: 700; font-size: 15px;
-            cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s;
-            box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3);
-        }
+        .btn-add { background: linear-gradient(135deg, #7B2CBF, #C77DFF); color: white; border: none; padding: 14px 24px; border-radius: var(--radius-md); font-weight: 700; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; box-shadow: 0 10px 20px rgba(123, 44, 191, 0.3); }
         .btn-add:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(123, 44, 191, 0.4); }
-
-        /* --- TEST KARTLARI (GRID) --- */
         .test-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-
-        .test-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 24px;
-            transition: 0.3s; display: flex; flex-direction: column;
-        }
+        .test-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; transition: 0.3s; display: flex; flex-direction: column; }
         .test-card:hover { border-color: var(--primary); box-shadow: 0 10px 30px rgba(123, 44, 191, 0.08); transform: translateY(-3px); }
-
-        .test-icon {
-            width: 48px; height: 48px; background: var(--purple-light); color: var(--primary);
-            border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            font-size: 24px; margin-bottom: 20px;
-        }
+        .test-icon { width: 48px; height: 48px; background: var(--purple-light); color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px; }
         .test-card h3 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
         .test-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; flex: 1; }
-        
         .test-meta { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 16px; margin-bottom: 16px; }
         .test-meta span { font-size: 13px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px; }
-        
         .card-actions { display: flex; gap: 8px; }
-        .btn-action {
-            flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 700; font-size: 13px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;
-        }
+        .btn-action { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; }
         .btn-send-test { background: var(--purple-light); color: var(--primary); }
         .btn-send-test:hover { background: #E0AAFF; }
         .btn-del-test { background: #FEE2E2; color: var(--danger); flex: 0 0 40px; }
         .btn-del-test:hover { background: #FCA5A5; color: white; }
-
         .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); background: var(--surface); border-radius: var(--radius-lg); border: 1px dashed var(--border); grid-column: 1 / -1; }
         .empty-state i { font-size: 50px; opacity: 0.3; margin-bottom: 15px; display: block; }
-
-        /* --- MODAL (TEST OLUŞTURMA) --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-            display: none; align-items: flex-start; justify-content: center; z-index: 2000;
-            padding: 40px 20px; overflow-y: auto;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; align-items: flex-start; justify-content: center; z-index: 2000; padding: 40px 20px; overflow-y: auto; }
         .modal-overlay.active { display: flex; }
-        .modal-content {
-            background: var(--surface); padding: 30px; border-radius: var(--radius-lg);
-            width: 100%; max-width: 600px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            margin: auto;
-        }
+        .modal-content { background: var(--surface); padding: 30px; border-radius: var(--radius-lg); width: 100%; max-width: 600px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); margin: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-header h3 { font-size: 22px; font-weight: 800; }
         .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
-        
         .input-group { margin-bottom: 16px; }
         .input-group label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
-        .modal-input { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); outline: none; font-size: 15px; }
+        .modal-input { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); outline: none; font-size: 15px; font-family: inherit; }
         .modal-input:focus { border-color: var(--primary); }
-
-        /* Soru Ekleme Alanı */
-        .question-box {
-            background: #FAFAFA; border: 1px dashed var(--border); padding: 20px;
-            border-radius: var(--radius-md); margin-bottom: 16px; position: relative;
-        }
+        .question-box { background: #FAFAFA; border: 1px dashed var(--border); padding: 20px; border-radius: var(--radius-md); margin-bottom: 16px; position: relative; }
         .btn-remove-q { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 18px; }
-        
-        .btn-add-q {
-            width: 100%; padding: 12px; background: var(--purple-light); color: var(--primary);
-            border: 1px dashed var(--primary); border-radius: var(--radius-md);
-            font-weight: 700; cursor: pointer; margin-bottom: 20px; transition: 0.2s;
-        }
+        .btn-add-q { width: 100%; padding: 12px; background: var(--purple-light); color: var(--primary); border: 1px dashed var(--primary); border-radius: var(--radius-md); font-weight: 700; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
         .btn-add-q:hover { background: #E0AAFF; }
-
         .btn-save { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
         .btn-save:hover { background: #5a189a; }
-
-        /* --- MOBİL UYUMLULUK --- */
         @media (max-width: 768px) {
-            .top-navbar { padding: 0 15px; }
+            .top-navbar { padding: 0 12px; }
             .user-name { display: none; }
-            .btn-logout { padding: 8px 12px; font-size: 13px; }
-            
+            .btn-logout { padding: 8px 10px; font-size: 12px; }
+            .nav-actions { gap: 8px; }
             .app-body { flex-direction: column; }
-            .sidebar { 
-                width: 100%; height: 70px; position: fixed; bottom: 0; top: auto; 
-                flex-direction: row; justify-content: space-around; align-items: center; 
-                padding: 10px; border-right: none; border-top: 1px solid var(--border); 
-                z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
-            }
+            .sidebar { width: 100%; height: 70px; position: fixed; bottom: 0; top: auto; flex-direction: row; justify-content: space-around; align-items: center; padding: 8px 5px; border-right: none; border-top: 1px solid var(--border); background: rgba(255,255,255,0.97); z-index: 1000; overflow-x: auto; overflow-y: hidden; }
             .nav-menu { flex-direction: row; gap: 0; width: 100%; justify-content: space-around; }
-            .nav-link { flex-direction: column; padding: 8px; font-size: 11px; gap: 4px; text-align: center; margin-bottom: 0; }
-            .nav-link i { font-size: 24px; }
-            
+            .nav-link { flex-direction: column; padding: 6px 4px; font-size: 10px; gap: 2px; text-align: center; margin-bottom: 0; min-width: 0; }
+            .nav-link i { font-size: 22px; }
+            .nav-link .menu-badge { position: absolute; top: 2px; right: 8px; margin-left: 0; }
             .main-wrapper { margin-left: 0; padding: 20px; padding-bottom: 90px; }
             .page-header { flex-direction: column; align-items: flex-start; }
             .btn-add { width: 100%; justify-content: center; }
@@ -188,48 +106,45 @@
 </head>
 <body>
 
-    <!-- ÜST NAVBAR -->
     <header class="top-navbar">
         <a href="index.html" class="nav-logo">
-            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda Logo">
+            <img src="https://i.hizliresim.com/ujivotuh.png" alt="UzmanOda">
             UzmanOda
         </a>
         <div class="nav-actions">
-            <div class="user-info-nav">
+            <button class="notif-btn" onclick="window.location.href='bildirimler.html'" title="Bildirimler">
+                <i class="ph ph-bell"></i>
+                <span class="notif-badge" id="notifBadge">0</span>
+            </button>
+            <div class="user-info-nav" onclick="window.location.href='uzman-profil.html'">
                 <div class="avatar-nav" id="profilAvatar">U</div>
                 <span class="user-name" id="profilIsim">Yükleniyor...</span>
             </div>
             <button onclick="cikisYap()" class="btn-logout">
-                <i class="ph ph-sign-out"></i> Çıkış Yap
+                <i class="ph ph-sign-out"></i> Çıkış
             </button>
         </div>
     </header>
 
-    <!-- UYGULAMA GÖVDESİ -->
     <div class="app-body">
-        
-        <!-- SOL MENÜ -->
         <aside class="sidebar">
             <div class="nav-menu">
-                <a href="uzman-panel.html" class="nav-link">
-                    <i class="ph ph-squares-four"></i> Panel
+                <a href="uzman-panel.html" class="nav-link"><i class="ph ph-squares-four"></i> Panel</a>
+                <a href="danisanlarim.html" class="nav-link"><i class="ph ph-users"></i> Danışanlar</a>
+                <a href="testlerim.html" class="nav-link active"><i class="ph ph-exam"></i> Testler</a>
+                <a href="randevular.html" class="nav-link"><i class="ph ph-calendar"></i> Randevular</a>
+                <a href="raporlar.html" class="nav-link"><i class="ph ph-chart-line-up"></i> Raporlar</a>
+                <a href="gecmis.html" class="nav-link"><i class="ph ph-clock-counter-clockwise"></i> Geçmiş</a>
+                <a href="bildirimler.html" class="nav-link">
+                    <i class="ph ph-bell"></i> Bildirimler
+                    <span class="menu-badge" id="menuBadge" style="display:none;">0</span>
                 </a>
-                <a href="danisanlarim.html" class="nav-link">
-                    <i class="ph ph-users"></i> Danışanlarım
-                </a>
-                <a href="testlerim.html" class="nav-link active">
-                    <i class="ph ph-exam"></i> Testlerim
-                </a>
-                <a href="gecmis.html" class="nav-link">
-                    <i class="ph ph-clock-counter-clockwise"></i> Geçmiş
-                </a>
+                <a href="uzman-profil.html" class="nav-link"><i class="ph ph-user-circle"></i> Profilim</a>
             </div>
         </aside>
 
-        <!-- ANA İÇERİK -->
         <main class="main-wrapper">
             <div class="panel-container">
-                
                 <div class="page-header">
                     <div class="page-title">
                         <h1>Testlerim</h1>
@@ -240,49 +155,39 @@
                     </button>
                 </div>
 
-                <!-- TEST LİSTESİ -->
                 <div class="test-grid" id="testListesi">
                     <div class="empty-state">
                         <i class="ph ph-spinner ph-spin"></i>
                         <p>Testler yükleniyor...</p>
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
 
-    <!-- TEST OLUŞTURMA MODALI -->
     <div class="modal-overlay" id="testModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Yeni Test Oluştur</h3>
                 <button class="modal-close" onclick="modalKapat()">&times;</button>
             </div>
-            
             <div class="input-group">
                 <label>Test Başlığı</label>
                 <input type="text" id="testBaslik" class="modal-input" placeholder="Örn: Stres Değerlendirme Ölçeği">
             </div>
-            
             <div class="input-group">
                 <label>Açıklama (İsteğe Bağlı)</label>
                 <input type="text" id="testAciklama" class="modal-input" placeholder="Danışana gösterilecek kısa açıklama">
             </div>
-
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
-
             <div id="sorularAlani"></div>
-
             <button class="btn-add-q" onclick="soruEkle()">
                 <i class="ph ph-plus"></i> Yeni Soru Ekle
             </button>
-
             <button class="btn-save" id="kaydetBtn" onclick="testiKaydet()">Testi Kaydet</button>
         </div>
     </div>
 
-    <!-- TEST GÖNDERME MODALI -->
     <div class="modal-overlay" id="gonderModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -290,18 +195,15 @@
                 <button class="modal-close" onclick="gonderModalKapat()">&times;</button>
             </div>
             <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Bu testi göndermek istediğiniz danışanı seçin.</p>
-            
             <div class="input-group">
                 <select id="gonderilecekDanisan" class="modal-input">
                     <option value="">Danışan seçin...</option>
                 </select>
             </div>
-
             <button class="btn-save" onclick="testGonder()">Danışana Gönder</button>
         </div>
     </div>
 
-    <!-- MOTOR (GERÇEK FIREBASE ENTEGRASYONU) -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCd0Qlv5o4iszdXoafF2w5UA8n5ZQMQK58",
@@ -311,61 +213,69 @@
             messagingSenderId: "71880478784",
             appId: "1:71880478784:web:6934d6ebfd49d46d51cfa5"
         };
-
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
         let aktifUzmanId = null;
         let unsubTestler = null;
+        let unsubBildirim = null;
         let testListesiGlobal = [];
         let gonderilecekTestId = null;
 
-        // 1. GÜVENLİK DUVARI VE PROFİL
         auth.onAuthStateChanged((user) => {
             if (user) {
                 aktifUzmanId = user.uid;
-                
                 db.collection('uzmanlar').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const data = doc.data();
                         document.getElementById('profilIsim').innerText = data.isim;
-                        document.getElementById('profilAvatar').innerText = data.isim.charAt(0).toUpperCase();
+                        if (data.fotoBase64) {
+                            document.getElementById('profilAvatar').innerHTML = `<img src="${data.fotoBase64}">`;
+                        } else {
+                            document.getElementById('profilAvatar').innerText = data.isim.charAt(0).toUpperCase();
+                        }
                     }
                 });
-
                 testleriDinle();
-
+                bildirimSayaciDinle();
             } else {
                 window.location.href = "uzman-giris.html";
             }
         });
 
-        // 2. TESTLERİ CANLI DİNLE
+        function bildirimSayaciDinle() {
+            if (unsubBildirim) unsubBildirim();
+            unsubBildirim = db.collection('bildirimler')
+                .where('aliciId', '==', aktifUzmanId)
+                .where('okundu', '==', false)
+                .onSnapshot(snapshot => {
+                    const count = snapshot.size;
+                    const badge = document.getElementById('notifBadge');
+                    const menuBadge = document.getElementById('menuBadge');
+                    badge.innerText = count;
+                    badge.classList.toggle('show', count > 0);
+                    menuBadge.innerText = count;
+                    menuBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                });
+        }
+
         function testleriDinle() {
             if (unsubTestler) unsubTestler();
-
             unsubTestler = db.collection('testler')
                 .where('uzmanId', '==', aktifUzmanId)
                 .onSnapshot((snapshot) => {
                     testListesiGlobal = [];
                     snapshot.forEach((doc) => {
-                        testListesiGlobal.push({
-                            id: doc.id,
-                            ...doc.data()
-                        });
+                        testListesiGlobal.push({ id: doc.id, ...doc.data() });
                     });
                     testleriCiz(testListesiGlobal);
-                }, (error) => {
-                    console.error("Test dinleme hatası:", error);
-                });
+                }, (error) => { console.error("Test dinleme hatası:", error); });
         }
 
-        // 3. TESTLERİ EKRANA ÇİZ
         function testleriCiz(liste) {
             const container = document.getElementById('testListesi');
             container.innerHTML = "";
-
             if (liste.length === 0) {
                 container.innerHTML = `<div class="empty-state">
                     <i class="ph ph-exam"></i>
@@ -373,10 +283,8 @@
                 </div>`;
                 return;
             }
-
             liste.forEach(test => {
                 const soruSayisi = test.sorular ? test.sorular.length : 0;
-                
                 const card = document.createElement('div');
                 card.className = 'test-card';
                 card.innerHTML = `
@@ -399,20 +307,13 @@
             });
         }
 
-        // 4. TEST SİLME
         function testSil(testId, baslik) {
             if (confirm("'" + baslik + "' testini silmek istediğinize emin misiniz?")) {
                 db.collection('testler').doc(testId).delete()
-                .then(() => {
-                    // onSnapshot otomatik günceller
-                })
-                .catch((error) => {
-                    alert("Silme hatası: " + error.message);
-                });
+                .catch((error) => { alert("Silme hatası: " + error.message); });
             }
         }
 
-        // 5. MODAL AÇ / KAPAT
         let soruIndex = 0;
         function modalAc() { 
             document.getElementById('testModal').classList.add('active');
@@ -424,13 +325,11 @@
         }
         function modalKapat() { document.getElementById('testModal').classList.remove('active'); }
 
-        // 6. DİNAMİK SORU EKLEME
         function soruEkle() {
             const container = document.getElementById('sorularAlani');
             const box = document.createElement('div');
             box.className = 'question-box';
             box.id = 'soru-' + soruIndex;
-            
             box.innerHTML = `
                 <button class="btn-remove-q" onclick="soruSil('soru-${soruIndex}')"><i class="ph ph-x-circle"></i></button>
                 <div class="input-group">
@@ -451,21 +350,17 @@
             if (el) el.remove();
         }
 
-        // 7. TESTİ KAYDET
         async function testiKaydet() {
             const baslik = document.getElementById('testBaslik').value.trim();
             const aciklama = document.getElementById('testAciklama').value.trim();
-            
             if(!baslik) { alert("Lütfen bir test başlığı girin."); return; }
 
             const sorular = document.querySelectorAll('.question-box');
             let soruListesi = [];
-            
             let hata = false;
             sorular.forEach((soru) => {
                 const metin = soru.querySelector('.soru-metin').value.trim();
                 const secenekStr = soru.querySelector('.soru-secenek').value.trim();
-                
                 if(metin && secenekStr) {
                     const secenekler = secenekStr.split(',').map(s => s.trim()).filter(s => s !== "");
                     soruListesi.push({ metin: metin, secenekler: secenekler });
@@ -473,7 +368,6 @@
                     hata = true;
                 }
             });
-
             if(hata) { alert("Lütfen her soru için hem metni hem de seçenekleri doldurun."); return; }
             if(soruListesi.length === 0) { alert("En az bir soru eklemelisiniz."); return; }
 
@@ -489,10 +383,8 @@
                     sorular: soruListesi,
                     olusturmaTarihi: firebase.firestore.FieldValue.serverTimestamp()
                 });
-
                 modalKapat();
             } catch (error) {
-                console.error("Kayıt hatası:", error);
                 alert("Test kaydedilirken bir hata oluştu.");
             } finally {
                 btn.innerText = "Testi Kaydet";
@@ -500,48 +392,33 @@
             }
         }
 
-        // 8. TEST GÖNDERME MODALI AÇ
         async function gonderModalAc(testId) {
             gonderilecekTestId = testId;
             const select = document.getElementById('gonderilecekDanisan');
             select.innerHTML = '<option value="">Danışan seçin...</option>';
-
             try {
-                const snapshot = await db.collection('uzmanDanisanlari')
-                    .where('uzmanId', '==', aktifUzmanId)
-                    .get();
-
+                const snapshot = await db.collection('uzmanDanisanlari').where('uzmanId', '==', aktifUzmanId).get();
                 if (snapshot.empty) {
                     alert("Önce 'Danışanlarım' sayfasından bir danışan eklemelisiniz.");
                     return;
                 }
-
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     select.innerHTML += `<option value="${data.danisanId}">${data.danisanIsim} (${data.danisanEmail})</option>`;
                 });
-
                 document.getElementById('gonderModal').classList.add('active');
-
-            } catch (error) {
-                console.error("Danışan çekme hatası:", error);
-            }
+            } catch (error) { console.error(error); }
         }
 
-        function gonderModalKapat() {
-            document.getElementById('gonderModal').classList.remove('active');
-        }
+        function gonderModalKapat() { document.getElementById('gonderModal').classList.remove('active'); }
 
-        // 9. TESTİ DANIŞANA GÖNDER (Bildirim + TestKaydı)
         async function testGonder() {
             const danisanId = document.getElementById('gonderilecekDanisan').value;
             if (!danisanId) { alert("Lütfen bir danışan seçin."); return; }
-
             const test = testListesiGlobal.find(t => t.id === gonderilecekTestId);
             if (!test) return;
 
             try {
-                // 1. Testi danışana ata
                 await db.collection('testGonderimleri').add({
                     testId: gonderilecekTestId,
                     uzmanId: aktifUzmanId,
@@ -550,8 +427,6 @@
                     durum: "bekliyor",
                     gonderimTarihi: firebase.firestore.FieldValue.serverTimestamp()
                 });
-
-                // 2. Danışana bildirim gönder
                 await db.collection('bildirimler').add({
                     aliciId: danisanId,
                     gonderenId: aktifUzmanId,
@@ -560,21 +435,15 @@
                     okundu: false,
                     tarih: firebase.firestore.FieldValue.serverTimestamp()
                 });
-
                 alert("Test danışana başarıyla gönderildi ve bildirim iletildi.");
                 gonderModalKapat();
-
             } catch (error) {
-                console.error("Gönderme hatası:", error);
                 alert("Test gönderilirken bir hata oluştu.");
             }
         }
 
-        // 10. ÇIKIŞ YAP
         function cikisYap() {
-            auth.signOut().then(() => {
-                window.location.href = "index.html";
-            });
+            auth.signOut().then(() => { window.location.href = "index.html"; });
         }
     </script>
 </body>
