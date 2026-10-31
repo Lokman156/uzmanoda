@@ -412,22 +412,33 @@
         }
 
         // 4. ODA AÇMA
-        function odaAc() {
-            const harfler = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            let kod = "";
-            for (let i = 0; i < 6; i++) { kod += harfler.charAt(Math.floor(Math.random() * harfler.length)); }
-            
-            const link = window.location.href.replace("uzman-panel.html", "gorusme-odasi.html?oda=" + kod);
-            
-            document.getElementById("odaLink").value = link;
-            document.getElementById("linkAlani").classList.add("active");
+        // 4. ODA AÇMA (Link üret + Odaya otomatik gir)
+function odaAc() {
+    const harfler = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let kod = "";
+    for (let i = 0; i < 6; i++) { kod += harfler.charAt(Math.floor(Math.random() * harfler.length)); }
+    
+    const link = window.location.href.replace("uzman-panel.html", "gorusme-odasi.html?oda=" + kod);
+    
+    // Linki ekranda göster
+    document.getElementById("odaLink").value = link;
+    document.getElementById("linkAlani").classList.add("active");
 
-            db.collection('aktifOdalar').doc(kod).set({
-                uzmanId: aktifUzmanId,
-                olusturmaTarihi: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
+    // Firebase'e oda kaydı
+    db.collection('aktifOdalar').doc(kod).set({
+        uzmanId: aktifUzmanId,
+        olusturmaTarihi: firebase.firestore.FieldValue.serverTimestamp()
+    });
 
+    // Linki otomatik panoya kopyala
+    navigator.clipboard.writeText(link);
+
+    // Uzmanı bilgilendir ve odaya sok
+    alert("Oda başarıyla oluşturuldu! Link panoya kopyalandı, danışanınıza gönderebilirsiniz.\n\nŞimdi siz de görüşme odasına yönlendiriliyorsunuz...");
+    
+    // Uzmanı aynı sekmede veya yeni sekmede odaya sok
+    window.open(link, '_blank'); 
+}
         // 5. LİNK KOPYALAMA
         function linkiKopyala() {
             const linkInput = document.getElementById("odaLink");
